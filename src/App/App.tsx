@@ -6,8 +6,9 @@ function App() {
 
   return (
  
- <><Footer />
+ <>
     <Hero />
+    <Footer />
  </>
   )
 }
