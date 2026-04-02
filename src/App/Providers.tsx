@@ -1,9 +1,10 @@
 import { type ReactNode } from "react";
+import { BrowserRouter } from "react-router-dom";
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 export default function Providers({ children }: ProvidersProps) {
-  return <>{children}</>;
+  return <BrowserRouter>{children}</BrowserRouter>
 }
