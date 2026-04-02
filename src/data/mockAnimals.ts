@@ -17,7 +17,7 @@ export const mockAnimals: Animal[] = [
     breed: "Bulldog",
     image: "https://placehold.co/200x200",
     name: "Doris",
-    age: 3,
+    age: 2,
     keyTraits: "Lat",
   },
 
@@ -27,7 +27,7 @@ export const mockAnimals: Animal[] = [
     breed: "Norsk Skogskatt",
     image: "https://placehold.co/200x200",
     name: "Simba",
-    age: 3,
+    age: 5,
     keyTraits: "Självständig",
   },
 
@@ -37,7 +37,7 @@ export const mockAnimals: Animal[] = [
     breed: "Maine Coon",
     image: "https://placehold.co/200x200",
     name: "Mjausalot",
-    age: 3,
+    age: 12,
     keyTraits: "Blyg",
   },
 
@@ -57,7 +57,7 @@ export const mockAnimals: Animal[] = [
     breed: "Mjölksnok",
     image: "https://placehold.co/200x200",
     name: "Wiggles",
-    age: 3,
+    age: 8,
     keyTraits: "Lugn",
   },
 
@@ -67,7 +67,7 @@ export const mockAnimals: Animal[] = [
     breed: "Grå jako",
     image: "https://placehold.co/200x200",
     name: "Merlin",
-    age: 3,
+    age: 15,
     keyTraits: "Pratglad",
   },
 
@@ -77,7 +77,7 @@ export const mockAnimals: Animal[] = [
     breed: "Kakadua",
     image: "https://placehold.co/200x200",
     name: "Merlin",
-    age: 3,
+    age: 20,
     keyTraits: "Skygg",
   },
 ];
