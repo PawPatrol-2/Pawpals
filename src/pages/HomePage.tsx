@@ -3,6 +3,7 @@ export default function HomePage() {
         <main>
             <h2>Välkommen till PawPals</h2>
             <p>Hitta ditt nya husdjur </p>
+            
         </main>
     )
 }
