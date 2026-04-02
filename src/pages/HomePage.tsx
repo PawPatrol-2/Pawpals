@@ -1,3 +1,4 @@
+
 import Hero from '../components/ui/hero/Hero';
 import Adoption from "../components/Adoption/adoption";
 
