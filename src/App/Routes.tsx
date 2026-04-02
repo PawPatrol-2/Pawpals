@@ -2,7 +2,7 @@ import {Routes, Route } from "react-router-dom"
 import HomePage from "../pages/HomePage"
 import ExplorePage from "../pages/ExplorePage"
 import OrganizationsPage from "../pages/OrganizationsPage"
-import LoginPage from "../pages/LoginPage"
+import LoginPage from "../pages/Logga in/LoginPage"
 
 
 export default function AppRoutes() {
