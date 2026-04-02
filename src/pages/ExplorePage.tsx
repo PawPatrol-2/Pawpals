@@ -1,8 +1,11 @@
+import AnimalGrid from "../components/AnimalGrid/AnimalGrid";
+import { mockAnimals } from "../data/mockAnimals";
+
+
 export default function ExplorePage() {
     return(
         <main>
-            <h2>Utforska</h2>
-            <p>Bläddra bland djur som söker ett hem</p>
+            <AnimalGrid animals={mockAnimals} />
         </main>
     )
 }
