@@ -47,3 +47,30 @@
   font-size: 1.5rem;
   margin: 1rem 0 0;
 }
+
+.searchForm {
+  display: flex;
+  /* gap: 0.75rem; */
+  width: 100%;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border-radius: 20px 0 0 20px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  font-size: 1rem;
+}
+
+.searchButton {
+  padding: 0.95rem 1.4rem;
+  border-radius: 0 20px 20px 0;
+  border: none;
+  background: #f37421;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
