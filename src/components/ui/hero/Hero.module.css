@@ -22,23 +22,55 @@
 
 .textOverlay {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(220px, 30vw, 340px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
+  padding: 1.5rem;
   color: #1A1714;
   text-align: center;
-  background: rgba(0, 0, 0, 0.25);
+  /* background: rgba(119, 99, 99, 0.9); */
+  /* border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18); */
 }
 
 .textOverlay h1 {
-  font-size: 5rem;
+  font-size: 2.8rem;
   margin: 0;
 }
 
 .textOverlay p {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   margin: 1rem 0 0;
+}
+
+.searchForm {
+  display: flex;
+  /* gap: 0.75rem; */
+  width: 100%;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0.95rem 1rem;
+  border-radius: 20px 0 0 20px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  font-size: 1rem;
+}
+
+.searchButton {
+  padding: 0.95rem 1.4rem;
+  border-radius: 0 20px 20px 0;
+  border: none;
+  background: #f37421;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
 }
