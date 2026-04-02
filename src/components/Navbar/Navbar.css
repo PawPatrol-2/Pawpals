@@ -1,0 +1,43 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  background: var(--white);
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--black);
+  text-decoration: none;
+}
+
+.navbar-logo .paw {
+  color: var(--orange);
+  font-size: 1.4rem;
+}
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-left: auto;
+  list-style: none;
+  margin-block: 0;
+  padding: 0;
+}
+
+.navbar-nav a {
+  color: var(--gray-700);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.navbar-nav a:hover {
+  color: var(--orange);
+}
