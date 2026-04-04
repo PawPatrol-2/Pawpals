@@ -10,6 +10,6 @@ export default function HomePage() {
       <AnimalGrid animals={mockAnimals} />
       <h2>Välkommen till PawPals</h2>
       <p>Hitta ditt nya husdjur </p>
+      <Adoption />
     </main>
-  );
-}
+  )}
