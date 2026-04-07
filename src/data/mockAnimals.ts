@@ -43,7 +43,7 @@ export const mockAnimals: Animal[] = [
 
   {
     id: "5",
-    type: "Orm",
+    type: "Reptile",
     breed: "Kungspyton",
     image: "https://placehold.co/200x200",
     name: "Nyx",
@@ -53,7 +53,7 @@ export const mockAnimals: Animal[] = [
 
   {
     id: "6",
-    type: "Orm",
+    type: "Reptile",
     breed: "Mjölksnok",
     image: "https://placehold.co/200x200",
     name: "Wiggles",
@@ -63,7 +63,7 @@ export const mockAnimals: Animal[] = [
 
   {
     id: "7",
-    type: "Fågel",
+    type: "Bird",
     breed: "Grå jako",
     image: "https://placehold.co/200x200",
     name: "Merlin",
@@ -73,7 +73,7 @@ export const mockAnimals: Animal[] = [
 
   {
     id: "8",
-    type: "Fågel",
+    type: "Bird",
     breed: "Kakadua",
     image: "https://placehold.co/200x200",
     name: "Merlin",
