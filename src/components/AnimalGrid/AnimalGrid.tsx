@@ -1,6 +1,6 @@
-import type { Animal } from "../../types/Animal";
 import AnimalCard from "../AnimalCard/AnimalCard";
 import styles from "./AnimalGrid.module.css";
+import type { Animal } from "../../types/Animal";
 
 type AnimalGridProps = {
   animals: Animal[];
@@ -14,7 +14,7 @@ function AnimalGrid({ animals }: AnimalGridProps) {
   return (
     <section className={styles.grid}>
       {animals.map((animal) => (
-        <AnimalCard key={animal.id} animal={animal} />
+        <AnimalCard key={animal._id} animal={animal} />
       ))}
     </section>
   );

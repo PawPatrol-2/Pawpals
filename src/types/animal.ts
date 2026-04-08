@@ -1,5 +1,5 @@
 export type Animal = {
-  id: string;
+  _id: string;
   type: string;
   breed: string;
   image: string;
