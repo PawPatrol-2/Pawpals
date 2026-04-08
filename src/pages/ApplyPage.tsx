@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styles from "./ApplyPage.module.css";
+import Button from "../components/Button/Button";
 
 interface ApplicationForm {
   housingType: string;
@@ -72,6 +73,80 @@ const ApplyPage = () => {
             Nej
           </label>
         </div>
+        <label className={styles.formLabel}>Finns det barn i hemmet?</label>
+        <div className={styles.radioGroup}>
+          <label>
+            <input
+              type="radio"
+              name="hasChildren"
+              checked={formData.hasChildren === true}
+              onChange={() => setFormData({ ...formData, hasChildren: true })}
+            />{" "}
+            Ja
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="hasChildren"
+              checked={formData.hasChildren === false}
+              onChange={() => setFormData({ ...formData, hasChildren: false })}
+            />{" "}
+            Nej
+          </label>
+        </div>
+
+        <label className={styles.formLabel}>
+          Finns det allergier i hemmet?
+        </label>
+        <div className={styles.radioGroup}>
+          <label>
+            <input
+              type="radio"
+              name="hasAllergies"
+              checked={formData.hasAllergies === true}
+              onChange={() => setFormData({ ...formData, hasAllergies: true })}
+            />{" "}
+            Ja
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="hasAllergies"
+              checked={formData.hasAllergies === false}
+              onChange={() => setFormData({ ...formData, hasAllergies: false })}
+            />{" "}
+            Nej
+          </label>
+        </div>
+
+        <label className={styles.formLabel}>Motivering</label>
+        <textarea
+          className={styles.formTextarea}
+          value={formData.motivation}
+          onChange={(e) =>
+            setFormData({ ...formData, motivation: e.target.value })
+          }
+          placeholder="Berätta varför du vill adoptera..."
+        />
+
+        <div className={styles.gdprConsent}>
+          <input
+            type="checkbox"
+            checked={formData.gdprConsent}
+            onChange={(e) =>
+              setFormData({ ...formData, gdprConsent: e.target.checked })
+            }
+          />
+          <label className={styles.formLabel}>
+            Jag godkänner att mina uppgifter behandlas enligt GDPR. Uppgifterna
+            används endast för att hantera din adoptionsansökan.
+          </label>
+        </div>
+        <Button
+          type="submit"
+          text="Skicka ansökan"
+          className={styles.submitButton}
+        />
       </form>
     </main>
   );
