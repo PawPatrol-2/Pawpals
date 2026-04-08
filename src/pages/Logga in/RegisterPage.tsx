@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import './LoginPage.css';
 
 export default function RegisterPage() {
+    const [email, setEmail] = useState<string>('')
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [message, setMessage] = useState<string>('')
@@ -13,7 +14,7 @@ export default function RegisterPage() {
         const res = await fetch('http://localhost:3000/api/users/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json'},
-            body: JSON.stringify({username, password})
+            body: JSON.stringify({ email, username, password })
         })
 
         const data = await res.json();
@@ -27,12 +28,23 @@ export default function RegisterPage() {
             <p>Skapa ett nytt konto</p>
             <form onSubmit={handleRegister}>
                 <div>
+                    <label htmlFor="email">E-post:</label>
+                    <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
                     <label htmlFor="username">Användarnamn:</label>
                     <input
                         id="username"
                         type="text"
                         value={username}
                         onChange={e => setUsername(e.target.value)}
+                        required
                     />
                 </div>
                 <div>
@@ -42,6 +54,7 @@ export default function RegisterPage() {
                         type="password"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
+                        required
                     />
                 </div>
                 <div>

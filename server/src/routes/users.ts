@@ -1,4 +1,3 @@
-// Route-definition för användare
 import express from 'express';
 const router = express.Router();
 import { loginUser } from '../controllers/userController';
