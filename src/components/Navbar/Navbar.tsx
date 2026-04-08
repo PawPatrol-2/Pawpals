@@ -19,7 +19,7 @@ export default function Navbar() {
           <div className="navbar-profile">
             <img
               src={user.avatarUrl || "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
-              alt="avatar"
+              alt="Profilbild"
             />
             <span>{user.username}</span>
           </div>

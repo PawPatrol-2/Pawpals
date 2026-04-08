@@ -6,4 +6,7 @@ export type Animal = {
   name: string;
   age: number;
   keyTraits: string;
+  personality: string;
+  description: string;
+  likes: string[];
 };
