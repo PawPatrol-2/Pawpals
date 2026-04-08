@@ -2,17 +2,10 @@
 import express from 'express';
 import usersRouter from './routes/users'
 import animalsRouter from './routes/animals'
-import mongoose from 'mongoose';
 import cors from 'cors'
+import { connectDB } from "./db";
 
-mongoose.connect('mongodb://localhost:27017/pawpals', {
-  
-}).then(() => {
-    console.log('Ansluten till MongoDB');
-}).catch((err: unknown) => {
-    console.error('MongoSB-anslutningsfel', err)
-})
-
+connectDB();
 
 const app = express();
 
