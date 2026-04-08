@@ -41,6 +41,21 @@ export const loginUser = async (req: Request, res: Response) => {
 export const registerUser = async (req: Request, res: Response) => {
     try {
         const { email, username, password } = req.body;
+
+        const existingUsername = await User.findOne({ username });
+        if (existingUsername) {
+            return res.status(400).json({
+                message: "Användarnamnet är taget."
+            });
+        }
+
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+            return res.status(400).json({
+                message: "E-postadressen är redan registrerad."
+            });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = new User({ email, username, password: hashedPassword });
         await user.save();
@@ -50,11 +65,7 @@ export const registerUser = async (req: Request, res: Response) => {
             user: { email: user.email, username: user.username }
         });
     } catch (err: unknown) {
-        if (typeof err === "object" && err !== null && "code" in err && (err as { code?: number }).code === 11000) {
-            res.status(400).json({
-                message: "E-postadressen är redan registrerad."
-            });
-        } else if (err instanceof Error) {
+        if (err instanceof Error) {
             res.status(500).json({
                 message: "Något gick fel", error: err.message
             });
