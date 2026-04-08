@@ -5,8 +5,8 @@ export const getAnimals = async (_req: Request, res: Response) => {
   try {
     const animals = await Animal.find();
     res.json(animals);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch animals" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch animals", err });
   }
 };
 
@@ -19,8 +19,8 @@ export const getAnimalById = async (req: Request, res: Response) => {
     }
 
     res.json(animal);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch animal" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch animal", err });
   }
 };
 
@@ -33,8 +33,8 @@ export const deleteAnimal = async (req: Request, res: Response) => {
     }
 
     res.json({ message: "Animal deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to delete animal" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete animal", err });
   }
 };
 
@@ -42,7 +42,7 @@ export const createAnimal = async (req: Request, res: Response) => {
   try {
     const newAnimal = await Animal.create(req.body);
     res.status(201).json(newAnimal);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to create animal" });
+  } catch (err) {
+    res.status(400).json({ error: "Failed to create animal", err });
   }
 };
