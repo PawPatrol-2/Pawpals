@@ -7,11 +7,13 @@ import Footer from '../components/footer/footer';
 function App() {
 
 return (
- <>
+ <div className="appLayout">
    <Navbar />
-   <AppRoutes />
+   <main className="appContent">
+    <AppRoutes />
+   </main>
    <Footer />
- </>
+ </div>
 );
 
 };

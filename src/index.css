@@ -14,3 +14,13 @@
   --black: #1a1714;
   --red: #e84545;
 }
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}

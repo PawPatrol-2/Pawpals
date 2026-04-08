@@ -2,10 +2,10 @@
   display: flex;
   justify-content: space-between;
   background-color: #eeece9;
-  bottom: 0;
   width: 100%;
   height: 5rem;
   align-items: center;
+  margin-top: auto;
 }
 
 .links {

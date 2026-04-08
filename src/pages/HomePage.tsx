@@ -2,7 +2,7 @@ import Hero from "../components/ui/hero/Hero";
 import AnimalGrid from "../components/AnimalGrid/AnimalGrid";
 import Adoption from "../components/Adoption/adoption";
 import { useEffect, useState } from "react";
-import type { Animal } from "../types/Animal";
+import type { Animal } from "../types/animal";
 
 export default function HomePage() {
   const [animals, setAnimals] = useState<Animal[]>([]);

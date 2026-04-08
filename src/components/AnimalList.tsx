@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AnimalCard from "./AnimalCard/AnimalCard";
-import type { Animal } from "../types/Animal";
+import type { Animal } from "../types/animal";
 
 function AnimalList() {
   const [animals, setAnimals] = useState<Animal[]>([]);

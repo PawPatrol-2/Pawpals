@@ -5,6 +5,7 @@ import OrganizationsPage from "../pages/OrganizationsPage";
 import LoginPage from "../pages/Logga in/LoginPage";
 import RegisterPage from "../pages/Logga in/RegisterPage";
 import ApplyPage from "../pages/ApplyPage";
+import AnimalDetailPage from "../pages/AnimalDetailPage";
 
 export default function AppRoutes() {
   return (
@@ -15,6 +16,7 @@ export default function AppRoutes() {
       <Route path="/logga-in" element={<LoginPage />} />
       <Route path="/registrera" element={<RegisterPage />} />
       <Route path="/ansok" element={<ApplyPage />} />
+      <Route path="/djur/:id" element={<AnimalDetailPage />} />
     </Routes>
   );
 }
