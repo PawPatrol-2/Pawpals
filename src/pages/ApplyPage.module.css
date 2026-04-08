@@ -27,3 +27,11 @@
   display: flex;
   gap: 24px;
 }
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  opacity: 0.8;
+}

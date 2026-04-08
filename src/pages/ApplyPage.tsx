@@ -8,6 +8,7 @@ interface ApplicationForm {
   hasAnimalExperience: boolean;
   hasChildren: boolean;
   hasAllergies: boolean;
+  allergyDetails: string;
   motivation: string;
   gdprConsent: boolean;
 }
@@ -19,9 +20,11 @@ const ApplyPage = () => {
     hasAnimalExperience: false,
     hasChildren: false,
     hasAllergies: false,
+    allergyDetails: "",
     motivation: "",
     gdprConsent: false,
   });
+
   return (
     <main>
       <h1>Ansök om adoption</h1>
@@ -39,6 +42,7 @@ const ApplyPage = () => {
           <option value="villa">Villa</option>
           <option value="radhus">Radhus</option>
         </select>
+
         <label className={styles.labelName}>Storlek på bostad (kvm)</label>
         <input
           type="number"
@@ -47,9 +51,10 @@ const ApplyPage = () => {
           onChange={(e) =>
             setFormData({ ...formData, housingSize: Number(e.target.value) })
           }
-        ></input>
+        />
+
         <label className={styles.formLabel}>Har du erfarenhet av djur?</label>
-        <div className="radio-group">
+        <div className={styles.radioGroup}>
           <label>
             <input
               type="radio"
@@ -73,6 +78,7 @@ const ApplyPage = () => {
             Nej
           </label>
         </div>
+
         <label className={styles.formLabel}>Finns det barn i hemmet?</label>
         <div className={styles.radioGroup}>
           <label>
@@ -119,6 +125,21 @@ const ApplyPage = () => {
           </label>
         </div>
 
+        {formData.hasAllergies && (
+          <div>
+            <label className={styles.formLabel}>Beskriv allergierna</label>
+            <input
+              type="text"
+              className={styles.formInput}
+              value={formData.allergyDetails}
+              onChange={(e) =>
+                setFormData({ ...formData, allergyDetails: e.target.value })
+              }
+              placeholder="T.ex. pälsdjursallergi..."
+            />
+          </div>
+        )}
+
         <label className={styles.formLabel}>Motivering</label>
         <textarea
           className={styles.formTextarea}
@@ -142,6 +163,7 @@ const ApplyPage = () => {
             används endast för att hantera din adoptionsansökan.
           </label>
         </div>
+
         <Button
           type="submit"
           text="Skicka ansökan"
