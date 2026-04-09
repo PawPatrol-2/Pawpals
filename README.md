@@ -11,4 +11,7 @@
 
 Färgkoder:
 <img width="712" height="166" alt="Screenshot 2026-04-01 at 09 15 37" src="https://github.com/user-attachments/assets/16697ba6-f098-44cd-b905-4fc3778abcd3" />
+
 <img width="548" height="404" alt="Screenshot 2026-04-01 at 09 16 24" src="https://github.com/user-attachments/assets/4c2ac44e-8c33-4568-8448-d84f67ef9dc5" />
+
+<img width="763" height="355" alt="Screenshot 2026-04-09 at 08 09 07" src="https://github.com/user-attachments/assets/d15588aa-6103-49cb-92b7-53b4f1c72176" />
