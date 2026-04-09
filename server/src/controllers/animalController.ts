@@ -3,7 +3,9 @@ import { Animal } from "../models/animal";
 
 export const getAnimals = async (_req: Request, res: Response) => {
   try {
+    console.log("Mongoose collection:", Animal.collection.collectionName);
     const animals = await Animal.find();
+    console.log("Hittade dessa djur i databasen:", animals);
     res.json(animals);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch animals", err });

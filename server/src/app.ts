@@ -1,4 +1,4 @@
-// Express app setup
+
 import express from 'express';
 import usersRouter from './routes/users'
 import animalsRouter from './routes/animals'
