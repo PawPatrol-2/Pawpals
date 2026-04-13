@@ -27,7 +27,7 @@ const ApplyPage = () => {
 
   return (
     <main>
-      <h1>Ansök om adoption</h1>
+      <h1 className={styles.pageTitle}>Ansök om adoption</h1>
       <form className={styles.form}>
         <label className={styles.housingType}>Boendetyp</label>
         <select

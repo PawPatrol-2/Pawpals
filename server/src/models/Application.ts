@@ -19,7 +19,7 @@ const ApplicationSchema = new Schema<IApplication>({
   hasAnimalExperience: { type: Boolean, required: true },
   hasChildren: { type: Boolean, required: true },
   hasAllergies: { type: Boolean, required: true },
-  allergyDetails: { type: String, required: true },
+  allergyDetails: { type: String, required: false },
   motivation: { type: String, required: true },
   gdprConsent: { type: Boolean, required: true },
   createdAt: { type: Date, default: Date.now },
