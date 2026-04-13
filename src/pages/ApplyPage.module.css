@@ -1,0 +1,37 @@
+.form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.housingType,
+.labelName,
+.formLabel {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.formHousetype,
+.formInput {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.radioGroup {
+  display: flex;
+  gap: 24px;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  opacity: 0.8;
+}
