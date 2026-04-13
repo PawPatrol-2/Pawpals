@@ -1,0 +1,97 @@
+.page {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem 2rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  color: #5f5b57;
+}
+
+.stateMessage {
+  margin-top: 1.5rem;
+  background: #fff;
+  border: 1px solid #e4dfdb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.error {
+  color: #9a1b1b;
+  border-color: #efc9c9;
+  background: #fff4f4;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  background: #fff;
+  border: 1px solid #e4dfdb;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+}
+
+.animalName {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.meta {
+  margin-top: 0.35rem;
+  color: #6b6661;
+  font-size: 0.95rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.submitted {
+  background: #f6e7bc;
+  color: #5b3f00;
+}
+
+.reviewing {
+  background: #cfe5ff;
+  color: #0f3f70;
+}
+
+.approved {
+  background: #d6f3de;
+  color: #135726;
+}
+
+.rejected {
+  background: #ffd9d9;
+  color: #7d1a1a;
+}
+
+@media (max-width: 700px) {
+  .card {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+}

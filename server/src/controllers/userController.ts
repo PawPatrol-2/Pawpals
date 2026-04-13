@@ -1,6 +1,16 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { AuthenticatedRequest } from '../middleware/auth';
+
+const getJwtSecret = (): string => {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error('JWT_SECRET saknas i miljövariablerna');
+    }
+    return secret;
+}
 
 export const loginUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -20,11 +30,54 @@ export const loginUser = async (req: Request, res: Response) => {
             });
         }
 
+        const token = jwt.sign(
+            { userId: user.id },
+            getJwtSecret(),
+            { expiresIn: '7d' }
+        );
+
         res.status(200).json({
             message: "Inloggningen lyckades!",
-            username: user.username
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email
+            }
         });
 
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            res.status(500).json({
+                message: "Något gick fel", error: err.message
+            });
+        } else {
+            res.status(500).json({
+                message: "Något gick fel", error: err
+            });
+        }
+    }
+};
+
+export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ message: "Obehörig användare" });
+        }
+
+        const user = await User.findById(userId).select('_id username email');
+        if (!user) {
+            return res.status(404).json({ message: "Användaren hittades inte" });
+        }
+
+        res.status(200).json({
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email
+            }
+        });
     } catch (err: unknown) {
         if (err instanceof Error) {
             res.status(500).json({

@@ -1,67 +1,137 @@
-
 import React, { useState } from 'react';
-import './LoginPage.css';
+import { Link } from 'react-router-dom';
+import './RegisterPage.css';
+
+type AccountType = 'adopter' | 'organization';
 
 export default function RegisterPage() {
+    const [accountType, setAccountType] = useState<AccountType>('adopter')
     const [email, setEmail] = useState<string>('')
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
+    const [gdprConsent, setGdprConsent] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+    const [isSuccess, setIsSuccess] = useState<boolean>(false)
 
     const handleRegister = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const res = await fetch('http://localhost:3000/api/users/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json'},
-            body: JSON.stringify({ email, username, password })
-        })
+        if (!gdprConsent) {
+            setIsSuccess(false)
+            setMessage('Du behöver godkänna GDPR för att skapa konto.')
+            return
+        }
 
-        const data = await res.json();
-        setMessage(data.message)
+        try {
+            setIsSubmitting(true)
+            const res = await fetch('http://localhost:3000/api/users/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, username, password, accountType })
+            })
+
+            const data = await res.json();
+            setIsSuccess(res.ok)
+            setMessage(data.message)
+
+            if (res.ok) {
+                setPassword('')
+            }
+        } catch (_error) {
+            setIsSuccess(false)
+            setMessage('Något gick fel. Försök igen.')
+        } finally {
+            setIsSubmitting(false)
+        }
 
     }
 
     return (
-        <div className="LoginPage">
-            <h2>Registrera</h2>
-            <p>Skapa ett nytt konto</p>
-            <form onSubmit={handleRegister}>
-                <div>
-                    <label htmlFor="email">E-post:</label>
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        required
-                    />
+        <main className="registerPage">
+            <section className="registerCard">
+                <h1>Skapa konto</h1>
+                <p className="registerSubtitle">Välj vilken typ av konto du vill skapa</p>
+
+                <div className="accountTypeGrid" role="radiogroup" aria-label="Kontotyp">
+                    <button
+                        type="button"
+                        className={`accountTypeCard ${accountType === 'adopter' ? 'active' : ''}`}
+                        onClick={() => setAccountType('adopter')}
+                        aria-pressed={accountType === 'adopter'}
+                    >
+                        <span className="icon" aria-hidden="true">🐾</span>
+                        <span className="cardTitle">Adoptör</span>
+                        <span className="cardSubtitle">Jag vill adoptera</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`accountTypeCard ${accountType === 'organization' ? 'active' : ''}`}
+                        onClick={() => setAccountType('organization')}
+                        aria-pressed={accountType === 'organization'}
+                    >
+                        <span className="icon" aria-hidden="true">🏢</span>
+                        <span className="cardTitle">Organisation</span>
+                        <span className="cardSubtitle">Vi listar djur</span>
+                    </button>
                 </div>
-                <div>
-                    <label htmlFor="username">Användarnamn:</label>
+
+                <form onSubmit={handleRegister} className="registerForm">
+                    <label htmlFor="username">Namn</label>
                     <input
                         id="username"
                         type="text"
                         value={username}
                         onChange={e => setUsername(e.target.value)}
+                        placeholder="Ditt namn"
                         required
                     />
-                </div>
-                <div>
-                    <label htmlFor="password">Lösenord:</label>
+
+                    <label htmlFor="email">E-post</label>
+                    <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        placeholder="din@email.se"
+                        required
+                    />
+
+                    <label htmlFor="password">Lösenord</label>
                     <input
                         id="password"
                         type="password"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
+                        placeholder="••••••••"
                         required
                     />
-                </div>
-                <div>
-                    <button className='loginbutton' type="submit">Registrera</button>
-                </div>
-            </form>
-            <div>{message}</div>
-        </div>
+
+                    <label className="gdprBox" htmlFor="gdprConsent">
+                        <input
+                            id="gdprConsent"
+                            type="checkbox"
+                            checked={gdprConsent}
+                            onChange={(e) => setGdprConsent(e.target.checked)}
+                        />
+                        <span>Jag samtycker till behandling av mina personuppgifter (GDPR)</span>
+                    </label>
+
+                    <button className='registerButton' type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? 'Skapar konto...' : 'Skapa konto'}
+                    </button>
+                </form>
+
+                {message && (
+                    <p className={`registerMessage ${isSuccess ? 'success' : 'error'}`}>
+                        {message}
+                    </p>
+                )}
+
+                <p className="loginHint">
+                    Har du redan konto? <Link to="/logga-in">Logga in</Link>
+                </p>
+            </section>
+        </main>
     );
 }
