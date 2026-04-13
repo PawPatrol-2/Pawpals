@@ -1,4 +1,10 @@
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import styles from "./OrganizationDashboardPage.module.css";
 
 type SectionKey = "overview" | "animals" | "applications" | "add-animal";
@@ -20,13 +26,24 @@ type ApplicationItem = {
 };
 
 type AnimalItem = {
-  id: number;
+  id: number | string;
   name: string;
   species: string;
   age: string;
   image: string;
   description: string;
   status: "Tillgänglig" | "Reserverad" | "Adopterad";
+};
+
+type AnimalFormState = {
+  type: string;
+  breed: string;
+  name: string;
+  age: string;
+  keyTraits: string;
+  personality: string;
+  description: string;
+  imagePreview: string;
 };
 
 const initialApplications: ApplicationItem[] = [
@@ -111,14 +128,62 @@ export default function OrganizationDashboardPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>("overview");
   const [applications, setApplications] = useState(initialApplications);
   const [animals, setAnimals] = useState(initialAnimals);
-  const [formData, setFormData] = useState({
-    name: "",
-    species: "",
+  const [formData, setFormData] = useState<AnimalFormState>({
+    type: "",
     breed: "",
+    name: "",
     age: "",
-    image: "",
+    keyTraits: "",
+    personality: "",
     description: "",
+    imagePreview: "",
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
+
+  useEffect(() => {
+    const loadAnimals = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/animals");
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as Array<{
+          _id?: string;
+          id?: string;
+          type: string;
+          breed: string;
+          image: string;
+          name: string;
+          age: number;
+          keyTraits: string;
+          personality?: string;
+          description?: string;
+        }>;
+
+        if (Array.isArray(data) && data.length > 0) {
+          setAnimals(
+            data.map((animal, index) => ({
+              id: animal._id ?? animal.id ?? `animal-${index + 1}`,
+              name: animal.name,
+              species: animal.type,
+              age: `${animal.age} år`,
+              image: animal.image,
+              description: animal.description || animal.keyTraits,
+              status: "Tillgänglig",
+            })),
+          );
+        }
+      } catch {
+        // Keep the local mock animals if the API is unavailable.
+      }
+    };
+
+    loadAnimals();
+  }, []);
 
   const stats = useMemo(() => {
     const reviewCount = applications.filter(
@@ -177,34 +242,150 @@ export default function OrganizationDashboardPage() {
     );
   };
 
-  const handleAddAnimal = (event: FormEvent<HTMLFormElement>) => {
+  const openAnimalModal = () => {
+    setSubmitMessage("");
+    setIsModalOpen(true);
+    setActiveSection("add-animal");
+  };
+
+  const closeAnimalModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSectionClick = (key: SectionKey) => {
+    setActiveSection(key);
+
+    if (key === "add-animal") {
+      openAnimalModal();
+    } else {
+      closeAnimalModal();
+    }
+  };
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      setFormData((current) => ({ ...current, imagePreview: "" }));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFormData((current) => ({
+        ...current,
+        imagePreview: typeof reader.result === "string" ? reader.result : "",
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddAnimal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setAnimals((current) => [
-      {
-        id: Date.now(),
-        name: formData.name,
-        species: formData.species,
-        age: formData.age,
-        image:
-          formData.image ||
-          "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-        description: formData.description,
-        status: "Tillgänglig",
-      },
-      ...current,
-    ]);
+    if (
+      !formData.name ||
+      !formData.type ||
+      !formData.breed ||
+      !formData.age ||
+      !formData.keyTraits ||
+      !formData.description
+    ) {
+      setSubmitMessage("Fyll i alla obligatoriska fält.");
+      return;
+    }
 
-    setFormData({
-      name: "",
-      species: "",
-      breed: "",
-      age: "",
-      image: "",
-      description: "",
-    });
+    setIsSubmitting(true);
+    setSubmitMessage("");
 
-    setActiveSection("animals");
+    try {
+      const response = await fetch("http://localhost:3000/api/animals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: formData.type,
+          breed: formData.breed,
+          image:
+            formData.imagePreview ||
+            "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
+          name: formData.name,
+          age: Number(formData.age),
+          keyTraits: formData.keyTraits,
+          personality: formData.personality,
+          description: formData.description,
+          likes: [],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          err?: unknown;
+        };
+
+        if (response.status === 413) {
+          setSubmitMessage(
+            "Bilden är för stor att skicka. Testa en mindre bildfil (eller komprimera den) och försök igen.",
+          );
+          return;
+        }
+
+        const detailText =
+          typeof errorData.err === "string"
+            ? errorData.err
+            : errorData.err && typeof errorData.err === "object"
+              ? JSON.stringify(errorData.err)
+              : "";
+
+        setSubmitMessage(
+          `${errorData.error || "Kunde inte skapa djuret."} (HTTP ${response.status})${detailText ? ` - ${detailText}` : ""}`,
+        );
+        return;
+      }
+
+      const createdAnimal = (await response.json()) as {
+        _id?: string;
+        id?: string;
+        type: string;
+        breed: string;
+        image: string;
+        name: string;
+        age: number;
+        keyTraits: string;
+        description?: string;
+      };
+
+      setAnimals((current) => [
+        {
+          id: createdAnimal._id ?? createdAnimal.id ?? Date.now(),
+          name: createdAnimal.name,
+          species: createdAnimal.type,
+          age: `${createdAnimal.age} år`,
+          image: createdAnimal.image,
+          description: createdAnimal.description || createdAnimal.keyTraits,
+          status: "Tillgänglig",
+        },
+        ...current,
+      ]);
+
+      setFormData({
+        type: "",
+        breed: "",
+        name: "",
+        age: "",
+        keyTraits: "",
+        personality: "",
+        description: "",
+        imagePreview: "",
+      });
+      setIsModalOpen(false);
+      setActiveSection("animals");
+      setSubmitMessage("Djuret har sparats på servern.");
+    } catch {
+      setSubmitMessage("Något gick fel när djuret skulle sparas.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -223,7 +404,7 @@ export default function OrganizationDashboardPage() {
                 <button
                   type="button"
                   className={`${styles.navItem} ${activeSection === item.key ? styles.navItemActive : ""}`}
-                  onClick={() => setActiveSection(item.key as SectionKey)}
+                  onClick={() => handleSectionClick(item.key as SectionKey)}
                 >
                   <span className={styles.navDot} />
                   {item.label}
@@ -250,7 +431,7 @@ export default function OrganizationDashboardPage() {
               <button
                 type="button"
                 className={styles.primaryButton}
-                onClick={() => setActiveSection("add-animal")}
+                onClick={openAnimalModal}
               >
                 Lägg upp djur
               </button>
@@ -272,60 +453,136 @@ export default function OrganizationDashboardPage() {
             </article>
           </div>
 
-          {activeSection !== "add-animal" && (
-            <div className={styles.contentGrid}>
-              <article className={styles.tableCard}>
-                <h2 className={styles.sectionTitle}>Sökande / Djur</h2>
-                <div className={styles.tableWrap}>
-                  <table className={styles.applicationTable}>
-                    <thead>
-                      <tr>
-                        <th>Sökande / Djur</th>
-                        <th>Datum</th>
-                        <th>Status</th>
-                        <th>Åtgärd</th>
+          <div className={styles.contentGrid}>
+            <article className={styles.tableCard}>
+              <h2 className={styles.sectionTitle}>Sökande / Djur</h2>
+              <div className={styles.tableWrap}>
+                <table className={styles.applicationTable}>
+                  <thead>
+                    <tr>
+                      <th>Sökande / Djur</th>
+                      <th>Datum</th>
+                      <th>Status</th>
+                      <th>Åtgärd</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applications.map((application) => (
+                      <tr key={application.id}>
+                        <td>
+                          <div className={styles.applicantName}>
+                            {application.applicant}
+                          </div>
+                          <div className={styles.animalName}>
+                            {application.animal}
+                          </div>
+                        </td>
+                        <td>{application.date}</td>
+                        <td>
+                          <span
+                            className={`${styles.statusPill} ${statusClassMap[application.status]}`}
+                          >
+                            {application.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className={styles.actionLink}
+                            onClick={() =>
+                              handleApplicationAction(
+                                application.id,
+                                "Granskas",
+                              )
+                            }
+                          >
+                            {application.action}
+                          </button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {applications.map((application) => (
-                        <tr key={application.id}>
-                          <td>
-                            <div className={styles.applicantName}>
-                              {application.applicant}
-                            </div>
-                            <div className={styles.animalName}>
-                              {application.animal}
-                            </div>
-                          </td>
-                          <td>{application.date}</td>
-                          <td>
-                            <span
-                              className={`${styles.statusPill} ${statusClassMap[application.status]}`}
-                            >
-                              {application.status}
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className={styles.actionLink}
-                              onClick={() =>
-                                handleApplicationAction(
-                                  application.id,
-                                  "Granskas",
-                                )
-                              }
-                            >
-                              {application.action}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                <div className={styles.formCard} style={{ marginTop: "22px" }}>
+              <div className={styles.formCard} style={{ marginTop: "22px" }}>
+                <h3>Snabba åtgärder</h3>
+                <p className={styles.helperText}>
+                  Välj ett nytt statusläge för den markerade ansökan.
+                </p>
+                <div className={styles.badgeRow}>
+                  {(
+                    [
+                      "Granskas",
+                      "Godkänd",
+                      "Nekad",
+                      "Behöver mer info",
+                    ] as ApplicationStatus[]
+                  ).map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      className={styles.badge}
+                      onClick={() => handleApplicationAction(1, status)}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </article>
+
+            <div>
+              {activeSection === "overview" && (
+                <section className={styles.panel}>
+                  <h3>Översikt</h3>
+                  <p className={styles.helperText}>
+                    Det här är en första version av dashboarden. Du kan senare
+                    koppla siffrorna till riktiga databasen.
+                  </p>
+                  <div
+                    className={styles.badgeRow}
+                    style={{ marginTop: "14px" }}
+                  >
+                    <span className={styles.badge}>Öppna ansökningar</span>
+                    <span className={styles.badge}>Snabb granskning</span>
+                    <span className={styles.badge}>Adoptionsflöde</span>
+                  </div>
+                </section>
+              )}
+
+              {activeSection === "animals" && (
+                <section className={styles.formCard}>
+                  <h3>Mina djur</h3>
+                  <div className={styles.compactList}>
+                    {animals.map((animal) => (
+                      <article key={animal.id} className={styles.animalCard}>
+                        <img src={animal.image} alt={animal.name} />
+                        <div>
+                          <h3>{animal.name}</h3>
+                          <p className={styles.animalMeta}>
+                            {animal.species} · {animal.age}
+                          </p>
+                          <p className={styles.helperText}>
+                            {animal.description}
+                          </p>
+                          <div
+                            className={styles.badgeRow}
+                            style={{ marginTop: "10px" }}
+                          >
+                            <span className={styles.badge}>
+                              {animal.status}
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {activeSection === "applications" && (
+                <section className={styles.panel}>
                   <h3>Snabba åtgärder</h3>
                   <p className={styles.helperText}>
                     Välj ett nytt statusläge för den markerade ansökan.
@@ -349,208 +606,205 @@ export default function OrganizationDashboardPage() {
                       </button>
                     ))}
                   </div>
-                </div>
-              </article>
+                </section>
+              )}
 
-              <div>
-                {activeSection === "overview" && (
-                  <section className={styles.panel}>
-                    <h3>Översikt</h3>
-                    <p className={styles.helperText}>
-                      Det här är en första version av dashboarden. Du kan senare
-                      koppla siffrorna till riktiga databasen.
-                    </p>
-                    <div
-                      className={styles.badgeRow}
-                      style={{ marginTop: "14px" }}
+              {activeSection === "add-animal" && (
+                <section className={styles.formCard}>
+                  <h3>Lägg upp djur</h3>
+                  <p className={styles.helperText}>
+                    Öppna formuläret i popupen för att ladda upp bild och skicka
+                    djuret till servern.
+                  </p>
+                  <div
+                    className={styles.badgeRow}
+                    style={{ marginTop: "14px" }}
+                  >
+                    <button
+                      type="button"
+                      className={styles.primaryButton}
+                      onClick={openAnimalModal}
                     >
-                      <span className={styles.badge}>Öppna ansökningar</span>
-                      <span className={styles.badge}>Snabb granskning</span>
-                      <span className={styles.badge}>Adoptionsflöde</span>
-                    </div>
-                  </section>
-                )}
-
-                {activeSection === "animals" && (
-                  <section className={styles.formCard}>
-                    <h3>Mina djur</h3>
-                    <div className={styles.compactList}>
-                      {animals.map((animal) => (
-                        <article key={animal.id} className={styles.animalCard}>
-                          <img src={animal.image} alt={animal.name} />
-                          <div>
-                            <h3>{animal.name}</h3>
-                            <p className={styles.animalMeta}>
-                              {animal.species} · {animal.age}
-                            </p>
-                            <p className={styles.helperText}>
-                              {animal.description}
-                            </p>
-                            <div
-                              className={styles.badgeRow}
-                              style={{ marginTop: "10px" }}
-                            >
-                              <span className={styles.badge}>
-                                {animal.status}
-                              </span>
-                            </div>
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {activeSection === "applications" && (
-                  <section className={styles.panel}>
-                    <h3>Snabba åtgärder</h3>
-                    <p className={styles.helperText}>
-                      Välj ett nytt statusläge för den markerade ansökan.
+                      Öppna formulär
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.ghostButton}
+                      onClick={() => setActiveSection("animals")}
+                    >
+                      Visa mina djur
+                    </button>
+                  </div>
+                  {submitMessage && (
+                    <p
+                      className={styles.helperText}
+                      style={{ marginTop: "12px" }}
+                    >
+                      {submitMessage}
                     </p>
-                    <div className={styles.badgeRow}>
-                      {(
-                        [
-                          "Granskas",
-                          "Godkänd",
-                          "Nekad",
-                          "Behöver mer info",
-                        ] as ApplicationStatus[]
-                      ).map((status) => (
-                        <button
-                          key={status}
-                          type="button"
-                          className={styles.badge}
-                          onClick={() => handleApplicationAction(1, status)}
-                        >
-                          {status}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                )}
+                  )}
+                </section>
+              )}
+            </div>
+          </div>
 
-                {activeSection === "add-animal" && (
-                  <section className={styles.formCard}>
+          {isModalOpen && (
+            <div
+              className={styles.modalBackdrop}
+              onClick={closeAnimalModal}
+              role="presentation"
+            >
+              <div
+                className={styles.modal}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className={styles.modalHeader}>
+                  <div>
                     <h3>Lägg upp djur</h3>
                     <p className={styles.helperText}>
-                      Fyll i grunddata och publicera ett nytt adoptionsdjur.
+                      Bilden skickas som data-URL till serverns API.
                     </p>
-                    <form
-                      className={styles.formGrid}
-                      onSubmit={handleAddAnimal}
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.ghostButton}
+                    onClick={closeAnimalModal}
+                  >
+                    Stäng
+                  </button>
+                </div>
+                <form className={styles.formGrid} onSubmit={handleAddAnimal}>
+                  <div className={styles.field}>
+                    <label htmlFor="imageFile">Bild</label>
+                    <input
+                      id="imageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      required
+                    />
+                    {formData.imagePreview && (
+                      <img
+                        src={formData.imagePreview}
+                        alt="Förhandsvisning"
+                        className={styles.imagePreview}
+                      />
+                    )}
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="name">Namn</label>
+                    <input
+                      id="name"
+                      value={formData.name}
+                      onChange={(event) =>
+                        setFormData({ ...formData, name: event.target.value })
+                      }
+                      placeholder="T.ex. Luna"
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="type">Typ</label>
+                    <input
+                      id="type"
+                      value={formData.type}
+                      onChange={(event) =>
+                        setFormData({ ...formData, type: event.target.value })
+                      }
+                      placeholder="Katt, hund..."
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="breed">Ras</label>
+                    <input
+                      id="breed"
+                      value={formData.breed}
+                      onChange={(event) =>
+                        setFormData({ ...formData, breed: event.target.value })
+                      }
+                      placeholder="T.ex. huskatt"
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="age">Ålder</label>
+                    <input
+                      id="age"
+                      type="number"
+                      min="0"
+                      value={formData.age}
+                      onChange={(event) =>
+                        setFormData({ ...formData, age: event.target.value })
+                      }
+                      placeholder="T.ex. 2"
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="keyTraits">Egenskaper</label>
+                    <input
+                      id="keyTraits"
+                      value={formData.keyTraits}
+                      onChange={(event) =>
+                        setFormData({
+                          ...formData,
+                          keyTraits: event.target.value,
+                        })
+                      }
+                      placeholder="T.ex. lugn, social"
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="personality">Personlighet</label>
+                    <input
+                      id="personality"
+                      value={formData.personality}
+                      onChange={(event) =>
+                        setFormData({
+                          ...formData,
+                          personality: event.target.value,
+                        })
+                      }
+                      placeholder="Kort beskrivning"
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="description">Beskrivning</label>
+                    <textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(event) =>
+                        setFormData({
+                          ...formData,
+                          description: event.target.value,
+                        })
+                      }
+                      placeholder="Kort beskrivning av djuret"
+                      required
+                    />
+                  </div>
+                  <div className={styles.formActions}>
+                    <button
+                      type="button"
+                      className={styles.ghostButton}
+                      onClick={closeAnimalModal}
                     >
-                      <div className={styles.field}>
-                        <label htmlFor="name">Namn</label>
-                        <input
-                          id="name"
-                          value={formData.name}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              name: event.target.value,
-                            })
-                          }
-                          placeholder="T.ex. Luna"
-                          required
-                        />
-                      </div>
-                      <div className={styles.field}>
-                        <label htmlFor="species">Typ</label>
-                        <input
-                          id="species"
-                          value={formData.species}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              species: event.target.value,
-                            })
-                          }
-                          placeholder="Katt, hund..."
-                          required
-                        />
-                      </div>
-                      <div className={styles.field}>
-                        <label htmlFor="breed">Ras</label>
-                        <input
-                          id="breed"
-                          value={formData.breed}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              breed: event.target.value,
-                            })
-                          }
-                          placeholder="T.ex. huskatt"
-                        />
-                      </div>
-                      <div className={styles.field}>
-                        <label htmlFor="age">Ålder</label>
-                        <input
-                          id="age"
-                          value={formData.age}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              age: event.target.value,
-                            })
-                          }
-                          placeholder="T.ex. 2 år"
-                          required
-                        />
-                      </div>
-                      <div className={styles.field}>
-                        <label htmlFor="image">Bild-URL</label>
-                        <input
-                          id="image"
-                          value={formData.image}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              image: event.target.value,
-                            })
-                          }
-                          placeholder="https://..."
-                        />
-                      </div>
-                      <div className={styles.field}>
-                        <label htmlFor="description">Beskrivning</label>
-                        <textarea
-                          id="description"
-                          value={formData.description}
-                          onChange={(event) =>
-                            setFormData({
-                              ...formData,
-                              description: event.target.value,
-                            })
-                          }
-                          placeholder="Kort beskrivning av djuret"
-                          required
-                        />
-                      </div>
-                      <div className={styles.formActions}>
-                        <button
-                          type="button"
-                          className={styles.ghostButton}
-                          onClick={() =>
-                            setFormData({
-                              name: "",
-                              species: "",
-                              breed: "",
-                              age: "",
-                              image: "",
-                              description: "",
-                            })
-                          }
-                        >
-                          Rensa
-                        </button>
-                        <button type="submit" className={styles.primaryButton}>
-                          Publicera djur
-                        </button>
-                      </div>
-                    </form>
-                  </section>
-                )}
+                      Avbryt
+                    </button>
+                    <button
+                      type="submit"
+                      className={styles.primaryButton}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? "Skickar..." : "Publicera djur"}
+                    </button>
+                  </div>
+                  {submitMessage && (
+                    <p className={styles.modalMessage}>{submitMessage}</p>
+                  )}
+                </form>
               </div>
             </div>
           )}

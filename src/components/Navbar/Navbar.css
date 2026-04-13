@@ -52,6 +52,21 @@
   color: var(--black);
 }
 
+.navbar-logout {
+  border: 1px solid #e4dbd0;
+  background: #fff7f0;
+  color: var(--orange);
+  border-radius: 999px;
+  padding: 0.5rem 0.9rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.navbar-logout:hover {
+  background: #fde9db;
+}
+
 .navbar-nav a {
   color: var(--gray-700);
   text-decoration: none;

@@ -336,6 +336,49 @@
   border: 0;
 }
 
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(25, 20, 16, 0.5);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 60;
+}
+
+.modal {
+  width: min(760px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  background: #fffaf5;
+  border: 1px solid #e7ddd1;
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 30px 70px rgba(42, 27, 13, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.imagePreview {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid #e4dbd0;
+}
+
+.modalMessage {
+  margin: 2px 0 0;
+  color: #8d3f1f;
+  font-weight: 600;
+}
+
 @media (max-width: 1100px) {
   .shell,
   .contentGrid {

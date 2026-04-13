@@ -1,9 +1,15 @@
 import { useUser } from "../../context/UserContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
 export default function Navbar() {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setUser(null);
+    navigate("/");
+  };
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
@@ -43,6 +49,13 @@ export default function Navbar() {
               alt="Profilbild"
             />
             <span>{user.username}</span>
+            <button
+              type="button"
+              className="navbar-logout"
+              onClick={handleLogout}
+            >
+              Logga ut
+            </button>
           </div>
         )}
       </div>
