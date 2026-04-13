@@ -7,6 +7,7 @@ import {
 } from "react";
 import styles from "./OrganizationDashboardPage.module.css";
 import { useUser } from "../context/UserContext";
+import { sortAnimalsNewestFirst } from "../utils/sortAnimalsNewestFirst";
 
 type SectionKey = "overview" | "animals" | "applications" | "add-animal";
 
@@ -29,6 +30,7 @@ type ApplicationItem = {
 type AnimalItem = {
   id: number | string;
   mongoId?: string;
+  createdAt?: string;
   name: string;
   type: string;
   breed: string;
@@ -51,6 +53,28 @@ type AnimalFormState = {
   description: string;
   imagePreview: string;
   imageFile: File | null;
+};
+
+const resolveImageUrl = (image: string) => {
+  if (!image) {
+    return image;
+  }
+
+  if (image.startsWith("/uploads/")) {
+    return `http://localhost:3000${image}`;
+  }
+
+  return image;
+};
+
+const normalizeImageForApi = (image: string) => {
+  const prefix = "http://localhost:3000/uploads/";
+
+  if (image.startsWith(prefix)) {
+    return `/uploads/${image.slice(prefix.length)}`;
+  }
+
+  return image;
 };
 
 const initialApplications: ApplicationItem[] = [
@@ -173,28 +197,6 @@ export default function OrganizationDashboardPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDeletingAnimal, setIsDeletingAnimal] = useState(false);
 
-  const resolveImageUrl = (image: string) => {
-    if (!image) {
-      return image;
-    }
-
-    if (image.startsWith("/uploads/")) {
-      return `http://localhost:3000${image}`;
-    }
-
-    return image;
-  };
-
-  const normalizeImageForApi = (image: string) => {
-    const prefix = "http://localhost:3000/uploads/";
-
-    if (image.startsWith(prefix)) {
-      return `/uploads/${image.slice(prefix.length)}`;
-    }
-
-    return image;
-  };
-
   useEffect(() => {
     const loadAnimals = async () => {
       try {
@@ -207,6 +209,7 @@ export default function OrganizationDashboardPage() {
         const data = (await response.json()) as Array<{
           _id?: string;
           id?: string;
+          createdAt?: string;
           type: string;
           breed: string;
           image: string;
@@ -219,10 +222,12 @@ export default function OrganizationDashboardPage() {
         }>;
 
         if (Array.isArray(data) && data.length > 0) {
-          setAnimals(
-            data.map((animal, index) => ({
+          const ownerAnimals = sortAnimalsNewestFirst(data)
+            .filter((animal) => animal.organizationOwner === user?.username)
+            .map((animal, index) => ({
               id: animal._id ?? animal.id ?? `animal-${index + 1}`,
               mongoId: animal._id ?? animal.id,
+              createdAt: animal.createdAt,
               name: animal.name,
               type: animal.type,
               breed: animal.breed,
@@ -233,8 +238,9 @@ export default function OrganizationDashboardPage() {
               description: animal.description || animal.keyTraits,
               organizationOwner: animal.organizationOwner,
               status: "Tillgänglig",
-            })),
-          );
+            }));
+
+          setAnimals(ownerAnimals);
         }
       } catch {
         // Keep the local mock animals if the API is unavailable.
@@ -242,7 +248,7 @@ export default function OrganizationDashboardPage() {
     };
 
     loadAnimals();
-  }, []);
+  }, [user?.username]);
 
   const stats = useMemo(() => {
     const reviewCount = applications.filter(

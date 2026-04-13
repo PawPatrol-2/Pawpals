@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AnimalCard from "./AnimalCard/AnimalCard";
 import type { Animal } from "../types/animal";
+import { sortAnimalsNewestFirst } from "../utils/sortAnimalsNewestFirst";
 
 function AnimalList() {
   const [animals, setAnimals] = useState<Animal[]>([]);
@@ -8,7 +9,9 @@ function AnimalList() {
   useEffect(() => {
     fetch("http://localhost:3000/api/animals")
       .then((res) => res.json())
-      .then((data) => setAnimals(data))
+      .then((data) =>
+        setAnimals(Array.isArray(data) ? sortAnimalsNewestFirst(data) : data),
+      )
       .catch((err) => console.error(err));
   }, []);
 
@@ -21,4 +24,4 @@ function AnimalList() {
   );
 }
 
-export default AnimalList; 
+export default AnimalList;

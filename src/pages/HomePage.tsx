@@ -4,6 +4,7 @@ import Adoption from "../components/Adoption/adoption";
 import { useEffect, useState } from "react";
 import type { Animal } from "../types/animal";
 import { mockAnimals } from "../data/mockAnimals";
+import { sortAnimalsNewestFirst } from "../utils/sortAnimalsNewestFirst";
 
 export default function HomePage() {
   const [animals, setAnimals] = useState<Animal[]>(mockAnimals);
@@ -20,7 +21,7 @@ export default function HomePage() {
       })
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          setAnimals(data);
+          setAnimals(sortAnimalsNewestFirst(data));
           setInfoMessage(null);
           return;
         }
@@ -31,7 +32,9 @@ export default function HomePage() {
       .catch((err) => {
         console.error(err);
         setAnimals(mockAnimals);
-        setInfoMessage("Kunde inte hämta djur från servern. Visar lokala djur just nu.");
+        setInfoMessage(
+          "Kunde inte hämta djur från servern. Visar lokala djur just nu.",
+        );
       })
       .finally(() => setLoading(false));
   }, []);

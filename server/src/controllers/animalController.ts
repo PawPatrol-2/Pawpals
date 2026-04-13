@@ -6,7 +6,7 @@ type AnimalRequest = Request & { file?: Express.Multer.File };
 export const getAnimals = async (_req: Request, res: Response) => {
   try {
     console.log("Mongoose collection:", Animal.collection.collectionName);
-    const animals = await Animal.find();
+    const animals = await Animal.find().sort({ createdAt: -1, _id: -1 });
     console.log("Hittade dessa djur i databasen:", animals);
     res.json(animals);
   } catch (err) {
