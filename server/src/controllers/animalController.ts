@@ -48,3 +48,36 @@ export const createAnimal = async (req: Request, res: Response) => {
     res.status(400).json({ error: "Failed to create animal", err });
   }
 };
+
+export const updateAnimal = async (req: Request, res: Response) => {
+  try {
+    const existingAnimal = await Animal.findById(req.params.id);
+
+    if (!existingAnimal) {
+      return res.status(404).json({ error: "Animal not found" });
+    }
+
+    const requester = req.body.requester as string | undefined;
+    const owner = (existingAnimal as unknown as { organizationOwner?: string })
+      .organizationOwner;
+
+    if (!requester || !owner || owner !== requester) {
+      return res.status(403).json({
+        error: "Du kan bara redigera djur som din organisation har laddat upp.",
+      });
+    }
+
+    const updatedAnimal = await Animal.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    res.json(updatedAnimal);
+  } catch (err) {
+    res.status(400).json({ error: "Failed to update animal", err });
+  }
+};

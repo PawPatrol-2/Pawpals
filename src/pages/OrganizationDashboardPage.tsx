@@ -6,6 +6,7 @@ import {
   type FormEvent,
 } from "react";
 import styles from "./OrganizationDashboardPage.module.css";
+import { useUser } from "../context/UserContext";
 
 type SectionKey = "overview" | "animals" | "applications" | "add-animal";
 
@@ -27,11 +28,16 @@ type ApplicationItem = {
 
 type AnimalItem = {
   id: number | string;
+  mongoId?: string;
   name: string;
-  species: string;
+  type: string;
+  breed: string;
   age: string;
+  keyTraits: string;
+  personality?: string;
   image: string;
   description: string;
+  organizationOwner?: string;
   status: "Tillgänglig" | "Reserverad" | "Adopterad";
 };
 
@@ -84,34 +90,49 @@ const initialApplications: ApplicationItem[] = [
 const initialAnimals: AnimalItem[] = [
   {
     id: 1,
+    mongoId: undefined,
     name: "Luna",
-    species: "Katt",
+    type: "Katt",
+    breed: "Huskatt",
     age: "2 år",
+    keyTraits: "Trygg, social",
+    personality: "Lugn",
     image:
       "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80",
     description:
       "Trygg och social katt som gillar lugna kvällar och stora fönster.",
+    organizationOwner: "Annan Organisation",
     status: "Tillgänglig",
   },
   {
     id: 2,
+    mongoId: undefined,
     name: "Milo",
-    species: "Hund",
+    type: "Hund",
+    breed: "Blandras",
     age: "4 år",
+    keyTraits: "Lekfull, energisk",
+    personality: "Aktiv",
     image:
       "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=400&q=80",
     description:
       "Lekfull och väldigt människoorienterad, passar i aktiv familj.",
+    organizationOwner: "Annan Organisation",
     status: "Reserverad",
   },
   {
     id: 3,
+    mongoId: undefined,
     name: "Bella",
-    species: "Katt",
+    type: "Katt",
+    breed: "Huskatt",
     age: "1 år",
+    keyTraits: "Nyfiken, kärleksfull",
+    personality: "Social",
     image:
       "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=400&q=80",
     description: "Nyfiken ung katt som gärna följer efter i hemmet.",
+    organizationOwner: "Annan Organisation",
     status: "Adopterad",
   },
 ];
@@ -125,6 +146,7 @@ const statusClassMap: Record<ApplicationStatus, string> = {
 };
 
 export default function OrganizationDashboardPage() {
+  const { user } = useUser();
   const [activeSection, setActiveSection] = useState<SectionKey>("overview");
   const [applications, setApplications] = useState(initialApplications);
   const [animals, setAnimals] = useState(initialAnimals);
@@ -141,6 +163,12 @@ export default function OrganizationDashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [selectedAnimal, setSelectedAnimal] = useState<AnimalItem | null>(null);
+  const [isAnimalDetailsOpen, setIsAnimalDetailsOpen] = useState(false);
+  const [editData, setEditData] = useState<AnimalFormState | null>(null);
+  const [editMessage, setEditMessage] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     const loadAnimals = async () => {
@@ -162,17 +190,23 @@ export default function OrganizationDashboardPage() {
           keyTraits: string;
           personality?: string;
           description?: string;
+          organizationOwner?: string;
         }>;
 
         if (Array.isArray(data) && data.length > 0) {
           setAnimals(
             data.map((animal, index) => ({
               id: animal._id ?? animal.id ?? `animal-${index + 1}`,
+              mongoId: animal._id ?? animal.id,
               name: animal.name,
-              species: animal.type,
+              type: animal.type,
+              breed: animal.breed,
               age: `${animal.age} år`,
+              keyTraits: animal.keyTraits,
+              personality: animal.personality,
               image: animal.image,
               description: animal.description || animal.keyTraits,
+              organizationOwner: animal.organizationOwner,
               status: "Tillgänglig",
             })),
           );
@@ -313,6 +347,7 @@ export default function OrganizationDashboardPage() {
           keyTraits: formData.keyTraits,
           personality: formData.personality,
           description: formData.description,
+          organizationOwner: user?.username,
           likes: [],
         }),
       });
@@ -352,17 +387,24 @@ export default function OrganizationDashboardPage() {
         name: string;
         age: number;
         keyTraits: string;
+        personality?: string;
+        organizationOwner?: string;
         description?: string;
       };
 
       setAnimals((current) => [
         {
           id: createdAnimal._id ?? createdAnimal.id ?? Date.now(),
+          mongoId: createdAnimal._id ?? createdAnimal.id,
           name: createdAnimal.name,
-          species: createdAnimal.type,
+          type: createdAnimal.type,
+          breed: createdAnimal.breed,
           age: `${createdAnimal.age} år`,
+          keyTraits: createdAnimal.keyTraits,
+          personality: createdAnimal.personality,
           image: createdAnimal.image,
           description: createdAnimal.description || createdAnimal.keyTraits,
+          organizationOwner: createdAnimal.organizationOwner || user?.username,
           status: "Tillgänglig",
         },
         ...current,
@@ -385,6 +427,167 @@ export default function OrganizationDashboardPage() {
       setSubmitMessage("Något gick fel när djuret skulle sparas.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const getAgeNumber = (ageText: string) => {
+    const parsed = Number.parseInt(ageText, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  };
+
+  const buildEditDataFromAnimal = (animal: AnimalItem): AnimalFormState => ({
+    type: animal.type,
+    breed: animal.breed,
+    name: animal.name,
+    age: String(getAgeNumber(animal.age)),
+    keyTraits: animal.keyTraits,
+    personality: animal.personality || "",
+    description: animal.description,
+    imagePreview: animal.image,
+  });
+
+  const openAnimalDetails = (animal: AnimalItem) => {
+    setSelectedAnimal(animal);
+    setEditData(buildEditDataFromAnimal(animal));
+    setEditMessage("");
+    setIsEditMode(false);
+    setIsAnimalDetailsOpen(true);
+  };
+
+  const closeAnimalDetails = () => {
+    setIsAnimalDetailsOpen(false);
+    setSelectedAnimal(null);
+    setEditData(null);
+    setEditMessage("");
+    setIsEditMode(false);
+  };
+
+  const canEditSelectedAnimal =
+    !!selectedAnimal &&
+    !!user?.username &&
+    selectedAnimal.organizationOwner === user.username;
+
+  const startEditingSelectedAnimal = () => {
+    if (!canEditSelectedAnimal) {
+      return;
+    }
+
+    setEditMessage("");
+    setIsEditMode(true);
+  };
+
+  const cancelEditingSelectedAnimal = () => {
+    if (selectedAnimal) {
+      setEditData(buildEditDataFromAnimal(selectedAnimal));
+    }
+
+    setEditMessage("");
+    setIsEditMode(false);
+  };
+
+  const handleSaveAnimalEdit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedAnimal || !editData || !user?.username) {
+      return;
+    }
+
+    if (!selectedAnimal.mongoId) {
+      setEditMessage(
+        "Det här djuret saknar databas-id och kan inte uppdateras. Ladda om sidan och testa igen.",
+      );
+      return;
+    }
+
+    if (
+      !editData.name ||
+      !editData.type ||
+      !editData.breed ||
+      !editData.age ||
+      !editData.keyTraits ||
+      !editData.description
+    ) {
+      setEditMessage("Fyll i alla obligatoriska fält.");
+      return;
+    }
+
+    setIsSavingEdit(true);
+    setEditMessage("");
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: editData.type,
+            breed: editData.breed,
+            image: editData.imagePreview,
+            name: editData.name,
+            age: Number(editData.age),
+            keyTraits: editData.keyTraits,
+            personality: editData.personality,
+            description: editData.description,
+            requester: user.username,
+          }),
+        },
+      );
+
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        _id?: string;
+        type?: string;
+        breed?: string;
+        image?: string;
+        name?: string;
+        age?: number;
+        keyTraits?: string;
+        personality?: string;
+        description?: string;
+        organizationOwner?: string;
+      };
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setEditMessage(
+            "Djuret hittades inte i databasen (HTTP 404). Om servern nyligen ändrats, starta om backend och ladda om sidan.",
+          );
+          return;
+        }
+
+        setEditMessage(
+          `${data.error || "Kunde inte spara ändringarna."} (HTTP ${response.status})`,
+        );
+        return;
+      }
+
+      setAnimals((current) =>
+        current.map((animal) =>
+          String(animal.id) === String(selectedAnimal.id)
+            ? {
+                ...animal,
+                name: data.name || editData.name,
+                type: data.type || editData.type,
+                breed: data.breed || editData.breed,
+                age: `${data.age ?? Number(editData.age)} år`,
+                keyTraits: data.keyTraits || editData.keyTraits,
+                personality: data.personality || editData.personality,
+                image: data.image || editData.imagePreview,
+                description: data.description || editData.description,
+                organizationOwner:
+                  data.organizationOwner || animal.organizationOwner,
+              }
+            : animal,
+        ),
+      );
+
+      setEditMessage("Ändringarna sparades.");
+      setIsEditMode(false);
+    } catch {
+      setEditMessage("Något gick fel när djuret skulle uppdateras.");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -556,12 +759,24 @@ export default function OrganizationDashboardPage() {
                   <h3>Mina djur</h3>
                   <div className={styles.compactList}>
                     {animals.map((animal) => (
-                      <article key={animal.id} className={styles.animalCard}>
+                      <article
+                        key={animal.id}
+                        className={`${styles.animalCard} ${styles.clickableCard}`}
+                        onClick={() => openAnimalDetails(animal)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openAnimalDetails(animal);
+                          }
+                        }}
+                      >
                         <img src={animal.image} alt={animal.name} />
                         <div>
                           <h3>{animal.name}</h3>
                           <p className={styles.animalMeta}>
-                            {animal.species} · {animal.age}
+                            {animal.type} · {animal.breed} · {animal.age}
                           </p>
                           <p className={styles.helperText}>
                             {animal.description}
@@ -573,6 +788,13 @@ export default function OrganizationDashboardPage() {
                             <span className={styles.badge}>
                               {animal.status}
                             </span>
+                            {animal.organizationOwner && (
+                              <span className={styles.badge}>
+                                {animal.organizationOwner === user?.username
+                                  ? "Ditt djur"
+                                  : "Annan organisation"}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </article>
@@ -803,6 +1025,169 @@ export default function OrganizationDashboardPage() {
                   </div>
                   {submitMessage && (
                     <p className={styles.modalMessage}>{submitMessage}</p>
+                  )}
+                </form>
+              </div>
+            </div>
+          )}
+
+          {isAnimalDetailsOpen && selectedAnimal && editData && (
+            <div
+              className={styles.modalBackdrop}
+              onClick={closeAnimalDetails}
+              role="presentation"
+            >
+              <div
+                className={styles.modal}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className={styles.modalHeader}>
+                  <div>
+                    <h3>{selectedAnimal.name}</h3>
+                    <p className={styles.helperText}>
+                      {canEditSelectedAnimal
+                        ? "Detta djur är uppladdat av din organisation. Du kan redigera uppgifterna."
+                        : "Du kan visa information men inte redigera djur som laddats upp av andra organisationer."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.ghostButton}
+                    onClick={closeAnimalDetails}
+                  >
+                    Stäng
+                  </button>
+                </div>
+
+                <form
+                  className={styles.formGrid}
+                  onSubmit={handleSaveAnimalEdit}
+                >
+                  <div className={styles.field}>
+                    <label htmlFor="editName">Namn</label>
+                    <input
+                      id="editName"
+                      value={editData.name}
+                      onChange={(event) =>
+                        setEditData({ ...editData, name: event.target.value })
+                      }
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="editType">Typ</label>
+                    <input
+                      id="editType"
+                      value={editData.type}
+                      onChange={(event) =>
+                        setEditData({ ...editData, type: event.target.value })
+                      }
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="editBreed">Ras</label>
+                    <input
+                      id="editBreed"
+                      value={editData.breed}
+                      onChange={(event) =>
+                        setEditData({ ...editData, breed: event.target.value })
+                      }
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="editAge">Ålder</label>
+                    <input
+                      id="editAge"
+                      type="number"
+                      min="0"
+                      value={editData.age}
+                      onChange={(event) =>
+                        setEditData({ ...editData, age: event.target.value })
+                      }
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="editTraits">Egenskaper</label>
+                    <input
+                      id="editTraits"
+                      value={editData.keyTraits}
+                      onChange={(event) =>
+                        setEditData({
+                          ...editData,
+                          keyTraits: event.target.value,
+                        })
+                      }
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="editPersonality">Personlighet</label>
+                    <input
+                      id="editPersonality"
+                      value={editData.personality}
+                      onChange={(event) =>
+                        setEditData({
+                          ...editData,
+                          personality: event.target.value,
+                        })
+                      }
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="editDescription">Beskrivning</label>
+                    <textarea
+                      id="editDescription"
+                      value={editData.description}
+                      onChange={(event) =>
+                        setEditData({
+                          ...editData,
+                          description: event.target.value,
+                        })
+                      }
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                      required
+                    />
+                  </div>
+                  {canEditSelectedAnimal && !isEditMode && (
+                    <div className={styles.formActions}>
+                      <button
+                        type="button"
+                        className={styles.primaryButton}
+                        onClick={startEditingSelectedAnimal}
+                      >
+                        Redigera
+                      </button>
+                    </div>
+                  )}
+                  {canEditSelectedAnimal && isEditMode && (
+                    <div className={styles.formActions}>
+                      <button
+                        type="button"
+                        className={styles.ghostButton}
+                        onClick={cancelEditingSelectedAnimal}
+                      >
+                        Avbryt
+                      </button>
+                      <button
+                        type="submit"
+                        className={styles.primaryButton}
+                        disabled={isSavingEdit}
+                      >
+                        {isSavingEdit ? "Sparar..." : "Spara ändringar"}
+                      </button>
+                    </div>
+                  )}
+                  {editMessage && (
+                    <p className={styles.modalMessage}>{editMessage}</p>
                   )}
                 </form>
               </div>
