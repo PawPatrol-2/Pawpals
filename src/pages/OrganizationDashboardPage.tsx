@@ -50,6 +50,7 @@ type AnimalFormState = {
   personality: string;
   description: string;
   imagePreview: string;
+  imageFile: File | null;
 };
 
 const initialApplications: ApplicationItem[] = [
@@ -159,6 +160,7 @@ export default function OrganizationDashboardPage() {
     personality: "",
     description: "",
     imagePreview: "",
+    imageFile: null,
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -169,6 +171,29 @@ export default function OrganizationDashboardPage() {
   const [editMessage, setEditMessage] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isDeletingAnimal, setIsDeletingAnimal] = useState(false);
+
+  const resolveImageUrl = (image: string) => {
+    if (!image) {
+      return image;
+    }
+
+    if (image.startsWith("/uploads/")) {
+      return `http://localhost:3000${image}`;
+    }
+
+    return image;
+  };
+
+  const normalizeImageForApi = (image: string) => {
+    const prefix = "http://localhost:3000/uploads/";
+
+    if (image.startsWith(prefix)) {
+      return `/uploads/${image.slice(prefix.length)}`;
+    }
+
+    return image;
+  };
 
   useEffect(() => {
     const loadAnimals = async () => {
@@ -204,7 +229,7 @@ export default function OrganizationDashboardPage() {
               age: `${animal.age} år`,
               keyTraits: animal.keyTraits,
               personality: animal.personality,
-              image: animal.image,
+              image: resolveImageUrl(animal.image),
               description: animal.description || animal.keyTraits,
               organizationOwner: animal.organizationOwner,
               status: "Tillgänglig",
@@ -300,7 +325,11 @@ export default function OrganizationDashboardPage() {
     const file = event.target.files?.[0];
 
     if (!file) {
-      setFormData((current) => ({ ...current, imagePreview: "" }));
+      setFormData((current) => ({
+        ...current,
+        imagePreview: "",
+        imageFile: null,
+      }));
       return;
     }
 
@@ -309,6 +338,7 @@ export default function OrganizationDashboardPage() {
       setFormData((current) => ({
         ...current,
         imagePreview: typeof reader.result === "string" ? reader.result : "",
+        imageFile: file,
       }));
     };
     reader.readAsDataURL(file);
@@ -333,23 +363,28 @@ export default function OrganizationDashboardPage() {
     setSubmitMessage("");
 
     try {
+      const payload = new FormData();
+      payload.append("type", formData.type);
+      payload.append("breed", formData.breed);
+      payload.append("name", formData.name);
+      payload.append("age", String(Number(formData.age)));
+      payload.append("keyTraits", formData.keyTraits);
+      payload.append("personality", formData.personality);
+      payload.append("description", formData.description);
+      payload.append("organizationOwner", user?.username || "");
+
+      if (formData.imageFile) {
+        payload.append("imageFile", formData.imageFile);
+      } else {
+        payload.append(
+          "image",
+          "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
+        );
+      }
+
       const response = await fetch("http://localhost:3000/api/animals", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: formData.type,
-          breed: formData.breed,
-          image:
-            formData.imagePreview ||
-            "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-          name: formData.name,
-          age: Number(formData.age),
-          keyTraits: formData.keyTraits,
-          personality: formData.personality,
-          description: formData.description,
-          organizationOwner: user?.username,
-          likes: [],
-        }),
+        body: payload,
       });
 
       if (!response.ok) {
@@ -402,7 +437,7 @@ export default function OrganizationDashboardPage() {
           age: `${createdAnimal.age} år`,
           keyTraits: createdAnimal.keyTraits,
           personality: createdAnimal.personality,
-          image: createdAnimal.image,
+          image: resolveImageUrl(createdAnimal.image),
           description: createdAnimal.description || createdAnimal.keyTraits,
           organizationOwner: createdAnimal.organizationOwner || user?.username,
           status: "Tillgänglig",
@@ -419,6 +454,7 @@ export default function OrganizationDashboardPage() {
         personality: "",
         description: "",
         imagePreview: "",
+        imageFile: null,
       });
       setIsModalOpen(false);
       setActiveSection("animals");
@@ -444,6 +480,7 @@ export default function OrganizationDashboardPage() {
     personality: animal.personality || "",
     description: animal.description,
     imagePreview: animal.image,
+    imageFile: null,
   });
 
   const openAnimalDetails = (animal: AnimalItem) => {
@@ -515,22 +552,27 @@ export default function OrganizationDashboardPage() {
     setEditMessage("");
 
     try {
+      const payload = new FormData();
+      payload.append("type", editData.type);
+      payload.append("breed", editData.breed);
+      payload.append("name", editData.name);
+      payload.append("age", String(Number(editData.age)));
+      payload.append("keyTraits", editData.keyTraits);
+      payload.append("personality", editData.personality);
+      payload.append("description", editData.description);
+      payload.append("requester", user.username);
+
+      if (editData.imageFile) {
+        payload.append("imageFile", editData.imageFile);
+      } else {
+        payload.append("image", normalizeImageForApi(editData.imagePreview));
+      }
+
       const response = await fetch(
         `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: editData.type,
-            breed: editData.breed,
-            image: editData.imagePreview,
-            name: editData.name,
-            age: Number(editData.age),
-            keyTraits: editData.keyTraits,
-            personality: editData.personality,
-            description: editData.description,
-            requester: user.username,
-          }),
+          body: payload,
         },
       );
 
@@ -573,7 +615,7 @@ export default function OrganizationDashboardPage() {
                 age: `${data.age ?? Number(editData.age)} år`,
                 keyTraits: data.keyTraits || editData.keyTraits,
                 personality: data.personality || editData.personality,
-                image: data.image || editData.imagePreview,
+                image: resolveImageUrl(data.image || editData.imagePreview),
                 description: data.description || editData.description,
                 organizationOwner:
                   data.organizationOwner || animal.organizationOwner,
@@ -588,6 +630,58 @@ export default function OrganizationDashboardPage() {
       setEditMessage("Något gick fel när djuret skulle uppdateras.");
     } finally {
       setIsSavingEdit(false);
+    }
+  };
+
+  const handleDeleteAnimal = async () => {
+    if (!selectedAnimal || !selectedAnimal.mongoId || !user?.username) {
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Är du säker på att du vill ta bort ${selectedAnimal.name}?`,
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsDeletingAnimal(true);
+    setEditMessage("");
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requester: user.username }),
+        },
+      );
+
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+
+      if (!response.ok) {
+        setEditMessage(
+          `${data.error || "Kunde inte ta bort djuret."} (HTTP ${response.status})`,
+        );
+        return;
+      }
+
+      setAnimals((current) =>
+        current.filter(
+          (animal) => String(animal.id) !== String(selectedAnimal.id),
+        ),
+      );
+      closeAnimalDetails();
+      setActiveSection("animals");
+      setSubmitMessage("Djuret togs bort från servern.");
+    } catch {
+      setEditMessage("Något gick fel när djuret skulle tas bort.");
+    } finally {
+      setIsDeletingAnimal(false);
     }
   };
 
@@ -903,7 +997,6 @@ export default function OrganizationDashboardPage() {
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
-                      required
                     />
                     {formData.imagePreview && (
                       <img
@@ -1064,6 +1157,41 @@ export default function OrganizationDashboardPage() {
                   onSubmit={handleSaveAnimalEdit}
                 >
                   <div className={styles.field}>
+                    <label htmlFor="editImageFile">Byt bild</label>
+                    <input
+                      id="editImageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] ?? null;
+                        if (!file) {
+                          return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setEditData({
+                            ...editData,
+                            imagePreview:
+                              typeof reader.result === "string"
+                                ? reader.result
+                                : editData.imagePreview,
+                            imageFile: file,
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                      disabled={!canEditSelectedAnimal || !isEditMode}
+                    />
+                    {editData.imagePreview && (
+                      <img
+                        src={editData.imagePreview}
+                        alt="Nuvarande bild"
+                        className={styles.imagePreview}
+                      />
+                    )}
+                  </div>
+                  <div className={styles.field}>
                     <label htmlFor="editName">Namn</label>
                     <input
                       id="editName"
@@ -1165,6 +1293,14 @@ export default function OrganizationDashboardPage() {
                         onClick={startEditingSelectedAnimal}
                       >
                         Redigera
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.dangerButton}
+                        onClick={handleDeleteAnimal}
+                        disabled={isDeletingAnimal}
+                      >
+                        {isDeletingAnimal ? "Tar bort..." : "Ta bort"}
                       </button>
                     </div>
                   )}

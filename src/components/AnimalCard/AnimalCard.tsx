@@ -9,6 +9,9 @@ type AnimalCardProps = {
 
 function AnimalCard({ animal }: AnimalCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const imageSrc = animal.image.startsWith("/uploads/")
+    ? `http://localhost:3000${animal.image}`
+    : animal.image;
 
   return (
     <Link
@@ -17,7 +20,7 @@ function AnimalCard({ animal }: AnimalCardProps) {
       aria-label={`Visa detaljer om ${animal.name}`}
     >
       <article>
-        <img className={styles.image} src={animal.image} alt={animal.name} />
+        <img className={styles.image} src={imageSrc} alt={animal.name} />
 
         <div className={styles.content}>
           <h2 className={styles.name}>{animal.name}</h2>

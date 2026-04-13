@@ -116,6 +116,22 @@
   box-shadow: 0 12px 24px rgba(229, 114, 47, 0.22);
 }
 
+.dangerButton {
+  border: 1px solid #e8beb8;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fdf0ee;
+  color: #b24742;
+}
+
+.dangerButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
