@@ -98,6 +98,43 @@
   color: #787673;
 }
 
+.registerPasswordField {
+  position: relative;
+}
+
+.registerPasswordField input {
+  padding-right: 2.5rem !important;
+}
+
+.registerPasswordToggle {
+  position: absolute;
+  top: 50%;
+  right: 0.65rem;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--gray-500);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem;
+}
+
+.registerPasswordToggle:hover {
+  color: var(--orange);
+}
+
+.registerPasswordToggle:focus-visible {
+  outline: 2px solid var(--orange);
+  border-radius: 4px;
+}
+
+.registerPasswordToggle svg {
+  width: 1rem;
+  height: 1rem;
+}
+
 .gdprBox {
   border: 1px solid #dbd5cf;
   background: #f0edeb;
