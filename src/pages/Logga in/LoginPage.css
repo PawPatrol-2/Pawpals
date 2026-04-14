@@ -28,6 +28,46 @@
   font-size: 1rem;
 }
 
+.LoginPage .passwordField {
+  position: relative;
+  width: 100%;
+}
+
+.LoginPage .passwordField input {
+  width: 100%;
+  padding-right: 2.4rem;
+  box-sizing: border-box;
+}
+
+.LoginPage .passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 0.45rem;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--gray-500);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem;
+}
+
+.LoginPage .passwordToggle:hover {
+  color: var(--orange);
+}
+
+.LoginPage .passwordToggle:focus-visible {
+  outline: 2px solid var(--orange);
+  border-radius: 4px;
+}
+
+.LoginPage .passwordToggle svg {
+  width: 1rem;
+  height: 1rem;
+}
+
 .loginbutton {
   padding: 0.5rem;
   background-color: var(--orange);

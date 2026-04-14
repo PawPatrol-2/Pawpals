@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import './RegisterPage.css';
 
 type AccountType = 'adopter' | 'organization';
@@ -9,6 +10,7 @@ export default function RegisterPage() {
     const [email, setEmail] = useState<string>('')
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
+    const [showPassword, setShowPassword] = useState<boolean>(false)
     const [gdprConsent, setGdprConsent] = useState<boolean>(false)
     const [message, setMessage] = useState<string>('')
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -38,7 +40,7 @@ export default function RegisterPage() {
             if (res.ok) {
                 setPassword('')
             }
-        } catch (_error) {
+        } catch {
             setIsSuccess(false)
             setMessage('Något gick fel. Försök igen.')
         } finally {
@@ -98,14 +100,24 @@ export default function RegisterPage() {
                     />
 
                     <label htmlFor="password">Lösenord</label>
-                    <input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                    />
+                    <div className="registerPasswordField">
+                        <input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            required
+                        />
+                        <button
+                            type="button"
+                            className="registerPasswordToggle"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            aria-label={showPassword ? "Dölj lösenord" : "Visa lösenord"}
+                        >
+                            {showPassword ? <FiEyeOff /> : <FiEye />}
+                        </button>
+                    </div>
 
                     <label className="gdprBox" htmlFor="gdprConsent">
                         <input
