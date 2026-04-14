@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom';
 import './LoginPage.css'
 import { useUser } from '../../context/UserContext';
 
@@ -7,7 +7,14 @@ export default function LoginPage() {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [message, setMessage] = useState<string>('');
-    const { setUser } = useUser()
+    const { setUser, user, isAuthLoading } = useUser()
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isAuthLoading && user) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthLoading, user, navigate]);
 
     const handleLogin = async(e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -20,8 +27,11 @@ export default function LoginPage() {
         const data = await res.json()
         setMessage(data.message)
     
-        if(res.status === 200) {
-            setUser({ username: data.username });
+        if (res.ok && data.token && data.user) {
+            localStorage.setItem('token', data.token);
+            setUser(data.user);
+            setMessage('');
+            navigate('/', { replace: true });
         }
     }
 

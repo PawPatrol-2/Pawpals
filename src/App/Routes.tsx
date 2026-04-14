@@ -7,6 +7,7 @@ import RegisterPage from "../pages/Logga in/RegisterPage";
 import ApplyPage from "../pages/ApplyPage";
 import AnimalDetailPage from "../pages/AnimalDetailPage";
 import TestAnimalFetch from "../pages/TestAnimalFetch";
+import MyApplicationsPage from "../pages/MyApplicationsPage";
 
 export default function AppRoutes() {
   return (
@@ -17,6 +18,7 @@ export default function AppRoutes() {
       <Route path="/logga-in" element={<LoginPage />} />
       <Route path="/registrera" element={<RegisterPage />} />
       <Route path="/ansok" element={<ApplyPage />} />
+      <Route path="/mina-ansokningar" element={<MyApplicationsPage />} />
       <Route path="/djur/:id" element={<AnimalDetailPage />} />
       <Route path="/test-animal-fetch" element={<TestAnimalFetch />} />
     </Routes>
