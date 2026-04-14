@@ -1,48 +1,33 @@
-import mongoose, { Document, Schema, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-export const applicationStatuses = [
-  "Inskickad",
-  "Granskas",
-  "Godkänd",
-  "Nekad",
-] as const;
-
-export type ApplicationStatus = (typeof applicationStatuses)[number];
-
-export interface ApplicationDocument extends Document {
-  userId: Types.ObjectId;
-  animalId: Types.ObjectId;
-  status: ApplicationStatus;
+export interface IApplication extends Document {
+  housingType: string;
+  housingSize: number;
+  hasAnimalExperience: boolean;
+  hasChildren: boolean;
+  hasAllergies: boolean;
+  allergyDetails: string;
+  motivation: string;
+  gdprConsent: boolean;
+  status: "pending" | "reviewing" | "approved" | "rejected";
   createdAt: Date;
-  updatedAt: Date;
 }
 
-const applicationSchema = new Schema<ApplicationDocument>(
-  {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
-    },
-    animalId: {
-      type: Schema.Types.ObjectId,
-      ref: "Animal",
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: applicationStatuses,
-      default: "Inskickad",
-      required: true,
-    },
+const ApplicationSchema = new Schema<IApplication>({
+  housingType: { type: String, required: true },
+  housingSize: { type: Number, required: true },
+  hasAnimalExperience: { type: Boolean, required: true },
+  hasChildren: { type: Boolean, required: true },
+  hasAllergies: { type: Boolean, required: true },
+  allergyDetails: { type: String, required: false },
+  motivation: { type: String, required: true },
+  gdprConsent: { type: Boolean, required: true },
+  createdAt: { type: Date, default: Date.now },
+  status: {
+    type: String,
+    enum: ["pending", "reviewing", "approved", "rejected"],
+    default: "pending",
   },
-  { timestamps: true }
-);
+});
 
-const Application = mongoose.model<ApplicationDocument>(
-  "Application",
-  applicationSchema
-);
-
-export default Application;
+export default mongoose.model<IApplication>("Application", ApplicationSchema);

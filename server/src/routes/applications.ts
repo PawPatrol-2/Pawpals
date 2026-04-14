@@ -1,9 +1,14 @@
-import express from "express";
-import authenticate from "../middleware/auth";
-import { getMyApplications } from "../controllers/applicationController";
+import { Router } from "express";
+import {
+  createApplication,
+  getAllApplications,
+} from "../controllers/applicationController";
 
-const router = express.Router();
+const router = Router();
 
-router.get("/me", authenticate, getMyApplications);
+router.post("/", createApplication);
+router.get("/", getAllApplications);
+
+//fler endpoints kommer
 
 export default router;
