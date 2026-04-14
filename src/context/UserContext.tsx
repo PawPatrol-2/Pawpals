@@ -40,7 +40,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
                 const data = await res.json();
                 setUser(data.user);
-            } catch (_error) {
+            } catch {
                 localStorage.removeItem('token');
                 setUser(null);
             } finally {
@@ -63,6 +63,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useUser = () => {
     const context = useContext(UserContext);
     if (!context) throw new Error("useUser måste användas inom en UserProvider");

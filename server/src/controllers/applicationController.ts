@@ -3,7 +3,7 @@ import { ApplicationResponse, CreateApplicationBody } from "../types";
 import Application from "../models/Application";
 
 export const createApplication = async (
-  req: Request<{}, {}, CreateApplicationBody>,
+  req: Request<Record<string, never>, unknown, CreateApplicationBody>,
   res: Response<ApplicationResponse>,
   next: NextFunction,
 ): Promise<void> => {
@@ -23,7 +23,7 @@ export const getAllApplications = async (
   try {
     const getApplication = await Application.find();
     res.json(getApplication);
-  } catch (Error) {
-    next(Error);
+  } catch (error) {
+    next(error);
   }
 };

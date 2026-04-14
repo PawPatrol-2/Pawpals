@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import { useState } from 'react';
 import hundåkatt from '../../../assets/hundåkatt.png';
 import style from './Hero.module.css';
 
