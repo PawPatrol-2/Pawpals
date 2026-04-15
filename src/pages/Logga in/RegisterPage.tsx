@@ -1,94 +1,151 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./LoginPage.css";
-import { useUser } from "../../context/UserContext";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
+import './RegisterPage.css';
+
+type AccountType = 'adopter' | 'organization';
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
-  const [role, setRole] = useState<"user" | "organization">("user");
-  const navigate = useNavigate();
-  const { setUser } = useUser();
+  const [accountType, setAccountType] = useState<AccountType>('adopter');
+  const [email, setEmail] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [gdprConsent, setGdprConsent] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:3000/api/users/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, username, password, role }),
-    });
+    if (!gdprConsent) {
+      setIsSuccess(false);
+      setMessage('Du behöver godkänna GDPR för att skapa konto.');
+      return;
+    }
 
-    const data = await res.json();
-    setMessage(data.message);
+    try {
+      setIsSubmitting(true);
+      const url = 'http://localhost:3000/api/users/register';
+      const payload = { email, username, password, role: accountType };
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-    if (res.status === 201) {
-      if (data.user.role === "organization") {
-        setUser({ username: data.user.username, role: data.user.role });
-        navigate("/organisation-dashboard");
-        return;
+      const data = await res.json();
+      setIsSuccess(res.ok);
+      setMessage(data.message);
+
+      if (res.ok) {
+        setPassword('');
       }
-
-      setUser(null);
-      navigate("/logga-in");
+    } catch {
+      setIsSuccess(false);
+      setMessage('Något gick fel. Försök igen.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="LoginPage">
-      <h2>Registrera</h2>
-      <p>Skapa ett nytt konto</p>
-      <form onSubmit={handleRegister}>
-        <div>
-          <label htmlFor="email">E-post:</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+    <main className="registerPage">
+      <section className="registerCard">
+        <h1>Skapa konto</h1>
+        <p className="registerSubtitle">Välj vilken typ av konto du vill skapa</p>
+
+        <div className="accountTypeGrid" role="radiogroup" aria-label="Kontotyp">
+          <button
+            type="button"
+            className={`accountTypeCard ${accountType === 'adopter' ? 'active' : ''}`}
+            onClick={() => setAccountType('adopter')}
+            aria-pressed={accountType === 'adopter'}
+          >
+            <span className="icon" aria-hidden="true">🐾</span>
+            <span className="cardTitle">Adoptör</span>
+            <span className="cardSubtitle">Jag vill adoptera</span>
+          </button>
+          <button
+            type="button"
+            className={`accountTypeCard ${accountType === 'organization' ? 'active' : ''}`}
+            onClick={() => setAccountType('organization')}
+            aria-pressed={accountType === 'organization'}
+          >
+            <span className="icon" aria-hidden="true">🏢</span>
+            <span className="cardTitle">Organisation</span>
+            <span className="cardSubtitle">Vi listar djur</span>
+          </button>
         </div>
-        <div>
-          <label htmlFor="username">Användarnamn:</label>
+
+        <form onSubmit={handleRegister} className="registerForm">
+          <label htmlFor="username">Namn</label>
           <input
             id="username"
             type="text"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={e => setUsername(e.target.value)}
+            placeholder="Ditt namn"
             required
           />
-        </div>
-        <div>
-          <label htmlFor="password">Lösenord:</label>
+
+          <label htmlFor="email">E-post</label>
           <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            id="email"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="din@email.com"
             required
           />
-        </div>
-        <div>
-          <label htmlFor="role">Roll:</label>
-          <select
-            id="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value as "user" | "organization")}
-          >
-            <option value="user">Privatperson</option>
-            <option value="organization">Organisation</option>
-          </select>
-        </div>
-        <div>
-          <button className="loginbutton" type="submit">
-            Registrera
+
+          <label htmlFor="password">Lösenord</label>
+          <div className="registerPasswordField">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="registerPasswordToggle"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? "Dölj lösenord" : "Visa lösenord"}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
+          </div>
+
+          <label className="gdprBox" htmlFor="gdprConsent">
+            <input
+              id="gdprConsent"
+              type="checkbox"
+              checked={gdprConsent}
+              onChange={(e) => setGdprConsent(e.target.checked)}
+            />
+            <span>Jag samtycker till behandling av mina personuppgifter (GDPR)</span>
+          </label>
+
+          <button className='registerButton' type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Skapar konto...' : 'Skapa konto'}
           </button>
-        </div>
-      </form>
-      <div>{message}</div>
-    </div>
+        </form>
+
+        {message && (
+          <p className={`registerMessage ${isSuccess ? 'success' : 'error'}`}>
+            {message}
+          </p>
+        )}
+
+        <p className="loginHint">
+          Har du redan konto? <Link to="/logga-in">Logga in</Link>
+        </p>
+      </section>
+    </main>
   );
 }

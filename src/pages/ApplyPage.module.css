@@ -1,10 +1,19 @@
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1714;
+  max-width: 600px;
+  margin: 48px auto 0 auto;
+  padding: 0 24px;
+}
+
 .form {
   max-width: 600px;
   margin: 0 auto;
   padding: 48px 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .housingType,
@@ -12,15 +21,31 @@
 .formLabel {
   font-size: 1rem;
   font-weight: 600;
+  color: #1a1714;
 }
 
 .formHousetype,
-.formInput {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.formInput,
+.formTextarea {
+  padding: 12px;
+  border: 1px solid #eeece9;
+  border-radius: 8px;
   font-size: 1rem;
   width: 100%;
+  color: #1a1714;
+  background-color: #ffffff;
+}
+
+.formHousetype:focus,
+.formInput:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: #e8713a;
+}
+
+.formTextarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 .radioGroup {
@@ -28,10 +53,44 @@
   gap: 24px;
 }
 
-.clickable {
+.radioGroup label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5a5550;
   cursor: pointer;
 }
 
-.clickable:hover {
-  opacity: 0.8;
+.radioGroup input[type="radio"] {
+  accent-color: #e8713a;
+}
+
+.gdprConsent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #fdf0ea;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.gdprConsent input[type="checkbox"] {
+  accent-color: #e8713a;
+  margin-top: 3px;
+}
+
+.submitButton {
+  background-color: #e8713a;
+  color: #ffffff;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+.submitButton:hover {
+  background-color: #c95e28;
 }

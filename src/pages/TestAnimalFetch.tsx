@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 
+type Animal = {
+    _id: string;
+    name: string;
+    type: string;
+};
+
 export default function TestAnimalFetch() {
-    const [animals, setAnimals] = useState([])
+    const [animals, setAnimals] = useState<Animal[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
 
@@ -27,8 +33,8 @@ export default function TestAnimalFetch() {
         <div>
             <h1>Djur</h1>
             <ul>
-                {animals.map((animals: any) => (
-                    <li key={animals._id}>{animals.name} ({animals.type})</li>
+                {animals.map((animal) => (
+                    <li key={animal._id}>{animal.name} ({animal.type})</li>
                 ))}
             </ul>
         </div>
