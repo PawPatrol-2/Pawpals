@@ -170,6 +170,14 @@ const statusClassMap: Record<ApplicationStatus, string> = {
   "Behöver mer info": styles.statusMoreInfo,
 };
 
+const applicationStatuses: ApplicationStatus[] = [
+  "Inskickad",
+  "Granskas",
+  "Behöver mer info",
+  "Godkänd",
+  "Nekad",
+];
+
 export default function OrganizationDashboardPage() {
   const { user } = useUser();
   const [activeSection, setActiveSection] = useState<SectionKey>("overview");
@@ -306,6 +314,21 @@ export default function OrganizationDashboardPage() {
       ),
     );
   };
+
+  const overviewStats = useMemo(() => {
+    const approved = applications.filter(
+      (application) => application.status === "Godkänd",
+    ).length;
+    const rejected = applications.filter(
+      (application) => application.status === "Nekad",
+    ).length;
+
+    return {
+      approved,
+      rejected,
+      pending: applications.length - approved - rejected,
+    };
+  }, [applications]);
 
   const openAnimalModal = () => {
     setSubmitMessage("");
@@ -741,234 +764,226 @@ export default function OrganizationDashboardPage() {
             </div>
           </header>
 
-          <div className={styles.statsGrid}>
-            <article className={styles.statCard}>
-              <span className={styles.statValue}>{stats.total}</span>
-              <span className={styles.statLabel}>Totalt</span>
-            </article>
-            <article className={styles.statCard}>
-              <span className={styles.statValue}>{stats.reviewCount}</span>
-              <span className={styles.statLabel}>Granskas</span>
-            </article>
-            <article className={styles.statCard}>
-              <span className={styles.statValue}>{stats.newToday}</span>
-              <span className={styles.statLabel}>Nya idag</span>
-            </article>
-          </div>
-
-          <div className={styles.contentGrid}>
-            <article className={styles.tableCard}>
-              <h2 className={styles.sectionTitle}>Sökande / Djur</h2>
-              <div className={styles.tableWrap}>
-                <table className={styles.applicationTable}>
-                  <thead>
-                    <tr>
-                      <th>Sökande / Djur</th>
-                      <th>Datum</th>
-                      <th>Status</th>
-                      <th>Åtgärd</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {applications.map((application) => (
-                      <tr key={application.id}>
-                        <td>
-                          <div className={styles.applicantName}>
-                            {application.applicant}
-                          </div>
-                          <div className={styles.animalName}>
-                            {application.animal}
-                          </div>
-                        </td>
-                        <td>{application.date}</td>
-                        <td>
-                          <span
-                            className={`${styles.statusPill} ${statusClassMap[application.status]}`}
-                          >
-                            {application.status}
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            className={styles.actionLink}
-                            onClick={() =>
-                              handleApplicationAction(
-                                application.id,
-                                "Granskas",
-                              )
-                            }
-                          >
-                            {application.action}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {activeSection === "overview" && (
+            <>
+              <div className={styles.statsGrid}>
+                <article className={styles.statCard}>
+                  <span className={styles.statValue}>{stats.total}</span>
+                  <span className={styles.statLabel}>Mina djur</span>
+                </article>
+                <article className={styles.statCard}>
+                  <span className={styles.statValue}>
+                    {overviewStats.pending}
+                  </span>
+                  <span className={styles.statLabel}>Pågående ansökningar</span>
+                </article>
+                <article className={styles.statCard}>
+                  <span className={styles.statValue}>
+                    {overviewStats.approved}
+                  </span>
+                  <span className={styles.statLabel}>Godkända</span>
+                </article>
               </div>
 
-              <div className={styles.formCard} style={{ marginTop: "22px" }}>
-                <h3>Snabba åtgärder</h3>
-                <p className={styles.helperText}>
-                  Välj ett nytt statusläge för den markerade ansökan.
-                </p>
-                <div className={styles.badgeRow}>
-                  {(
-                    [
-                      "Granskas",
-                      "Godkänd",
-                      "Nekad",
-                      "Behöver mer info",
-                    ] as ApplicationStatus[]
-                  ).map((status) => (
-                    <button
-                      key={status}
-                      type="button"
-                      className={styles.badge}
-                      onClick={() => handleApplicationAction(1, status)}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </article>
-
-            <div>
-              {activeSection === "overview" && (
+              <div className={styles.overviewGrid}>
                 <section className={styles.panel}>
-                  <h3>Översikt</h3>
-                  <p className={styles.helperText}>
-                    Det här är en första version av dashboarden. Du kan senare
-                    koppla siffrorna till riktiga databasen.
-                  </p>
-                  <div
-                    className={styles.badgeRow}
-                    style={{ marginTop: "14px" }}
-                  >
-                    <span className={styles.badge}>Öppna ansökningar</span>
-                    <span className={styles.badge}>Snabb granskning</span>
-                    <span className={styles.badge}>Adoptionsflöde</span>
-                  </div>
-                </section>
-              )}
-
-              {activeSection === "animals" && (
-                <section className={styles.formCard}>
-                  <h3>Mina djur</h3>
-                  <div className={styles.compactList}>
-                    {animals.map((animal) => (
-                      <article
-                        key={animal.id}
-                        className={`${styles.animalCard} ${styles.clickableCard}`}
-                        onClick={() => openAnimalDetails(animal)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            openAnimalDetails(animal);
-                          }
-                        }}
-                      >
-                        <img src={animal.image} alt={animal.name} />
-                        <div>
-                          <h3>{animal.name}</h3>
-                          <p className={styles.animalMeta}>
-                            {animal.type} · {animal.breed} · {animal.age}
-                          </p>
-                          <p className={styles.helperText}>
-                            {animal.description}
-                          </p>
-                          <div
-                            className={styles.badgeRow}
-                            style={{ marginTop: "10px" }}
-                          >
-                            <span className={styles.badge}>
-                              {animal.status}
-                            </span>
-                            {animal.organizationOwner && (
-                              <span className={styles.badge}>
-                                {animal.organizationOwner === user?.username
-                                  ? "Ditt djur"
-                                  : "Annan organisation"}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </article>
+                  <h3>Senaste ansökningar</h3>
+                  <ul className={styles.timelineList}>
+                    {applications.slice(0, 4).map((application) => (
+                      <li key={application.id}>
+                        <strong>{application.applicant}</strong> ansökte om{" "}
+                        {application.animal}
+                        <span className={styles.helperText}>
+                          {application.date}
+                        </span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </section>
-              )}
-
-              {activeSection === "applications" && (
                 <section className={styles.panel}>
-                  <h3>Snabba åtgärder</h3>
-                  <p className={styles.helperText}>
-                    Välj ett nytt statusläge för den markerade ansökan.
-                  </p>
+                  <h3>Att göra idag</h3>
                   <div className={styles.badgeRow}>
-                    {(
-                      [
-                        "Granskas",
-                        "Godkänd",
-                        "Nekad",
-                        "Behöver mer info",
-                      ] as ApplicationStatus[]
-                    ).map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        className={styles.badge}
-                        onClick={() => handleApplicationAction(1, status)}
-                      >
-                        {status}
-                      </button>
-                    ))}
+                    <span className={styles.badge}>
+                      Gå igenom nya ansökningar
+                    </span>
+                    <span className={styles.badge}>
+                      Följ upp "Behöver mer info"
+                    </span>
+                    <span className={styles.badge}>
+                      Publicera djur med komplett profil
+                    </span>
                   </div>
                 </section>
-              )}
+              </div>
+            </>
+          )}
 
-              {activeSection === "add-animal" && (
-                <section className={styles.formCard}>
-                  <h3>Lägg upp djur</h3>
-                  <p className={styles.helperText}>
-                    Öppna formuläret i popupen för att ladda upp bild och skicka
-                    djuret till servern.
-                  </p>
-                  <div
-                    className={styles.badgeRow}
-                    style={{ marginTop: "14px" }}
-                  >
-                    <button
-                      type="button"
-                      className={styles.primaryButton}
-                      onClick={openAnimalModal}
-                    >
-                      Öppna formulär
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.ghostButton}
-                      onClick={() => setActiveSection("animals")}
-                    >
-                      Visa mina djur
-                    </button>
-                  </div>
-                  {submitMessage && (
-                    <p
-                      className={styles.helperText}
-                      style={{ marginTop: "12px" }}
-                    >
-                      {submitMessage}
-                    </p>
-                  )}
-                </section>
-              )}
+          {activeSection === "applications" && (
+            <div className={styles.contentGrid}>
+              <article className={styles.tableCard}>
+                <h2 className={styles.sectionTitle}>Sökande / Djur</h2>
+                <div className={styles.tableWrap}>
+                  <table className={styles.applicationTable}>
+                    <thead>
+                      <tr>
+                        <th>Sökande / Djur</th>
+                        <th>Datum</th>
+                        <th>Status</th>
+                        <th>Åtgärd</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {applications.map((application) => (
+                        <tr key={application.id}>
+                          <td>
+                            <div className={styles.applicantName}>
+                              {application.applicant}
+                            </div>
+                            <div className={styles.animalName}>
+                              {application.animal}
+                            </div>
+                          </td>
+                          <td>{application.date}</td>
+                          <td>
+                            <select
+                              value={application.status}
+                              onChange={(event) =>
+                                handleApplicationAction(
+                                  application.id,
+                                  event.target.value as ApplicationStatus,
+                                )
+                              }
+                              className={`${styles.statusSelect} ${statusClassMap[application.status]}`}
+                            >
+                              {applicationStatuses.map((status) => (
+                                <option key={status} value={status}>
+                                  {status}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <div className={styles.actionGroup}>
+                              <button
+                                type="button"
+                                className={styles.actionLink}
+                                onClick={() =>
+                                  setSubmitMessage(
+                                    `Öppnade ansökan för ${application.applicant}.`,
+                                  )
+                                }
+                              >
+                                Visa
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.secondaryAction}
+                                onClick={() =>
+                                  setSubmitMessage(
+                                    `Kontaktade ${application.applicant}.`,
+                                  )
+                                }
+                              >
+                                Kontakta
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+
+              <section className={styles.panel}>
+                <h3>Snabböverblick</h3>
+                <p className={styles.helperText}>
+                  Uppdatera status direkt i tabellen. Alla ändringar syns
+                  omedelbart.
+                </p>
+                <div className={styles.badgeRow} style={{ marginTop: "14px" }}>
+                  <span className={styles.badge}>
+                    {overviewStats.pending} pågående
+                  </span>
+                  <span className={styles.badge}>
+                    {overviewStats.approved} godkända
+                  </span>
+                  <span className={styles.badge}>
+                    {overviewStats.rejected} nekade
+                  </span>
+                </div>
+              </section>
             </div>
-          </div>
+          )}
+
+          {activeSection === "animals" && (
+            <section className={styles.formCard}>
+              <h3>Mina djur</h3>
+              <div className={styles.compactList}>
+                {animals.map((animal) => (
+                  <article
+                    key={animal.id}
+                    className={`${styles.animalCard} ${styles.clickableCard}`}
+                    onClick={() => openAnimalDetails(animal)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openAnimalDetails(animal);
+                      }
+                    }}
+                  >
+                    <img src={animal.image} alt={animal.name} />
+                    <div>
+                      <h3>{animal.name}</h3>
+                      <p className={styles.animalMeta}>
+                        {animal.type} · {animal.breed} · {animal.age}
+                      </p>
+                      <p className={styles.helperText}>{animal.description}</p>
+                      <div
+                        className={styles.badgeRow}
+                        style={{ marginTop: "10px" }}
+                      >
+                        <span className={styles.badge}>{animal.status}</span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeSection === "add-animal" && (
+            <section className={styles.formCard}>
+              <h3>Lägg upp djur</h3>
+              <p className={styles.helperText}>
+                Öppna formuläret i popupen för att ladda upp bild och skicka
+                djuret till servern.
+              </p>
+              <div className={styles.badgeRow} style={{ marginTop: "14px" }}>
+                <button
+                  type="button"
+                  className={styles.primaryButton}
+                  onClick={openAnimalModal}
+                >
+                  Öppna formulär
+                </button>
+                <button
+                  type="button"
+                  className={styles.ghostButton}
+                  onClick={() => setActiveSection("animals")}
+                >
+                  Visa mina djur
+                </button>
+              </div>
+              {submitMessage && (
+                <p className={styles.helperText} style={{ marginTop: "12px" }}>
+                  {submitMessage}
+                </p>
+              )}
+            </section>
+          )}
 
           {isModalOpen && (
             <div

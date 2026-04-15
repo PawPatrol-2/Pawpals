@@ -174,6 +174,12 @@
   align-items: start;
 }
 
+.overviewGrid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 18px;
+}
+
 .tableCard,
 .formCard,
 .panel {
@@ -233,6 +239,16 @@
   font-weight: 700;
 }
 
+.statusSelect {
+  min-width: 180px;
+  border: 1px solid #dccfc1;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font: inherit;
+  font-weight: 700;
+  background: #fff;
+}
+
 .statusSubmitted {
   background: #fbefe2;
   color: #e5722f;
@@ -261,6 +277,23 @@
   background: transparent;
   border: 0;
   padding: 0;
+  cursor: pointer;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.secondaryAction {
+  border: 1px solid #e4dbd0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #fff;
+  color: #6b6057;
+  font: inherit;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -364,6 +397,23 @@
   border: 0;
 }
 
+.timelineList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.timelineList li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #eadfd2;
+  background: #fff;
+}
+
 .modalBackdrop {
   position: fixed;
   inset: 0;
@@ -409,7 +459,8 @@
 
 @media (max-width: 1100px) {
   .shell,
-  .contentGrid {
+  .contentGrid,
+  .overviewGrid {
     grid-template-columns: 1fr;
   }
 
