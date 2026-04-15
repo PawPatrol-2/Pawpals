@@ -31,11 +31,12 @@ export default function RegisterPage() {
             let payload: any = {};
             if (accountType === 'organization') {
                 url = 'http://localhost:3000/api/organisations/register';
-                payload = { email, organization: username, password };
+                payload = { email, organization: username, password, role: accountType };
             } else {
                 url = 'http://localhost:3000/api/users/register';
-                payload = { email, username, password };
+                payload = { email, username, password, role: accountType };
             }
+            console.log('Payload som skickas:', payload);
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -116,6 +117,7 @@ export default function RegisterPage() {
                             onChange={e => setPassword(e.target.value)}
                             placeholder="••••••••"
                             required
+                            autoComplete="current-password"
                         />
                         <button
                             type="button"
@@ -155,17 +157,3 @@ export default function RegisterPage() {
         </main>
     );
 }
-=======
-import React from 'react';
-import RegisterForm from '../../components/RegisterForm/RegisterForm';
-
-const RegisterPage: React.FC = () => {
-    return (
-        <div>
-            <RegisterForm />
-        </div>
-    );
-};
-
-export default RegisterPage;
->>>>>>> Stashed changes
