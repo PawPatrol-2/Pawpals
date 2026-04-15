@@ -6,48 +6,56 @@ import './RegisterPage.css';
 type AccountType = 'adopter' | 'organization';
 
 export default function RegisterPage() {
-    const [accountType, setAccountType] = useState<AccountType>('adopter')
-    const [email, setEmail] = useState<string>('')
-    const [username, setUsername] = useState<string>('')
-    const [password, setPassword] = useState<string>('')
-    const [showPassword, setShowPassword] = useState<boolean>(false)
-    const [gdprConsent, setGdprConsent] = useState<boolean>(false)
-    const [message, setMessage] = useState<string>('')
-    const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
-    const [isSuccess, setIsSuccess] = useState<boolean>(false)
+    const [accountType, setAccountType] = useState<AccountType>('adopter');
+    const [email, setEmail] = useState<string>('');
+    const [username, setUsername] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [gdprConsent, setGdprConsent] = useState<boolean>(false);
+    const [message, setMessage] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
-    const handleRegister = async(e: React.FormEvent<HTMLFormElement>) => {
+    const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!gdprConsent) {
-            setIsSuccess(false)
-            setMessage('Du behöver godkänna GDPR för att skapa konto.')
-            return
+            setIsSuccess(false);
+            setMessage('Du behöver godkänna GDPR för att skapa konto.');
+            return;
         }
 
         try {
-            setIsSubmitting(true)
-            const res = await fetch('http://localhost:3000/api/users/register', {
+            setIsSubmitting(true);
+            let url = '';
+            let payload: any = {};
+            if (accountType === 'organization') {
+                url = 'http://localhost:3000/api/organisations/register';
+                payload = { email, organization: username, password };
+            } else {
+                url = 'http://localhost:3000/api/users/register';
+                payload = { email, username, password };
+            }
+            const res = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, username, password, accountType })
-            })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
             const data = await res.json();
-            setIsSuccess(res.ok)
-            setMessage(data.message)
+            setIsSuccess(res.ok);
+            setMessage(data.message);
 
             if (res.ok) {
-                setPassword('')
+                setPassword('');
             }
         } catch {
-            setIsSuccess(false)
-            setMessage('Något gick fel. Försök igen.')
+            setIsSuccess(false);
+            setMessage('Något gick fel. Försök igen.');
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-
-    }
+    };
 
     return (
         <main className="registerPage">
@@ -147,3 +155,17 @@ export default function RegisterPage() {
         </main>
     );
 }
+=======
+import React from 'react';
+import RegisterForm from '../../components/RegisterForm/RegisterForm';
+
+const RegisterPage: React.FC = () => {
+    return (
+        <div>
+            <RegisterForm />
+        </div>
+    );
+};
+
+export default RegisterPage;
+>>>>>>> Stashed changes
