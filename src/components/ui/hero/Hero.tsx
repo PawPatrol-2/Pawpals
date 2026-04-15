@@ -34,7 +34,7 @@ export default function Hero({ onSearch }: HeroProps) {
                             }}
                         />
                         <button className={style.searchButton} onClick={handleSearch}>
-                            Filtrera
+                            Sök
                         </button>
                     </div>
                 </div>
