@@ -155,5 +155,17 @@ export default function RegisterPage() {
         </main>
     );
 }
+=======
+import React from 'react';
+import RegisterForm from '../../components/RegisterForm/RegisterForm';
 
+const RegisterPage: React.FC = () => {
+    return (
+        <div>
+            <RegisterForm />
+        </div>
+    );
+};
 
+export default RegisterPage;
+>>>>>>> Stashed changes
