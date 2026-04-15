@@ -1,6 +1,6 @@
-import { useUser } from '../../context/UserContext';
-import { Link } from 'react-router-dom';
-import './Navbar.css';
+import { useUser } from "../../context/UserContext";
+import { Link } from "react-router-dom";
+import "./Navbar.css";
 
 export default function Navbar() {
   const { user, isAuthLoading, logout } = useUser();
@@ -18,7 +18,7 @@ export default function Navbar() {
           <li>
             <Link to="/organisationer">Organisationer</Link>
           </li>
-          {!isAuthLoading && user && user.role === 'organization' && (
+          {!isAuthLoading && user && user.role === "organization" && (
             <li>
               <Link to="/organisation-dashboard">Org-dashboard</Link>
             </li>

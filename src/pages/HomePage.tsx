@@ -49,7 +49,7 @@ export default function HomePage() {
 
   return (
     <main>
-      <Hero onSearch={setSearchTerm}/>
+      <Hero onSearch={setSearchTerm} />
       {loading && <p>Laddar djur...</p>}
       {!loading && infoMessage && <p>{infoMessage}</p>}
       {!loading && <AnimalGrid animals={filteredAnimals} />}
