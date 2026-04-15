@@ -19,6 +19,7 @@ export default function Navbar() {
         </ul>
         {user && (
           <div className="navbar-profile">
+            <span className="navbar-profile-icon">👤</span>
             <span>{user.username}</span>
           </div>
         )}

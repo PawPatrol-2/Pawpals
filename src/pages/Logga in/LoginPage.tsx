@@ -23,8 +23,12 @@ export default function LoginPage() {
         const data = await res.json();
         setMessage(data.message);
 
-        if (res.ok && data.username) {
-            setUser({ username: data.username });
+        if (res.ok && data.user) {
+            setUser({
+                id: data.user.id,
+                username: data.user.username,
+                email: data.user.email
+            });
             navigate('/');
         }
     };

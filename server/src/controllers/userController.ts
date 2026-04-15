@@ -93,7 +93,14 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
-        const { email, username, password } = req.body;
+        const { email, username, password, role } = req.body;
+        console.log('Payload mottagen:', { email, username, password, role });
+
+        if (!['adopter', 'organization'].includes(role)) {
+            return res.status(400).json({
+                message: "Ogiltig roll. Tillåtna roller är 'adopter' och 'organization'."
+            });
+        }
 
         const existingUsername = await User.findOne({ username });
         if (existingUsername) {
@@ -110,7 +117,7 @@ export const registerUser = async (req: Request, res: Response) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ email, username, password: hashedPassword });
+        const user = new User({ email, username, password: hashedPassword, role });
         await user.save();
 
         res.status(201).json({
