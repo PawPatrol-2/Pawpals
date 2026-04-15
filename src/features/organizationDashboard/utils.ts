@@ -1,0 +1,42 @@
+import type { AnimalFormState, AnimalItem } from "./types";
+
+export const resolveImageUrl = (image: string) => {
+  if (!image) {
+    return image;
+  }
+
+  if (image.startsWith("/uploads/")) {
+    return `http://localhost:3000${image}`;
+  }
+
+  return image;
+};
+
+export const normalizeImageForApi = (image: string) => {
+  const prefix = "http://localhost:3000/uploads/";
+
+  if (image.startsWith(prefix)) {
+    return `/uploads/${image.slice(prefix.length)}`;
+  }
+
+  return image;
+};
+
+const getAgeNumber = (ageText: string) => {
+  const parsed = Number.parseInt(ageText, 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+export const buildEditDataFromAnimal = (
+  animal: AnimalItem,
+): AnimalFormState => ({
+  type: animal.type,
+  breed: animal.breed,
+  name: animal.name,
+  age: String(getAgeNumber(animal.age)),
+  keyTraits: animal.keyTraits,
+  personality: animal.personality || "",
+  description: animal.description,
+  imagePreview: animal.image,
+  imageFile: null,
+});
