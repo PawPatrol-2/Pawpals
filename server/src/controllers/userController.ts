@@ -1,6 +1,16 @@
 import { Request, Response } from "express";
-import User from "../models/User";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import User from "../models/User";
+import { AuthenticatedRequest } from "../middleware/auth";
+
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET saknas i miljövariablerna");
+  }
+  return secret;
+};
 
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -20,10 +30,19 @@ export const loginUser = async (req: Request, res: Response) => {
       });
     }
 
+    const token = jwt.sign({ userId: user._id }, getJwtSecret(), {
+      expiresIn: "7d",
+    });
+
     res.status(200).json({
       message: "Inloggningen lyckades!",
-      username: user.username,
-      role: user.role,
+      token,
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
     });
   } catch (err: unknown) {
     if (err instanceof Error) {
@@ -63,7 +82,7 @@ export const registerUser = async (req: Request, res: Response) => {
       email,
       username,
       password: hashedPassword,
-      role: role === "organization" ? "organization" : "user",
+      role: role === "organization" ? "organization" : "adopter",
     });
     await user.save();
 
@@ -83,5 +102,39 @@ export const registerUser = async (req: Request, res: Response) => {
         error: err,
       });
     }
+  }
+};
+
+export const getCurrentUser = async (
+  req: AuthenticatedRequest,
+  res: Response,
+) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Saknar giltig token" });
+    }
+
+    const user = await User.findById(userId).select("email username role");
+    if (!user) {
+      return res.status(404).json({ message: "Användare hittades inte" });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return res
+        .status(500)
+        .json({ message: "Något gick fel", error: err.message });
+    }
+
+    return res.status(500).json({ message: "Något gick fel", error: err });
   }
 };

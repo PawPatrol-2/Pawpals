@@ -2,16 +2,24 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import "./LoginPage.css";
+import { useUser } from "../../context/UserContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
+  const { setUser } = useUser();
   const navigate = useNavigate();
 
   const handleDemoLogin = () => {
     localStorage.setItem("token", "demo-token-org");
+    setUser({
+      id: "demo-org",
+      email: "demo@pawpals.se",
+      username: "Pawpals Demo Org",
+      role: "organization",
+    });
     setMessage("Demo-organisation inloggad.");
     navigate("/organisation-dashboard");
   };
@@ -29,6 +37,7 @@ export default function LoginPage() {
 
     if (res.ok && data.token && data.user) {
       localStorage.setItem("token", data.token);
+      setUser(data.user);
       const redirectTo =
         data.user.role === "organization" ? "/organisation-dashboard" : "/";
       navigate(redirectTo);

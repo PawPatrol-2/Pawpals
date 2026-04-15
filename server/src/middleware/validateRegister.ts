@@ -20,7 +20,7 @@ const validateRegister = (req: Request, res: Response, next: NextFunction) => {
       .json({ message: "Lösenordet måste vara minst 6 tecken." });
   }
 
-  if (role && role !== "user" && role !== "organization") {
+  if (role && role !== "adopter" && role !== "organization") {
     return res.status(400).json({ message: "Ogiltig roll." });
   }
 

@@ -29,6 +29,17 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
+    if (token === "demo-token-org") {
+      setUser({
+        id: "demo-org",
+        email: "demo@pawpals.se",
+        username: "Pawpals Demo Org",
+        role: "organization",
+      });
+      setIsAuthLoading(false);
+      return;
+    }
+
     const loadCurrentUser = async () => {
       try {
         const res = await fetch("http://localhost:3000/api/users/me", {

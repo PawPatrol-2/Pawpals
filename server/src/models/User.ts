@@ -4,7 +4,7 @@ export interface User extends Document {
   email: string;
   username: string;
   password: string;
-  role: "user" | "organization";
+  role: "adopter" | "organization";
 }
 
 const UserSchema: Schema = new Schema({
@@ -13,8 +13,7 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: true },
   role: {
     type: String,
-    enum: ["user", "organization"],
-    default: "user",
+    enum: ["adopter", "organization"],
     required: true,
   },
 });
