@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import AnimalGrid from "../components/AnimalGrid/AnimalGrid";
-import { mockAnimals } from "../data/mockAnimals";
 import type { Animal } from "../types/animal";
 
 export default function ExplorePage() {
@@ -20,10 +19,8 @@ export default function ExplorePage() {
         setAnimals(data);
         setInfoMessage(null);
       } catch {
-        setAnimals(mockAnimals);
-        setInfoMessage(
-          "Kunde inte hämta djur från servern. Visar lokala djur just nu.",
-        );
+        setAnimals([]);
+        setInfoMessage("Kunde inte hämta djur från servern.");
       } finally {
         setIsLoading(false);
       }
