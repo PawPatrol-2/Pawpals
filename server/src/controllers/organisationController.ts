@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 
 export const loginOrganization = async (req: Request, res: Response) => {
     const { email, password } = req.body;
-    console.log('Inloggningsförsök för organisation:', { email, password });
     try {
         const org = await Organization.findOne({ email });
         if (!org) return res.status(401).json({ message: "Fel e-mail" });
