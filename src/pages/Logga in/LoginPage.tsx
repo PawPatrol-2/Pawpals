@@ -15,7 +15,7 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const res = await fetch('http://localhost:3000/api/users/login', {
+        const res = await fetch('http://localhost:3000/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -27,7 +27,8 @@ export default function LoginPage() {
             setUser({
                 id: data.user.id,
                 username: data.user.username,
-                email: data.user.email
+                email: data.user.email,
+                role: data.user.role
             });
             navigate('/');
         }
