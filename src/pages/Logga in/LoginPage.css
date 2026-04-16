@@ -2,30 +2,97 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 90vh;
-  padding: 2rem;
+  padding: 2.5rem 1rem;
   box-sizing: border-box;
-  background-color: #FDF0EA;
+  background-color: #fdf0ea;
 }
 
-.LoginPage div {
+.LoginPage h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.LoginPage p {
+  margin: 0.35rem 0 1.1rem;
+  color: #6a6764;
+}
+
+.loginForm {
+  width: min(100%, 360px);
   display: flex;
   flex-direction: column;
-  margin-bottom: 1rem;
-  width: 250px;
+  gap: 0.85rem;
+}
+
+.loginField {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .LoginPage label {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.3rem;
   font-weight: 600;
 }
 
+.accountTypeGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.accountTypeButton {
+  border: 1px solid #d9d5d1;
+  border-radius: 14px;
+  background: #f0edeb;
+  color: #2d2c2b;
+  padding: 0.7rem 0.6rem;
+  min-height: 78px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.accountTypeButton:hover {
+  transform: translateY(-1px);
+}
+
+.accountTypeTitle {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.accountTypeSub {
+  font-size: 0.86rem;
+  color: #6a6765;
+}
+
+.accountTypeButton.active {
+  border-color: var(--orange);
+  background: #f8efe8;
+  color: var(--orange-dark);
+}
+
+.accountTypeButton.active .accountTypeSub {
+  color: var(--orange);
+}
+
 .LoginPage input {
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.5rem;
   border: 1px solid var(--gray-300);
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 1rem;
+  background: #fff;
 }
 
 .LoginPage .passwordField {
@@ -69,12 +136,30 @@
 }
 
 .loginbutton {
-  padding: 0.5rem;
+  width: 100%;
+  padding: 0.62rem;
   background-color: var(--orange);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s;
+}
+
+.loginbutton:hover {
+  background-color: var(--orange-dark);
+}
+
+.loginMessage {
+  width: min(100%, 360px);
+  min-height: 1.3rem;
+  margin-top: 0.7rem;
+  color: #222;
+}
+
+.loginFooter {
+  width: min(100%, 360px);
+  margin-top: 0.4rem;
 }

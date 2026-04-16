@@ -1,13 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
+type UserRole = 'adopter' | 'organization';
+
 type AuthTokenPayload = JwtPayload & {
   userId: string;
+  role?: UserRole;
 };
 
 export type AuthenticatedRequest = Request & {
   user?: {
     userId: string;
+    role?: UserRole;
   };
 };
 
@@ -37,7 +41,12 @@ const authenticate = (
       return res.status(401).json({ message: 'Ogiltig token' });
     }
 
-    req.user = { userId: decoded.userId };
+    const role =
+      decoded.role === 'organization' || decoded.role === 'adopter'
+        ? decoded.role
+        : undefined;
+
+    req.user = { userId: decoded.userId, role };
     next();
   } catch (error) {
     if (error instanceof Error && error.message.includes('JWT_SECRET')) {
@@ -45,6 +54,19 @@ const authenticate = (
     }
     return res.status(401).json({ message: 'Ogiltig eller utgången token' });
   }
+};
+
+export const requireRole = (...allowedRoles: UserRole[]) => (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const role = req.user?.role;
+  if (!role || !allowedRoles.includes(role)) {
+    return res.status(403).json({ message: 'Åtkomst nekad' });
+  }
+
+  return next();
 };
 
 export default authenticate;

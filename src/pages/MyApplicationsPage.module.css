@@ -14,6 +14,38 @@
   color: #5f5b57;
 }
 
+.profileTop {
+  margin-bottom: 1rem;
+}
+
+.profileList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0;
+}
+
+.profileItem {
+  background: #fcf9f6;
+  border: 1px solid #ece6e1;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+}
+
+.profileItem dt {
+  color: #6b6661;
+  font-size: 0.86rem;
+  margin-bottom: 0.25rem;
+}
+
+.profileItem dd {
+  margin: 0;
+  color: #23201e;
+  font-weight: 700;
+  font-size: 0.98rem;
+}
+
 .stateMessage {
   margin-top: 1.5rem;
   background: #fff;
@@ -58,6 +90,20 @@
   font-size: 0.95rem;
 }
 
+.resultText {
+  margin-top: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.approvedText {
+  color: #135726;
+}
+
+.rejectedText {
+  color: #7d1a1a;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -90,6 +136,10 @@
 }
 
 @media (max-width: 700px) {
+  .profileList {
+    grid-template-columns: 1fr;
+  }
+
   .card {
     grid-template-columns: 1fr;
     align-items: flex-start;

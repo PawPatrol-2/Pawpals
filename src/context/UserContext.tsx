@@ -21,6 +21,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         const token = localStorage.getItem('token');
+        const accountType = localStorage.getItem('accountType') ?? 'adopter';
         if (!token) {
             setIsAuthLoading(false);
             return;
@@ -28,7 +29,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const loadCurrentUser = async () => {
             try {
-                const res = await fetch('http://localhost:3000/api/users/me', {
+                const meEndpoint = accountType === 'organization'
+                    ? 'http://localhost:3000/api/organisations/me'
+                    : 'http://localhost:3000/api/users/me';
+
+                const res = await fetch(meEndpoint, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -42,6 +47,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(data.user);
             } catch {
                 localStorage.removeItem('token');
+                localStorage.removeItem('accountType');
                 setUser(null);
             } finally {
                 setIsAuthLoading(false);
@@ -53,6 +59,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('accountType');
         setUser(null);
     };
 

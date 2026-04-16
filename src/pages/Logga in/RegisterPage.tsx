@@ -28,7 +28,7 @@ export default function RegisterPage() {
         try {
             setIsSubmitting(true);
             let url = '';
-            let payload: any = {};
+            let payload: Record<string, string> = {};
             if (accountType === 'organization') {
                 url = 'http://localhost:3000/api/organisations/register';
                 payload = { email, organization: username, password, role: accountType };

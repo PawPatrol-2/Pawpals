@@ -31,7 +31,10 @@ export const loginUser = async (req: Request, res: Response) => {
         }
 
         const token = jwt.sign(
-            { userId: user.id },
+            {
+                userId: user.id,
+                role: user.role === 'organization' ? 'organization' : 'adopter'
+            },
             getJwtSecret(),
             { expiresIn: '7d' }
         );
@@ -42,7 +45,8 @@ export const loginUser = async (req: Request, res: Response) => {
             user: {
                 id: user.id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                role: user.role === 'organization' ? 'organization' : 'adopter'
             }
         });
 
@@ -66,7 +70,7 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
             return res.status(401).json({ message: "Obehörig användare" });
         }
 
-        const user = await User.findById(userId).select('_id username email');
+        const user = await User.findById(userId).select('_id username email role');
         if (!user) {
             return res.status(404).json({ message: "Användaren hittades inte" });
         }
@@ -75,7 +79,8 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) =
             user: {
                 id: user.id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                role: user.role === 'organization' ? 'organization' : 'adopter'
             }
         });
     } catch (err: unknown) {
