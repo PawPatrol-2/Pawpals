@@ -56,6 +56,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser(data.user);
       } catch {
         localStorage.removeItem("token");
+        localStorage.removeItem("accountType");
         setUser(null);
       } finally {
         setIsAuthLoading(false);
@@ -67,6 +68,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("accountType");
     setUser(null);
   };
 

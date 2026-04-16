@@ -4,7 +4,10 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import "./LoginPage.css";
 import { useUser } from "../../context/UserContext";
 
+type AccountType = "adopter" | "organization";
+
 export default function LoginPage() {
+  const [accountType, setAccountType] = useState<AccountType>("adopter");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -14,6 +17,7 @@ export default function LoginPage() {
 
   const handleDemoLogin = () => {
     localStorage.setItem("token", "demo-token-org");
+    localStorage.setItem("accountType", "organization");
     setUser({
       id: "demo-org",
       email: "demo@pawpals.se",
@@ -27,7 +31,9 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:3000/api/users/login", {
+    const loginEndpoint = "http://localhost:3000/api/users/login";
+
+    const res = await fetch(loginEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -37,7 +43,14 @@ export default function LoginPage() {
 
     if (res.ok && data.token && data.user) {
       localStorage.setItem("token", data.token);
-      setUser(data.user);
+      localStorage.setItem("accountType", accountType);
+      setUser({
+        id: data.user.id,
+        username: data.user.username,
+        email: data.user.email,
+        role: data.user.role,
+      });
+
       const redirectTo =
         data.user.role === "organization" ? "/organisation-dashboard" : "/";
       navigate(redirectTo);
@@ -48,8 +61,27 @@ export default function LoginPage() {
     <div className="LoginPage">
       <h2>Logga in</h2>
       <p>Logga in på ditt konto</p>
-      <form onSubmit={handleLogin}>
-        <div>
+      <form className="loginForm" onSubmit={handleLogin}>
+        <div className="accountTypeGroup">
+          <button
+            type="button"
+            className={`accountTypeButton ${accountType === "adopter" ? "active" : ""}`}
+            onClick={() => setAccountType("adopter")}
+          >
+            <span className="accountTypeTitle">Adoptör</span>
+            <span className="accountTypeSub">Jag vill adoptera</span>
+          </button>
+          <button
+            type="button"
+            className={`accountTypeButton ${accountType === "organization" ? "active" : ""}`}
+            onClick={() => setAccountType("organization")}
+          >
+            <span className="accountTypeTitle">Organisation</span>
+            <span className="accountTypeSub">Vi listar djur</span>
+          </button>
+        </div>
+
+        <div className="loginField">
           <label htmlFor="email">E-post:</label>
           <input
             id="email"
@@ -59,7 +91,8 @@ export default function LoginPage() {
             required
           />
         </div>
-        <div>
+
+        <div className="loginField">
           <label htmlFor="password">Lösenord:</label>
           <div className="passwordField">
             <input
@@ -79,13 +112,15 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
-        <div>
+
+        <div className="loginField">
           <button className="loginbutton" type="submit">
             Logga in
           </button>
         </div>
       </form>
-      <div>{message}</div>
+
+      <div className="loginMessage">{message}</div>
       <div style={{ marginTop: "1rem", display: "grid", gap: "0.75rem" }}>
         <button type="button" className="loginbutton" onClick={handleDemoLogin}>
           Testa som organisation
@@ -95,7 +130,7 @@ export default function LoginPage() {
           organisationsdashboarden.
         </p>
       </div>
-      <div>
+      <div className="loginFooter">
         <Link to={"/registrera"}>Registrera dig</Link>
       </div>
     </div>

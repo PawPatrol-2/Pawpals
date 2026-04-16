@@ -27,8 +27,22 @@ export default function RegisterPage() {
 
     try {
       setIsSubmitting(true);
-      const url = "http://localhost:3000/api/users/register";
-      const payload = { email, username, password, role: accountType };
+      let url = "";
+      let payload: Record<string, string> = {};
+
+      if (accountType === "organization") {
+        url = "http://localhost:3000/api/organisations/register";
+        payload = {
+          email,
+          organization: username,
+          password,
+          role: accountType,
+        };
+      } else {
+        url = "http://localhost:3000/api/users/register";
+        payload = { email, username, password, role: accountType };
+      }
+
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,7 +84,7 @@ export default function RegisterPage() {
             aria-pressed={accountType === "adopter"}
           >
             <span className="icon" aria-hidden="true">
-              🐾
+              Ad
             </span>
             <span className="cardTitle">Adoptör</span>
             <span className="cardSubtitle">Jag vill adoptera</span>
@@ -82,7 +96,7 @@ export default function RegisterPage() {
             aria-pressed={accountType === "organization"}
           >
             <span className="icon" aria-hidden="true">
-              🏢
+              Org
             </span>
             <span className="cardTitle">Organisation</span>
             <span className="cardSubtitle">Vi listar djur</span>
