@@ -142,7 +142,7 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     try {
-        // Kontrollera om det är en användare
+
         let user = await User.findOne({ email });
         if (user) {
             const isMatch = await bcrypt.compare(password, user.password);
@@ -168,7 +168,6 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        // Kontrollera om det är en organisation
         const organization = await Organization.findOne({ email });
         if (organization) {
             const isMatch = await bcrypt.compare(password, organization.password);

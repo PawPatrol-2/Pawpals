@@ -23,7 +23,8 @@ export default function LoginPage() {
         const data = await res.json();
         setMessage(data.message);
 
-        if (res.ok && data.user) {
+        if (res.ok && data.user && data.token) {
+            localStorage.setItem("token", data.token);
             setUser({
                 id: data.user.id,
                 username: data.user.username,
