@@ -1,10 +1,74 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { mockAnimals } from "../data/mockAnimals";
+import type { Animal } from "../types/animal";
 import styles from "./AnimalDetailPage.module.css";
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const animal = mockAnimals.find((item) => item._id === id);
+  const [animal, setAnimal] = useState<Animal | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) {
+      setAnimal(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchAnimal = async () => {
+      try {
+        const response = await fetch(`http://localhost:3000/api/animals/${id}`);
+        if (!response.ok) {
+          throw new Error("Kunde inte hämta djur");
+        }
+
+        const data = (await response.json()) as Partial<Animal> & {
+          _id: string;
+        };
+        setAnimal({
+          _id: data._id,
+          type: data.type ?? "Okänd typ",
+          breed: data.breed ?? "Okänd ras",
+          image: data.image ?? "",
+          name: data.name ?? "Okänt namn",
+          age: data.age ?? 0,
+          keyTraits: data.keyTraits ?? "Ingen information",
+          personality: data.personality ?? "Ingen information",
+          description: data.description ?? "Ingen beskrivning tillgänglig.",
+          organizationOwner: data.organizationOwner,
+          likes: Array.isArray(data.likes) ? data.likes : [],
+          createdAt: data.createdAt,
+        });
+      } catch {
+        const fallbackAnimal =
+          mockAnimals.find((item) => item._id === id) ?? null;
+        setAnimal(fallbackAnimal);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void fetchAnimal();
+  }, [id]);
+
+  const imageSrc = useMemo(() => {
+    if (!animal?.image) {
+      return "";
+    }
+
+    return animal.image.startsWith("/uploads/")
+      ? `http://localhost:3000${animal.image}`
+      : animal.image;
+  }, [animal]);
+
+  if (isLoading) {
+    return (
+      <main className={styles.page}>
+        <p>Laddar djur...</p>
+      </main>
+    );
+  }
 
   if (!animal) {
     return (
@@ -23,7 +87,7 @@ export default function AnimalDetailPage() {
   return (
     <main className={styles.page}>
       <article className={styles.detailCard}>
-        <img className={styles.image} src={animal.image} alt={animal.name} />
+        <img className={styles.image} src={imageSrc} alt={animal.name} />
 
         <div className={styles.content}>
           <p className={styles.badge}>{animal.type}</p>
@@ -52,11 +116,15 @@ export default function AnimalDetailPage() {
 
           <section className={styles.aboutSection}>
             <h2>Tycker om</h2>
-            <ul className={styles.likesList}>
-              {animal.likes.map((like) => (
-                <li key={like}>{like}</li>
-              ))}
-            </ul>
+            {animal.likes.length > 0 ? (
+              <ul className={styles.likesList}>
+                {animal.likes.map((like) => (
+                  <li key={like}>{like}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>Ingen information ännu.</p>
+            )}
           </section>
 
           <Link className={styles.backButton} to="/utforska">
