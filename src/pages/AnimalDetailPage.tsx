@@ -12,7 +12,7 @@ export default function AnimalDetailPage() {
   useEffect(() => {
     if (!id) return;
 
-    fetch(`http://localhost:3000/api/animals/${id}}`)
+    fetch(`http://localhost:3000/api/animals/${id}`)
       .then ((res) => {
         if (!res.ok) {
           if (res.status === 404) {
