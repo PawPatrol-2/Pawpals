@@ -3,10 +3,11 @@ import {
   createApplication,
   getAllApplications,
 } from "../controllers/applicationController";
+import authenticate from "../middleware/auth";
 
 const router = Router();
 
-router.post("/", createApplication);
+router.post("/", authenticate, createApplication);
 router.get("/", getAllApplications);
 
 //fler endpoints kommer

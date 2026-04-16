@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { ApplicationResponse, CreateApplicationBody } from "../types";
 import Application from "../models/Application";
+import type { AuthenticatedRequest } from "../middleware/auth";
 
 export const createApplication = async (
   req: Request<Record<string, never>, unknown, CreateApplicationBody>,
