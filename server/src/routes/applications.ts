@@ -1,22 +1,15 @@
 import { Router } from "express";
-import authenticate, { requireRole } from "../middleware/auth";
 import {
   createApplication,
+  getAllApplications,
   getMyApplications,
-  updateApplicationStatus,
 } from "../controllers/applicationController";
+import authenticate from "../middleware/auth";
 
 const router = Router();
 
 router.post("/", authenticate, createApplication);
+router.get("/", getAllApplications);
 router.get("/me", authenticate, getMyApplications);
-router.patch(
-  "/:applicationId/status",
-  authenticate,
-  requireRole("organization"),
-  updateApplicationStatus
-);
-
-//fler endpoints kommer
 
 export default router;

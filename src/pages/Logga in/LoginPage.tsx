@@ -4,10 +4,7 @@ import { FiEye, FiEyeOff } from 'react-icons/fi';
 import './LoginPage.css';
 import { useUser } from '../../context/UserContext';
 
-type AccountType = 'adopter' | 'organization';
-
 export default function LoginPage() {
-    const [accountType, setAccountType] = useState<AccountType>('adopter');
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -18,11 +15,7 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        const loginEndpoint = accountType === 'organization'
-            ? 'http://localhost:3000/api/organisations/login'
-            : 'http://localhost:3000/api/users/login';
-
-        const res = await fetch(loginEndpoint, {
+        const res = await fetch('http://localhost:3000/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -30,13 +23,13 @@ export default function LoginPage() {
         const data = await res.json();
         setMessage(data.message);
 
-        if (res.ok && data.token && data.user) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('accountType', accountType);
+        if (res.ok && data.user && data.token) {
+            localStorage.setItem("token", data.token);
             setUser({
                 id: data.user.id,
                 username: data.user.username,
-                email: data.user.email
+                email: data.user.email,
+                role: data.user.role
             });
             navigate('/');
         }
@@ -46,26 +39,8 @@ export default function LoginPage() {
         <div className="LoginPage">
             <h2>Logga in</h2>
             <p>Logga in på ditt konto</p>
-            <form className="loginForm" onSubmit={handleLogin}>
-                <div className="accountTypeGroup">
-                    <button
-                        type="button"
-                        className={`accountTypeButton ${accountType === 'adopter' ? 'active' : ''}`}
-                        onClick={() => setAccountType('adopter')}
-                    >
-                        <span className="accountTypeTitle">Adoptör</span>
-                        <span className="accountTypeSub">Jag vill adoptera</span>
-                    </button>
-                    <button
-                        type="button"
-                        className={`accountTypeButton ${accountType === 'organization' ? 'active' : ''}`}
-                        onClick={() => setAccountType('organization')}
-                    >
-                        <span className="accountTypeTitle">Organisation</span>
-                        <span className="accountTypeSub">Vi listar djur</span>
-                    </button>
-                </div>
-                <div className="loginField">
+            <form onSubmit={handleLogin}>
+                <div>
                     <label htmlFor="email">E-post:</label>
                     <input
                         id="email"
@@ -75,7 +50,7 @@ export default function LoginPage() {
                         required
                     />
                 </div>
-                <div className="loginField">
+                <div>
                     <label htmlFor="password">Lösenord:</label>
                     <div className="passwordField">
                         <input
@@ -95,12 +70,12 @@ export default function LoginPage() {
                         </button>
                     </div>
                 </div>
-                <div className="loginField">
+                <div>
                     <button className='loginbutton' type="submit">Logga in</button>
                 </div>
             </form>
-            <div className="loginMessage">{message}</div>
-            <div className="loginFooter">
+            <div>{message}</div>
+            <div>
                 <Link to={'/registrera'}>Registrera dig</Link>
             </div>
         </div>

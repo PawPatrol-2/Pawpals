@@ -1,105 +1,50 @@
-import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { mockAnimals } from "../data/mockAnimals";
-import type { Animal } from "../types/animal";
 import styles from "./AnimalDetailPage.module.css";
-
-const normalizeAnimal = (raw: unknown): Animal | null => {
-  if (!raw || typeof raw !== "object") {
-    return null;
-  }
-
-  const item = raw as Record<string, unknown>;
-  const idValue = item._id ?? item.id;
-  if (typeof idValue !== "string") {
-    return null;
-  }
-
-  return {
-    _id: idValue,
-    type: typeof item.type === "string" ? item.type : "Okänd art",
-    breed: typeof item.breed === "string" ? item.breed : "Okänd ras",
-    image: typeof item.image === "string" ? item.image : "",
-    name: typeof item.name === "string" ? item.name : "Okänt djur",
-    age: typeof item.age === "number" ? item.age : 0,
-    keyTraits: typeof item.keyTraits === "string" ? item.keyTraits : "Okända egenskaper",
-    personality:
-      typeof item.personality === "string" && item.personality.trim().length > 0
-        ? item.personality
-        : "Ej angiven",
-    description:
-      typeof item.description === "string" && item.description.trim().length > 0
-        ? item.description
-        : "Ingen beskrivning tillgänglig.",
-    likes: Array.isArray(item.likes)
-      ? item.likes.filter((like): like is string => typeof like === "string")
-      : [],
-  };
-};
+import type { Animal } from "../types/animal";
+import { useEffect, useState } from "react";
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const mockAnimal = useMemo(
-    () => mockAnimals.find((item) => item._id === id) ?? null,
-    [id]
-  );
-  const [animal, setAnimal] = useState<Animal | null>(mockAnimal);
-  const [isLoading, setIsLoading] = useState<boolean>(!mockAnimal && Boolean(id));
+  const [animal, setAnimal] = useState<Animal | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
+    if (!id) return;
 
-    const loadAnimal = async () => {
-      if (!id) {
-        setAnimal(null);
-        setIsLoading(false);
-        return;
+    fetch(`http://localhost:3000/api/animals/${id}`)
+      .then ((res) => {
+        if (!res.ok) {
+          if (res.status === 404) {
+            setNotFound(true);
+            return null;
+          }
+          throw new Error("Nätverksfels");
       }
-
-      if (mockAnimal) {
-        setAnimal(mockAnimal);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const response = await fetch(`http://localhost:3000/api/animals/${id}`);
-        if (!response.ok) {
-          throw new Error("Kunde inte hämta djuret.");
+        return res.json();
+  })
+      .then((data) => {
+        if (data) {
+          setAnimal(data);
         }
+      })
+      .catch ((err) => {
+        console.error("Fel vid hämtning av djuret:", err);
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
 
-        const data = await response.json();
-        if (!isMounted) return;
-        setAnimal(normalizeAnimal(data));
-      } catch {
-        if (!isMounted) return;
-        setAnimal(null);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void loadAnimal();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [id, mockAnimal]);
-
-  if (isLoading) {
+  if (loading) {
     return (
       <main className={styles.page}>
         <div className={styles.notFoundCard}>
-          <p>Laddar djurdetaljer...</p>
+          <p>Laddar...</p>
         </div>
       </main>
     );
   }
 
-  if (!animal) {
+  if (notFound || !animal) {
     return (
       <main className={styles.page}>
         <div className={styles.notFoundCard}>
@@ -146,22 +91,15 @@ export default function AnimalDetailPage() {
           <section className={styles.aboutSection}>
             <h2>Tycker om</h2>
             <ul className={styles.likesList}>
-              {animal.likes.length > 0 ? (
-                animal.likes.map((like) => <li key={like}>{like}</li>)
-              ) : (
-                <li>Inga preferenser angivna ännu.</li>
-              )}
+              {animal.likes.map((like) => (
+                <li key={like}>{like}</li>
+              ))}
             </ul>
           </section>
 
-          <div className={styles.actions}>
-            <Link className={styles.adoptButton} to={`/ansok/${animal._id}`}>
-              Ansök om adoption
-            </Link>
-            <Link className={styles.backButton} to="/utforska">
-              Tillbaka till alla djur
-            </Link>
-          </div>
+          <Link className={styles.backButton} to="/utforska">
+            Tillbaka till alla djur
+          </Link>
         </div>
       </article>
     </main>
