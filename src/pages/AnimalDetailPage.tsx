@@ -1,12 +1,50 @@
 import { Link, useParams } from "react-router-dom";
-import { mockAnimals } from "../data/mockAnimals";
 import styles from "./AnimalDetailPage.module.css";
+import type { Animal } from "../types/animal";
+import { useEffect, useState } from "react";
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const animal = mockAnimals.find((item) => item._id === id);
+  const [animal, setAnimal] = useState<Animal | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!animal) {
+  useEffect(() => {
+    if (!id) return;
+
+    fetch(`http://localhost:3000/api/animals/${id}`)
+      .then ((res) => {
+        if (!res.ok) {
+          if (res.status === 404) {
+            setNotFound(true);
+            return null;
+          }
+          throw new Error("Nätverksfels");
+      }
+        return res.json();
+  })
+      .then((data) => {
+        if (data) {
+          setAnimal(data);
+        }
+      })
+      .catch ((err) => {
+        console.error("Fel vid hämtning av djuret:", err);
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.notFoundCard}>
+          <p>Laddar...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (notFound || !animal) {
     return (
       <main className={styles.page}>
         <div className={styles.notFoundCard}>
