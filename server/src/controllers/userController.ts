@@ -3,6 +3,7 @@ import User from '../models/User';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { AuthenticatedRequest } from '../middleware/auth';
+import Organization from '../models/Organisation';
 
 const getJwtSecret = (): string => {
     const secret = process.env.JWT_SECRET;
@@ -124,6 +125,76 @@ export const registerUser = async (req: Request, res: Response) => {
             message: "Användare skapad!",
             user: { email: user.email, username: user.username }
         });
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            res.status(500).json({
+                message: "Något gick fel", error: err.message
+            });
+        } else {
+            res.status(500).json({
+                message: "Något gick fel", error: err
+            });
+        }
+    }
+};
+
+export const login = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    try {
+        // Kontrollera om det är en användare
+        let user = await User.findOne({ email });
+        if (user) {
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ message: "Fel e-post eller lösenord" });
+            }
+
+            const token = jwt.sign(
+                { userId: user.id, role: user.role },
+                getJwtSecret(),
+                { expiresIn: '7d' }
+            );
+
+            return res.status(200).json({
+                message: "Inloggningen lyckades!",
+                token,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role
+                }
+            });
+        }
+
+        // Kontrollera om det är en organisation
+        const organization = await Organization.findOne({ email });
+        if (organization) {
+            const isMatch = await bcrypt.compare(password, organization.password);
+            if (!isMatch) {
+                return res.status(401).json({ message: "Fel e-post eller lösenord" });
+            }
+
+            const token = jwt.sign(
+                { userId: organization.id, role: organization.role },
+                getJwtSecret(),
+                { expiresIn: '7d' }
+            );
+
+            return res.status(200).json({
+                message: "Inloggningen lyckades!",
+                token,
+                user: {
+                    id: organization.id,
+                    username: organization.organization,
+                    email: organization.email,
+                    role: organization.role
+                }
+            });
+        }
+
+        return res.status(404).json({ message: "Användare eller organisation hittades inte" });
     } catch (err: unknown) {
         if (err instanceof Error) {
             res.status(500).json({
