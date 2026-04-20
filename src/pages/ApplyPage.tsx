@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styles from "./ApplyPage.module.css";
+import { useParams, useNavigate } from "react-router-dom";
 import Button from "../components/Button/Button";
 
 interface ApplicationForm {
@@ -25,10 +26,40 @@ const ApplyPage = () => {
     gdprConsent: false,
   });
 
+  const { animalId } = useParams();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/logga-in");
+      return;
+    }
+
+    const response = await fetch("http://localhost:3000/api/applications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ ...formData, animalId }),
+    });
+
+    if (response.status === 409) {
+      alert("Du har redan ansökt om detta djur!");
+      return;
+    }
+
+    if (response.ok) {
+      navigate("/mina-ansokningar");
+    }
+  };
+
   return (
     <main>
       <h1 className={styles.pageTitle}>Ansök om adoption</h1>
-      <form className={styles.form}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         <label className={styles.housingType}>Boendetyp</label>
         <select
           className={styles.formHousetype}
