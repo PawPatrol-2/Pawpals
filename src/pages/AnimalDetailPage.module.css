@@ -100,15 +100,7 @@
   line-height: 1.7;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  margin-top: 0.6rem;
-}
-
-.backButton,
-.adoptButton {
+.backButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -126,18 +118,12 @@
     background-color 0.2s ease;
 }
 
-.adoptButton {
-  background: var(--orange);
-}
-
-.adoptButton:hover,
 .backButton:hover {
   background: var(--orange-dark);
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(232, 113, 58, 0.32);
 }
 
-.adoptButton:focus-visible,
 .backButton:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--orange) 50%, white);
   outline-offset: 2px;
