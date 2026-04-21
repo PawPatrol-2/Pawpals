@@ -27,6 +27,7 @@ export type AnimalItem = {
   breed: string;
   age: string;
   keyTraits: string;
+  likes: string[];
   personality?: string;
   image: string;
   description: string;
@@ -40,6 +41,7 @@ export type AnimalFormState = {
   name: string;
   age: string;
   keyTraits: string;
+  likes: string;
   personality: string;
   description: string;
   imagePreview: string;

@@ -105,6 +105,7 @@ export const initialAnimalFormState: AnimalFormState = {
   name: "",
   age: "",
   keyTraits: "",
+  likes: "",
   personality: "",
   description: "",
   imagePreview: "",
