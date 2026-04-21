@@ -162,3 +162,35 @@
     grid-template-columns: 1fr;
   }
 }
+
+.applyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: none;
+  background: var(--orange);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.applyButton:hover {
+  background: var(--orange-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(232, 113, 58, 0.32);
+}
+
+.alreadyApplied {
+  color: var(--gray-500);
+  font-style: italic;
+  margin-bottom: 12px;
+}

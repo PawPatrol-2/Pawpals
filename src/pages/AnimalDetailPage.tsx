@@ -1,13 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { mockAnimals } from "../data/mockAnimals";
 import type { Animal } from "../types/animal";
 import styles from "./AnimalDetailPage.module.css";
+import { useUser } from "../context/UserContext";
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasApplied, setHasApplied] = useState(false);
+  const { user } = useUser();
+  const navigate = useNavigate();
+
+  const handleApply = () => {
+    if (!user) {
+      navigate("/logga-in");
+      return;
+    }
+    navigate(`/ansok/${animal?._id}`);
+  };
 
   useEffect(() => {
     if (!id) {
@@ -51,6 +63,29 @@ export default function AnimalDetailPage() {
 
     void fetchAnimal();
   }, [id]);
+
+  useEffect(() => {
+    if (!user || !id) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const checkApplication = async () => {
+      const response = await fetch(
+        "http://localhost:3000/api/applications/me",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!response.ok) return;
+      const data = await response.json();
+      const already = data.applications.some(
+        (app: { animalId: string | null }) => app.animalId === id,
+      );
+      setHasApplied(already);
+    };
+
+    void checkApplication();
+  }, [user, id]);
 
   const imageSrc = useMemo(() => {
     if (!animal?.image) {
@@ -126,6 +161,16 @@ export default function AnimalDetailPage() {
               <p>Ingen information ännu.</p>
             )}
           </section>
+
+          {hasApplied ? (
+            <p className={styles.alreadyApplied}>
+              Du har redan ansökt om detta djur
+            </p>
+          ) : (
+            <button onClick={handleApply} className={styles.applyButton}>
+              Ansök om adoption
+            </button>
+          )}
 
           <Link className={styles.backButton} to="/utforska">
             Tillbaka till alla djur

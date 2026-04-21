@@ -9,6 +9,7 @@ import AnimalDetailPage from "../pages/AnimalDetailPage";
 import TestAnimalFetch from "../pages/TestAnimalFetch";
 import OrganizationDashboardPage from "../pages/OrganizationDashboardPage";
 import { useUser } from "../context/UserContext";
+import MyApplicationsPage from "../pages/MyApplicationsPage";
 
 export default function AppRoutes() {
   const { user } = useUser();
@@ -20,9 +21,11 @@ export default function AppRoutes() {
       <Route path="/organisationer" element={<OrganizationsPage />} />
       <Route path="/logga-in" element={<LoginPage />} />
       <Route path="/registrera" element={<RegisterPage />} />
-      <Route path="/ansok" element={<ApplyPage />} />
+      <Route path="/ansok/:animalId" element={<ApplyPage />} />
       <Route path="/djur/:id" element={<AnimalDetailPage />} />
       <Route path="/test-animal-fetch" element={<TestAnimalFetch />} />
+      <Route path="/mina-ansokningar" element={<MyApplicationsPage />} />
+
       <Route
         path="/organisation-dashboard"
         element={
