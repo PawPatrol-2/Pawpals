@@ -123,15 +123,19 @@ export const createApplication = async (
   }
 };
 
-export const getAllApplications = async (
-  req: Request,
+export const getMyApplications = async (
+  req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction,
-): Promise<void> => {
+) => {
   try {
-    const getApplication = await Application.find();
-    res.json(getApplication);
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(400).json({ message: "Användar-ID saknas" });
+    }
+
+    const applications = await Application.find({ userId });
+    res.status(200).json({ applications });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
   }
 };

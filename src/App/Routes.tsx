@@ -10,7 +10,7 @@ import TestAnimalFetch from "../pages/TestAnimalFetch";
 import OrganizationDashboardPage from "../pages/OrganizationDashboardPage";
 import MyApplicationsPage from "../pages/MyApplicationsPage";
 import { useUser } from "../context/UserContext";
-import MyApplicationsPage from "../pages/MyApplicationsPage";
+
 
 export default function AppRoutes() {
   const { user } = useUser();
@@ -26,7 +26,7 @@ export default function AppRoutes() {
       <Route path="/mina-ansokningar" element={<MyApplicationsPage />} />
       <Route path="/djur/:id" element={<AnimalDetailPage />} />
       <Route path="/test-animal-fetch" element={<TestAnimalFetch />} />
-      <Route path="/mina-ansokningar" element={<MyApplicationsPage />} />
+      
 
       <Route
         path="/organisation-dashboard"
