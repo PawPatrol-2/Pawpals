@@ -10,7 +10,6 @@ import TestAnimalFetch from "../pages/TestAnimalFetch";
 import OrganizationDashboardPage from "../pages/OrganizationDashboardPage";
 import MyApplicationsPage from "../pages/MyApplicationsPage";
 import { useUser } from "../context/UserContext";
-import MyApplicationsPage from "../pages/MyApplicationsPage";
 
 export default function AppRoutes() {
   const { user } = useUser();
