@@ -11,8 +11,6 @@ export type ApplicationStatus =
   | "Nekad";
 
 export interface IApplication extends Document {
-  userId: Types.ObjectId;
-  animalId?: Types.ObjectId;
   animalNameSnapshot?: string;
   housingType: string;
   housingSize: number;
@@ -24,6 +22,8 @@ export interface IApplication extends Document {
   gdprConsent: boolean;
   status: ApplicationStatus;
   createdAt: Date;
+  userId: Types.ObjectId;
+  animalId?: Types.ObjectId;
 }
 
 const ApplicationSchema = new Schema<IApplication>({
@@ -38,7 +38,7 @@ const ApplicationSchema = new Schema<IApplication>({
   gdprConsent: { type: Boolean, required: true },
   createdAt: { type: Date, default: Date.now },
   userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  animalId: { type: Schema.Types.ObjectId, ref: "Animal", required: true },
+  animalId: { type: Schema.Types.ObjectId, ref: "Animal", required: false },
   status: {
     type: String,
     enum: [

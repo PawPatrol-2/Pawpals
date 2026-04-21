@@ -36,22 +36,26 @@ const normalizeStatus = (status: string | undefined): LocalizedStatus => {
   return "Inskickad";
 };
 
-const resolveAnimalName = (application: ApplicationWithOptionalAnimal): string => {
+const resolveAnimalName = (
+  application: ApplicationWithOptionalAnimal,
+): string => {
   const animal = application.animalId;
   if (animal && typeof animal === "object" && typeof animal.name === "string") {
     const name = animal.name.trim();
     if (name) return name;
   }
-
   const fallbackName = application.animalNameSnapshot?.trim();
   if (fallbackName) return fallbackName;
   return "Okänt djur";
 };
 
-const resolveAnimalId = (application: ApplicationWithOptionalAnimal): string | null => {
+const resolveAnimalId = (
+  application: ApplicationWithOptionalAnimal,
+): string | null => {
   const animal = application.animalId;
   if (typeof animal === "string") return animal;
-  if (animal && typeof animal === "object" && animal._id) return String(animal._id);
+  if (animal && typeof animal === "object" && animal._id)
+    return String(animal._id);
   return null;
 };
 
@@ -112,25 +116,8 @@ export const createApplication = async (
       }
     }
 
-    const application = await Application.create({
-      ...body,
-      userId,
-    });
-
+    const application = await Application.create({ ...body, userId });
     res.status(201).json(application as ApplicationResponse);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getAllApplications = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    const getApplication = await Application.find();
-    res.json(getApplication);
   } catch (error) {
     next(error);
   }
