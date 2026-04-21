@@ -119,6 +119,16 @@ export default function MyApplicationsPage() {
             <div>
               <h3 className={styles.animalName}>{application.animalName || "Okänt djur"}</h3>
               <p className={styles.meta}>Ansökt: {formatDate(application.createdAt)}</p>
+              {application.status === "Godkänd" && (
+                <p className={`${styles.resultText} ${styles.approvedText}`}>
+                  Din ansökan är godkänd.
+                </p>
+              )}
+              {application.status === "Nekad" && (
+                <p className={`${styles.resultText} ${styles.rejectedText}`}>
+                  Din ansökan har nekats.
+                </p>
+              )}
             </div>
             <span
               className={`${styles.badge} ${
@@ -135,6 +145,20 @@ export default function MyApplicationsPage() {
 
   return (
     <main className={styles.page}>
+      <section className={styles.profileCard}>
+        <h2 className={styles.profileTitle}>Mina uppgifter</h2>
+        <div className={styles.profileGrid}>
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>Namn</span>
+            <strong className={styles.profileValue}>{user?.username || "Ej angivet"}</strong>
+          </div>
+          <div className={styles.profileItem}>
+            <span className={styles.profileLabel}>E-post</span>
+            <strong className={styles.profileValue}>{user?.email || "Ej angivet"}</strong>
+          </div>
+        </div>
+      </section>
+
       <h1 className={styles.title}>Mina ansökningar</h1>
       <p className={styles.subtitle}>Här ser du dina ansökningar, datum och aktuell status.</p>
       {content}

@@ -1,6 +1,19 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
+
+export type ApplicationStatus =
+  | "pending"
+  | "reviewing"
+  | "approved"
+  | "rejected"
+  | "Inskickad"
+  | "Granskas"
+  | "Godkänd"
+  | "Nekad";
 
 export interface IApplication extends Document {
+  userId: Types.ObjectId;
+  animalId?: Types.ObjectId;
+  animalNameSnapshot?: string;
   housingType: string;
   housingSize: number;
   hasAnimalExperience: boolean;
@@ -9,11 +22,14 @@ export interface IApplication extends Document {
   allergyDetails: string;
   motivation: string;
   gdprConsent: boolean;
-  status: "pending" | "reviewing" | "approved" | "rejected";
+  status: ApplicationStatus;
   createdAt: Date;
 }
 
 const ApplicationSchema = new Schema<IApplication>({
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  animalId: { type: Schema.Types.ObjectId, ref: "Animal", required: false },
+  animalNameSnapshot: { type: String, required: false },
   housingType: { type: String, required: true },
   housingSize: { type: Number, required: true },
   hasAnimalExperience: { type: Boolean, required: true },
@@ -25,7 +41,16 @@ const ApplicationSchema = new Schema<IApplication>({
   createdAt: { type: Date, default: Date.now },
   status: {
     type: String,
-    enum: ["pending", "reviewing", "approved", "rejected"],
+    enum: [
+      "pending",
+      "reviewing",
+      "approved",
+      "rejected",
+      "Inskickad",
+      "Granskas",
+      "Godkänd",
+      "Nekad",
+    ],
     default: "pending",
   },
 });

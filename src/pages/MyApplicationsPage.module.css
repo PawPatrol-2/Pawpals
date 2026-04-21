@@ -4,6 +4,43 @@
   padding: 0 1rem 2rem;
 }
 
+.profileCard {
+  margin-bottom: 1.2rem;
+  background: #fff;
+  border: 1px solid #e4dfdb;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+}
+
+.profileTitle {
+  margin: 0 0 0.7rem;
+  font-size: 1.2rem;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.7rem;
+}
+
+.profileItem {
+  border: 1px solid #e4dfdb;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+}
+
+.profileLabel {
+  display: block;
+  color: #6b6661;
+  font-size: 0.86rem;
+}
+
+.profileValue {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1rem;
+}
+
 .title {
   margin: 0;
   font-size: 2rem;
@@ -56,6 +93,20 @@
   margin-top: 0.35rem;
   color: #6b6661;
   font-size: 0.95rem;
+}
+
+.resultText {
+  margin-top: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.approvedText {
+  color: #135726;
+}
+
+.rejectedText {
+  color: #7d1a1a;
 }
 
 .badge {
