@@ -1,45 +1,9 @@
 import type {
   AnimalFormState,
   AnimalItem,
-  ApplicationItem,
   ApplicationStatus,
   SectionKey,
 } from "./types";
-
-export const initialApplications: ApplicationItem[] = [
-  {
-    id: 1,
-    applicant: "Anna S.",
-    animal: "Luna",
-    date: "idag",
-    status: "Inskickad",
-    action: "Granska",
-  },
-  {
-    id: 2,
-    applicant: "Erik L.",
-    animal: "Milo",
-    date: "igår",
-    status: "Granskas",
-    action: "Granska",
-  },
-  {
-    id: 3,
-    applicant: "Sara K.",
-    animal: "Bella",
-    date: "2 dgr",
-    status: "Godkänd",
-    action: "Klar",
-  },
-  {
-    id: 4,
-    applicant: "Johan B.",
-    animal: "Luna",
-    date: "3 dgr",
-    status: "Nekad",
-    action: "Klar",
-  },
-];
 
 export const initialAnimals: AnimalItem[] = [
   {

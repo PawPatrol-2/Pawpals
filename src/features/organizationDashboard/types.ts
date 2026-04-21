@@ -8,7 +8,7 @@ export type ApplicationStatus =
   | "Behöver mer info";
 
 export type ApplicationItem = {
-  id: number;
+  id: number | string;
   applicant: string;
   animal: string;
   date: string;

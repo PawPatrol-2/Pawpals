@@ -9,7 +9,7 @@ type ApplicationsSectionProps = {
     pending: number;
   };
   statusClassMap: Record<ApplicationStatus, string>;
-  onUpdateStatus: (id: number, nextStatus: ApplicationStatus) => void;
+  onUpdateStatus: (id: number | string, nextStatus: ApplicationStatus) => void;
   onSetMessage: (message: string) => void;
   styles: Record<string, string>;
 };
@@ -37,6 +37,13 @@ export default function ApplicationsSection({
               </tr>
             </thead>
             <tbody>
+              {applications.length === 0 && (
+                <tr>
+                  <td colSpan={4} className={styles.helperText}>
+                    Inga ansökningar ännu.
+                  </td>
+                </tr>
+              )}
               {applications.map((application) => (
                 <tr key={application.id}>
                   <td>

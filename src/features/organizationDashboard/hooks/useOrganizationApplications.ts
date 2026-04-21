@@ -1,13 +1,107 @@
-import { useMemo, useState } from "react";
-import { initialApplications } from "../constants";
+import { useEffect, useMemo, useState } from "react";
 import type { ApplicationItem, ApplicationStatus } from "../types";
 
-export const useOrganizationApplications = () => {
-  const [applications, setApplications] =
-    useState<ApplicationItem[]>(initialApplications);
+type ApiApplication = {
+  applicationId?: string;
+  _id?: string;
+  id?: string;
+  applicantName?: string;
+  animalName?: string;
+  status?: string;
+  createdAt?: string;
+};
+
+const mapApiStatus = (status: string | undefined): ApplicationStatus => {
+  if (status === "Granskas" || status === "reviewing") return "Granskas";
+  if (status === "Godkänd" || status === "approved") return "Godkänd";
+  if (status === "Nekad" || status === "rejected") return "Nekad";
+  if (status === "Behöver mer info") return "Behöver mer info";
+  return "Inskickad";
+};
+
+const toRelativeDate = (dateText: string | undefined): string => {
+  if (!dateText) {
+    return "okänt datum";
+  }
+
+  const created = new Date(dateText);
+  if (Number.isNaN(created.getTime())) {
+    return "okänt datum";
+  }
+
+  const now = new Date();
+  const oneDay = 1000 * 60 * 60 * 24;
+  const diffDays = Math.max(
+    0,
+    Math.floor((now.getTime() - created.getTime()) / oneDay),
+  );
+
+  if (diffDays === 0) return "idag";
+  if (diffDays === 1) return "igår";
+  return `${diffDays} dgr`;
+};
+
+export const useOrganizationApplications = (_username?: string) => {
+  const [applications, setApplications] = useState<ApplicationItem[]>([]);
+
+  useEffect(() => {
+    const loadApplications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setApplications([]);
+          return;
+        }
+
+        const response = await fetch("http://localhost:3000/api/applications", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          setApplications([]);
+          return;
+        }
+
+        const data = (await response.json()) as {
+          applications?: ApiApplication[];
+        };
+
+        const apiApplications = Array.isArray(data.applications)
+          ? data.applications
+          : [];
+
+        const mappedApplications: ApplicationItem[] = apiApplications.map(
+          (application, index) => {
+            const status = mapApiStatus(application.status);
+            return {
+              id:
+                application.applicationId ||
+                application._id ||
+                application.id ||
+                `application-${index + 1}`,
+              applicant: application.applicantName || "Okänd adoptör",
+              animal: application.animalName || "Okänt djur",
+              date: toRelativeDate(application.createdAt),
+              status,
+              action:
+                status === "Godkänd" || status === "Nekad" ? "Klar" : "Granska",
+            };
+          },
+        );
+
+        setApplications(mappedApplications);
+      } catch {
+        setApplications([]);
+      }
+    };
+
+    void loadApplications();
+  }, []);
 
   const updateApplicationStatus = (
-    id: number,
+    id: number | string,
     nextStatus: ApplicationStatus,
   ) => {
     setApplications((current) =>
