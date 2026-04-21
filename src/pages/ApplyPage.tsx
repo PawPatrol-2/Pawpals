@@ -31,6 +31,18 @@ const ApplyPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.housingType) {
+      alert("Välj boendetyp!");
+      return;
+    }
+    if (!formData.motivation) {
+      alert("Skriv en motivering!");
+      return;
+    }
+    if (!formData.gdprConsent) {
+      alert("Du måste godkänna GDPR-villkoren!");
+      return;
+    }
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/logga-in");
