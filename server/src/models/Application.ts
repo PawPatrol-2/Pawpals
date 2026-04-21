@@ -24,6 +24,8 @@ export interface IApplication extends Document {
   gdprConsent: boolean;
   status: ApplicationStatus;
   createdAt: Date;
+  userId: mongoose.Types.ObjectId;
+  animalId: mongoose.Types.ObjectId;
 }
 
 const ApplicationSchema = new Schema<IApplication>({
@@ -39,6 +41,8 @@ const ApplicationSchema = new Schema<IApplication>({
   motivation: { type: String, required: true },
   gdprConsent: { type: Boolean, required: true },
   createdAt: { type: Date, default: Date.now },
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  animalId: { type: Schema.Types.ObjectId, ref: "Animal", required: true },
   status: {
     type: String,
     enum: [

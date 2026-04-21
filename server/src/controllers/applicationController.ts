@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { ApplicationResponse, CreateApplicationBody } from "../types/applicationTypes";
+import {
+  ApplicationResponse,
+  CreateApplicationBody,
+} from "../types/applicationTypes";
 import Application from "../models/Application";
 import type { AuthenticatedRequest } from "../middleware/auth";
 
