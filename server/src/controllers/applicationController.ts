@@ -99,6 +99,16 @@ export const createApplication = async (
     }
 
     const body = req.body as CreateApplicationBody;
+    const animalId = body.animalId;
+
+    if (animalId) {
+      const existing = await Application.findOne({ userId, animalId });
+      if (existing) {
+        res.status(409).json({ message: "Du har redan ansökt om detta djur" });
+        return;
+      }
+    }
+
     const application = await Application.create({
       ...body,
       userId,
