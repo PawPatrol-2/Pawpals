@@ -36,22 +36,26 @@ const normalizeStatus = (status: string | undefined): LocalizedStatus => {
   return "Inskickad";
 };
 
-const resolveAnimalName = (application: ApplicationWithOptionalAnimal): string => {
+const resolveAnimalName = (
+  application: ApplicationWithOptionalAnimal,
+): string => {
   const animal = application.animalId;
   if (animal && typeof animal === "object" && typeof animal.name === "string") {
     const name = animal.name.trim();
     if (name) return name;
   }
-
   const fallbackName = application.animalNameSnapshot?.trim();
   if (fallbackName) return fallbackName;
   return "Okänt djur";
 };
 
-const resolveAnimalId = (application: ApplicationWithOptionalAnimal): string | null => {
+const resolveAnimalId = (
+  application: ApplicationWithOptionalAnimal,
+): string | null => {
   const animal = application.animalId;
   if (typeof animal === "string") return animal;
-  if (animal && typeof animal === "object" && animal._id) return String(animal._id);
+  if (animal && typeof animal === "object" && animal._id)
+    return String(animal._id);
   return null;
 };
 
@@ -112,30 +116,9 @@ export const createApplication = async (
       }
     }
 
-    const application = await Application.create({
-      ...body,
-      userId,
-    });
-
+    const application = await Application.create({ ...body, userId });
     res.status(201).json(application as ApplicationResponse);
   } catch (error) {
     next(error);
-  }
-};
-
-export const getMyApplications = async (
-  req: AuthenticatedRequest,
-  res: Response,
-) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      return res.status(400).json({ message: "Användar-ID saknas" });
-    }
-
-    const applications = await Application.find({ userId });
-    res.status(200).json({ applications });
-  } catch (error) {
-    res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
   }
 };
