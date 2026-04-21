@@ -1,4 +1,8 @@
+import { ApplicationStatus } from "../models/Application";
+
 export interface CreateApplicationBody {
+  animalId?: string;
+  animalNameSnapshot?: string;
   housingType: string;
   housingSize: number;
   hasAnimalExperience: boolean;
@@ -10,7 +14,7 @@ export interface CreateApplicationBody {
 }
 
 export interface ApplicationResponse extends CreateApplicationBody {
-  status: "pending" | "reviewing" | "approved" | "rejected";
+  status: ApplicationStatus;
   id: string;
   createdAt: Date;
 }
