@@ -8,12 +8,22 @@ export type ApplicationStatus =
   | "Behöver mer info";
 
 export type ApplicationItem = {
-  id: number;
+  id: number | string;
   applicant: string;
   animal: string;
   date: string;
   status: ApplicationStatus;
   action: string;
+  details: {
+    housingType: string;
+    housingSize: number | null;
+    hasAnimalExperience: boolean | null;
+    hasChildren: boolean | null;
+    hasAllergies: boolean | null;
+    allergyDetails: string;
+    motivation: string;
+    gdprConsent: boolean | null;
+  };
 };
 
 export type AnimalStatus = "Tillgänglig" | "Reserverad" | "Adopterad";
@@ -27,6 +37,7 @@ export type AnimalItem = {
   breed: string;
   age: string;
   keyTraits: string;
+  likes: string[];
   personality?: string;
   image: string;
   description: string;
@@ -40,6 +51,7 @@ export type AnimalFormState = {
   name: string;
   age: string;
   keyTraits: string;
+  likes: string;
   personality: string;
   description: string;
   imagePreview: string;

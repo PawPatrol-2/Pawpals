@@ -148,6 +148,17 @@ export default function AnimalDetailsModal({
           </div>
 
           <div className={styles.field}>
+            <label htmlFor="editLikes">Tycker om</label>
+            <input
+              id="editLikes"
+              value={editData.likes}
+              onChange={(event) => onFieldChange("likes", event.target.value)}
+              disabled={!canEditSelectedAnimal || !isEditMode}
+              placeholder="T.ex. promenader, kel, lek"
+            />
+          </div>
+
+          <div className={styles.field}>
             <label htmlFor="editPersonality">Personlighet</label>
             <input
               id="editPersonality"

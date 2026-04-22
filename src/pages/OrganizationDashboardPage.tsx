@@ -33,7 +33,7 @@ export default function OrganizationDashboardPage() {
   const [activeSection, setActiveSection] = useState<SectionKey>("overview");
 
   const { applications, updateApplicationStatus, overviewStats, reviewCount } =
-    useOrganizationApplications();
+    useOrganizationApplications(user?.username);
 
   const {
     animals,

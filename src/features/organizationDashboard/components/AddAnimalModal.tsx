@@ -131,6 +131,16 @@ export default function AddAnimalModal({
           </div>
 
           <div className={styles.field}>
+            <label htmlFor="likes">Tycker om</label>
+            <input
+              id="likes"
+              value={formData.likes}
+              onChange={(event) => onFieldChange("likes", event.target.value)}
+              placeholder="T.ex. promenader, kel, lek"
+            />
+          </div>
+
+          <div className={styles.field}>
             <label htmlFor="personality">Personlighet</label>
             <input
               id="personality"
