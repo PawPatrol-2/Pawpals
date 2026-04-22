@@ -9,6 +9,32 @@ type ApiApplication = {
   animalName?: string;
   status?: string;
   createdAt?: string;
+  housingType?: string;
+  housingSize?: number;
+  hasAnimalExperience?: boolean;
+  hasChildren?: boolean;
+  hasAllergies?: boolean;
+  allergyDetails?: string;
+  motivation?: string;
+  gdprConsent?: boolean;
+  details?: {
+    housingType?: string;
+    housingSize?: number;
+    hasAnimalExperience?: boolean;
+    hasChildren?: boolean;
+    hasAllergies?: boolean;
+    allergyDetails?: string;
+    motivation?: string;
+    gdprConsent?: boolean;
+  };
+};
+
+const toBooleanOrNull = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  return null;
 };
 
 const mapApiStatus = (status: string | undefined): ApplicationStatus => {
@@ -78,6 +104,8 @@ export const useOrganizationApplications = (_username?: string) => {
         const mappedApplications: ApplicationItem[] = apiApplications.map(
           (application, index) => {
             const status = mapApiStatus(application.status);
+            const details = application.details;
+
             return {
               id:
                 application.applicationId ||
@@ -90,6 +118,32 @@ export const useOrganizationApplications = (_username?: string) => {
               status,
               action:
                 status === "Godkänd" || status === "Nekad" ? "Klar" : "Granska",
+              details: {
+                housingType:
+                  details?.housingType || application.housingType || "",
+                housingSize:
+                  typeof details?.housingSize === "number"
+                    ? details.housingSize
+                    : typeof application.housingSize === "number"
+                      ? application.housingSize
+                      : null,
+                hasAnimalExperience: toBooleanOrNull(
+                  details?.hasAnimalExperience ??
+                    application.hasAnimalExperience,
+                ),
+                hasChildren: toBooleanOrNull(
+                  details?.hasChildren ?? application.hasChildren,
+                ),
+                hasAllergies: toBooleanOrNull(
+                  details?.hasAllergies ?? application.hasAllergies,
+                ),
+                allergyDetails:
+                  details?.allergyDetails || application.allergyDetails || "",
+                motivation: details?.motivation || application.motivation || "",
+                gdprConsent: toBooleanOrNull(
+                  details?.gdprConsent ?? application.gdprConsent,
+                ),
+              },
             };
           },
         );

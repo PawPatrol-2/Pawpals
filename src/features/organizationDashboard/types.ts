@@ -14,6 +14,16 @@ export type ApplicationItem = {
   date: string;
   status: ApplicationStatus;
   action: string;
+  details: {
+    housingType: string;
+    housingSize: number | null;
+    hasAnimalExperience: boolean | null;
+    hasChildren: boolean | null;
+    hasAllergies: boolean | null;
+    allergyDetails: string;
+    motivation: string;
+    gdprConsent: boolean | null;
+  };
 };
 
 export type AnimalStatus = "Tillgänglig" | "Reserverad" | "Adopterad";

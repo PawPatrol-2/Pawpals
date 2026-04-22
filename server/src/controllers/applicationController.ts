@@ -19,6 +19,16 @@ type MyApplicationResponse = {
 
 type OrganizationApplicationResponse = MyApplicationResponse & {
   applicantName: string;
+  details: {
+    housingType: string;
+    housingSize: number | null;
+    hasAnimalExperience: boolean | null;
+    hasChildren: boolean | null;
+    hasAllergies: boolean | null;
+    allergyDetails: string;
+    motivation: string;
+    gdprConsent: boolean | null;
+  };
 };
 
 type PopulatedAnimal = {
@@ -40,6 +50,43 @@ type ApplicationWithOptionalAnimal = {
   animalNameSnapshot?: string;
   status?: string;
   createdAt: Date;
+  housingType?: string;
+  housingSize?: number;
+  hasAnimalExperience?: boolean;
+  hasChildren?: boolean;
+  hasAllergies?: boolean;
+  allergyDetails?: string;
+  motivation?: string;
+  gdprConsent?: boolean;
+};
+
+const normalizeBoolean = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  return null;
+};
+
+const normalizeNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
 };
 
 const normalizeStatus = (status: string | undefined): LocalizedStatus => {
@@ -212,6 +259,18 @@ export const getOrganizationApplications = async (
           animalName: resolveAnimalName(application),
           status: normalizeStatus(application.status),
           createdAt: application.createdAt,
+          details: {
+            housingType: application.housingType || "",
+            housingSize: normalizeNumber(application.housingSize),
+            hasAnimalExperience: normalizeBoolean(
+              application.hasAnimalExperience,
+            ),
+            hasChildren: normalizeBoolean(application.hasChildren),
+            hasAllergies: normalizeBoolean(application.hasAllergies),
+            allergyDetails: application.allergyDetails || "",
+            motivation: application.motivation || "",
+            gdprConsent: normalizeBoolean(application.gdprConsent),
+          },
         }));
 
     res.status(200).json({ applications: formattedApplications });
