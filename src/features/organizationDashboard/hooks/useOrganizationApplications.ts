@@ -53,11 +53,14 @@ export const useOrganizationApplications = (_username?: string) => {
           return;
         }
 
-        const response = await fetch("http://localhost:3000/api/applications", {
-          headers: {
-            Authorization: `Bearer ${token}`,
+        const response = await fetch(
+          "http://localhost:3000/api/applications/organization",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        });
+        );
 
         if (!response.ok) {
           setApplications([]);
@@ -98,7 +101,7 @@ export const useOrganizationApplications = (_username?: string) => {
     };
 
     void loadApplications();
-  }, []);
+  }, [_username]);
 
   const updateApplicationStatus = (
     id: number | string,

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { sortAnimalsNewestFirst } from "../../../utils/sortAnimalsNewestFirst";
-import { initialAnimalFormState, initialAnimals } from "../constants";
+import { initialAnimalFormState } from "../constants";
 import type { AnimalFormState, AnimalItem } from "../types";
 import {
   buildEditDataFromAnimal,
@@ -52,7 +52,7 @@ const appendLikesToPayload = (payload: FormData, likesText: string) => {
 };
 
 export const useOrganizationAnimals = (username?: string) => {
-  const [animals, setAnimals] = useState<AnimalItem[]>(initialAnimals);
+  const [animals, setAnimals] = useState<AnimalItem[]>([]);
   const [formData, setFormData] = useState<AnimalFormState>(
     initialAnimalFormState,
   );
@@ -102,7 +102,7 @@ export const useOrganizationAnimals = (username?: string) => {
           setAnimals(ownerAnimals);
         }
       } catch {
-        // Keep local mock data if API is unavailable.
+        setAnimals([]);
       }
     };
 

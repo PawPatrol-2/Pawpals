@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { mockAnimals } from "../data/mockAnimals";
 import type { Animal } from "../types/animal";
 import styles from "./AnimalDetailPage.module.css";
 import { useUser } from "../context/UserContext";
@@ -53,9 +52,7 @@ export default function AnimalDetailPage() {
           createdAt: data.createdAt,
         });
       } catch {
-        const fallbackAnimal =
-          mockAnimals.find((item) => item._id === id) ?? null;
-        setAnimal(fallbackAnimal);
+        setAnimal(null);
       } finally {
         setIsLoading(false);
       }
