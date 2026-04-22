@@ -4,6 +4,7 @@ import {
   CreateApplicationBody,
 } from "../types/applicationTypes";
 import Application from "../models/Application";
+import Organization from "../models/Organisation";
 import type { AuthenticatedRequest } from "../middleware/auth";
 
 type LocalizedStatus = "Inskickad" | "Granskas" | "Godkänd" | "Nekad";
@@ -16,17 +17,76 @@ type MyApplicationResponse = {
   createdAt: Date;
 };
 
+type OrganizationApplicationResponse = MyApplicationResponse & {
+  applicantName: string;
+  details: {
+    housingType: string;
+    housingSize: number | null;
+    hasAnimalExperience: boolean | null;
+    hasChildren: boolean | null;
+    hasAllergies: boolean | null;
+    allergyDetails: string;
+    motivation: string;
+    gdprConsent: boolean | null;
+  };
+};
+
 type PopulatedAnimal = {
   _id?: unknown;
   name?: string;
+  organizationOwner?: string;
+} | null;
+
+type PopulatedApplicant = {
+  _id?: unknown;
+  username?: string;
+  email?: string;
 } | null;
 
 type ApplicationWithOptionalAnimal = {
   id: string;
   animalId?: PopulatedAnimal | string;
+  userId?: PopulatedApplicant | string;
   animalNameSnapshot?: string;
   status?: string;
   createdAt: Date;
+  housingType?: string;
+  housingSize?: number;
+  hasAnimalExperience?: boolean;
+  hasChildren?: boolean;
+  hasAllergies?: boolean;
+  allergyDetails?: string;
+  motivation?: string;
+  gdprConsent?: boolean;
+};
+
+const normalizeBoolean = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  return null;
+};
+
+const normalizeNumber = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
 };
 
 const normalizeStatus = (status: string | undefined): LocalizedStatus => {
@@ -57,6 +117,32 @@ const resolveAnimalId = (
   if (animal && typeof animal === "object" && animal._id)
     return String(animal._id);
   return null;
+};
+
+const resolveApplicantName = (
+  application: ApplicationWithOptionalAnimal,
+): string => {
+  const applicant = application.userId;
+
+  if (
+    applicant &&
+    typeof applicant === "object" &&
+    typeof applicant.username === "string"
+  ) {
+    const username = applicant.username.trim();
+    if (username) return username;
+  }
+
+  if (
+    applicant &&
+    typeof applicant === "object" &&
+    typeof applicant.email === "string"
+  ) {
+    const email = applicant.email.trim();
+    if (email) return email;
+  }
+
+  return "Okänd adoptör";
 };
 
 export const getMyApplications = async (
@@ -120,5 +206,75 @@ export const createApplication = async (
     res.status(201).json(application as ApplicationResponse);
   } catch (error) {
     next(error);
+  }
+};
+
+export const getOrganizationApplications = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Obehörig användare" });
+      return;
+    }
+
+    const organization =
+      await Organization.findById(userId).select("organization");
+
+    if (!organization?.organization) {
+      res
+        .status(403)
+        .json({ message: "Endast organisationer kan hämta dessa ansökningar" });
+      return;
+    }
+
+    const applications = await Application.find()
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "animalId",
+        select: "name organizationOwner",
+        match: { organizationOwner: organization.organization },
+      })
+      .populate({
+        path: "userId",
+        select: "username email",
+      });
+
+    const formattedApplications: OrganizationApplicationResponse[] =
+      applications
+        .map(
+          (application) =>
+            application as unknown as ApplicationWithOptionalAnimal,
+        )
+        .filter(
+          (application) =>
+            !!application.animalId && typeof application.animalId === "object",
+        )
+        .map((application) => ({
+          applicationId: application.id,
+          applicantName: resolveApplicantName(application),
+          animalId: resolveAnimalId(application),
+          animalName: resolveAnimalName(application),
+          status: normalizeStatus(application.status),
+          createdAt: application.createdAt,
+          details: {
+            housingType: application.housingType || "",
+            housingSize: normalizeNumber(application.housingSize),
+            hasAnimalExperience: normalizeBoolean(
+              application.hasAnimalExperience,
+            ),
+            hasChildren: normalizeBoolean(application.hasChildren),
+            hasAllergies: normalizeBoolean(application.hasAllergies),
+            allergyDetails: application.allergyDetails || "",
+            motivation: application.motivation || "",
+            gdprConsent: normalizeBoolean(application.gdprConsent),
+          },
+        }));
+
+    res.status(200).json({ applications: formattedApplications });
+  } catch (error) {
+    res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
   }
 };

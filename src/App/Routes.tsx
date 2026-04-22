@@ -6,7 +6,6 @@ import LoginPage from "../pages/Logga in/LoginPage";
 import RegisterPage from "../pages/Logga in/RegisterPage";
 import ApplyPage from "../pages/ApplyPage";
 import AnimalDetailPage from "../pages/AnimalDetailPage";
-import TestAnimalFetch from "../pages/TestAnimalFetch";
 import OrganizationDashboardPage from "../pages/OrganizationDashboardPage";
 import MyApplicationsPage from "../pages/MyApplicationsPage";
 import { useUser } from "../context/UserContext";
@@ -24,7 +23,6 @@ export default function AppRoutes() {
       <Route path="/ansok/:animalId" element={<ApplyPage />} />
       <Route path="/mina-ansokningar" element={<MyApplicationsPage />} />
       <Route path="/djur/:id" element={<AnimalDetailPage />} />
-      <Route path="/test-animal-fetch" element={<TestAnimalFetch />} />
 
       <Route
         path="/organisation-dashboard"

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { sortAnimalsNewestFirst } from "../../../utils/sortAnimalsNewestFirst";
-import { initialAnimalFormState, initialAnimals } from "../constants";
+import { initialAnimalFormState } from "../constants";
 import type { AnimalFormState, AnimalItem } from "../types";
 import {
   buildEditDataFromAnimal,
@@ -18,13 +18,41 @@ type ApiAnimal = {
   name: string;
   age: number;
   keyTraits: string;
+  likes?: string[] | string;
   personality?: string;
   description?: string;
   organizationOwner?: string;
 };
 
+const parseLikes = (likes: string[] | string | undefined): string[] => {
+  if (Array.isArray(likes)) {
+    return likes
+      .flatMap((value) => value.split(","))
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof likes === "string") {
+    return likes
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const appendLikesToPayload = (payload: FormData, likesText: string) => {
+  const likes = likesText
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  likes.forEach((like) => payload.append("likes", like));
+};
+
 export const useOrganizationAnimals = (username?: string) => {
-  const [animals, setAnimals] = useState<AnimalItem[]>(initialAnimals);
+  const [animals, setAnimals] = useState<AnimalItem[]>([]);
   const [formData, setFormData] = useState<AnimalFormState>(
     initialAnimalFormState,
   );
@@ -63,6 +91,7 @@ export const useOrganizationAnimals = (username?: string) => {
               breed: animal.breed,
               age: `${animal.age} år`,
               keyTraits: animal.keyTraits,
+              likes: parseLikes(animal.likes),
               personality: animal.personality,
               image: resolveImageUrl(animal.image),
               description: animal.description || animal.keyTraits,
@@ -73,7 +102,7 @@ export const useOrganizationAnimals = (username?: string) => {
           setAnimals(ownerAnimals);
         }
       } catch {
-        // Keep local mock data if API is unavailable.
+        setAnimals([]);
       }
     };
 
@@ -185,6 +214,7 @@ export const useOrganizationAnimals = (username?: string) => {
       payload.append("name", formData.name);
       payload.append("age", String(Number(formData.age)));
       payload.append("keyTraits", formData.keyTraits);
+      appendLikesToPayload(payload, formData.likes);
       payload.append("personality", formData.personality);
       payload.append("description", formData.description);
       payload.append("organizationOwner", username || "");
@@ -240,6 +270,7 @@ export const useOrganizationAnimals = (username?: string) => {
           breed: createdAnimal.breed,
           age: `${createdAnimal.age} år`,
           keyTraits: createdAnimal.keyTraits,
+          likes: parseLikes(createdAnimal.likes),
           personality: createdAnimal.personality,
           image: resolveImageUrl(createdAnimal.image),
           description: createdAnimal.description || createdAnimal.keyTraits,
@@ -329,6 +360,7 @@ export const useOrganizationAnimals = (username?: string) => {
       payload.append("name", editData.name);
       payload.append("age", String(Number(editData.age)));
       payload.append("keyTraits", editData.keyTraits);
+      appendLikesToPayload(payload, editData.likes);
       payload.append("personality", editData.personality);
       payload.append("description", editData.description);
       payload.append("requester", username);
@@ -356,6 +388,7 @@ export const useOrganizationAnimals = (username?: string) => {
         name?: string;
         age?: number;
         keyTraits?: string;
+        likes?: string[] | string;
         personality?: string;
         description?: string;
         organizationOwner?: string;
@@ -385,6 +418,9 @@ export const useOrganizationAnimals = (username?: string) => {
                 breed: data.breed || editData.breed,
                 age: `${data.age ?? Number(editData.age)} år`,
                 keyTraits: data.keyTraits || editData.keyTraits,
+                likes: data.likes
+                  ? parseLikes(data.likes)
+                  : parseLikes(editData.likes),
                 personality: data.personality || editData.personality,
                 image: resolveImageUrl(data.image || editData.imagePreview),
                 description: data.description || editData.description,
