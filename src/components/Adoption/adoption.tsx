@@ -15,7 +15,7 @@ const steps = [
     icon: applicationLetter,
     title: "2. Skicka in ansökan",
     description: "Fyll i ett enkelt formulär.",
-    path: "/ansok",
+    path: "/utforska",
   },
   {
     icon: approved,
