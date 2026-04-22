@@ -94,3 +94,9 @@
 .submitButton:hover {
   background-color: #c95e28;
 }
+
+.successMessage {
+  color: #2a7a2a;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
