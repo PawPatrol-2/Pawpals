@@ -1,32 +1,15 @@
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Hero from "../components/ui/hero/Hero";
 import AnimalGrid from "../components/AnimalGrid/AnimalGrid";
 import Adoption from "../components/Adoption/adoption";
 import type { Animal } from "../types/animal";
 
 export default function HomePage() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
-
-  const filteredAnimals = useMemo(() => {
-    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-
-    if (!normalizedSearchTerm) {
-      return animals;
-    }
-
-    return animals.filter((animal: Animal) => {
-      return (
-        animal.type?.toLowerCase().includes(normalizedSearchTerm) ||
-        animal.breed?.toLowerCase().includes(normalizedSearchTerm) ||
-        animal.name?.toLowerCase().includes(normalizedSearchTerm) ||
-        animal.keyTraits?.toLowerCase().includes(normalizedSearchTerm) ||
-        animal.age?.toString().includes(normalizedSearchTerm)
-      );
-    });
-  }, [searchTerm, animals]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("http://localhost:3000/api/animals")
@@ -49,10 +32,19 @@ export default function HomePage() {
 
   return (
     <main>
-      <Hero onSearch={setSearchTerm} />
+      <Hero
+        onSearch={(value) => {
+          const params = new URLSearchParams();
+          if (value) {
+            params.set("q", value);
+          }
+
+          navigate(`/utforska${params.toString() ? `?${params.toString()}` : ""}`);
+        }}
+      />
       {loading && <p>Laddar djur...</p>}
       {!loading && infoMessage && <p>{infoMessage}</p>}
-      {!loading && <AnimalGrid animals={filteredAnimals} />}
+      {!loading && <AnimalGrid animals={animals} />}
 
       <Adoption />
     </main>
