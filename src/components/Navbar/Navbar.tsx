@@ -128,7 +128,7 @@ export default function Navbar() {
           </li>
           {!isAuthLoading && user && user.role === "organization" && (
             <li>
-              <Link to="/organisation-dashboard">Org-dashboard</Link>
+              <Link to="/organisation-dashboard">Dashboard</Link>
             </li>
           )}
           {!isAuthLoading && user && (
