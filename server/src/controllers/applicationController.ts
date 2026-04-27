@@ -7,7 +7,18 @@ import Application from "../models/Application";
 import Organization from "../models/Organisation";
 import type { AuthenticatedRequest } from "../middleware/auth";
 
-type LocalizedStatus = "Inskickad" | "Granskas" | "Godkänd" | "Nekad";
+type LocalizedStatus =
+  | "Inskickad"
+  | "Granskas"
+  | "Godkänd"
+  | "Nekad"
+  | "Behöver mer info";
+type UpdateableStatus =
+  | LocalizedStatus
+  | "pending"
+  | "reviewing"
+  | "approved"
+  | "rejected";
 
 type MyApplicationResponse = {
   applicationId: string;
@@ -19,6 +30,7 @@ type MyApplicationResponse = {
 
 type OrganizationApplicationResponse = MyApplicationResponse & {
   applicantName: string;
+  applicantEmail: string;
   details: {
     housingType: string;
     housingSize: number | null;
@@ -90,10 +102,25 @@ const normalizeNumber = (value: unknown): number | null => {
 };
 
 const normalizeStatus = (status: string | undefined): LocalizedStatus => {
+  if (status === "Behöver mer info") return "Behöver mer info";
   if (status === "Granskas" || status === "reviewing") return "Granskas";
   if (status === "Godkänd" || status === "approved") return "Godkänd";
   if (status === "Nekad" || status === "rejected") return "Nekad";
   return "Inskickad";
+};
+
+const isUpdateableStatus = (status: string): status is UpdateableStatus => {
+  return [
+    "Inskickad",
+    "Granskas",
+    "Godkänd",
+    "Nekad",
+    "Behöver mer info",
+    "pending",
+    "reviewing",
+    "approved",
+    "rejected",
+  ].includes(status);
 };
 
 const resolveAnimalName = (
@@ -143,6 +170,22 @@ const resolveApplicantName = (
   }
 
   return "Okänd adoptör";
+};
+
+const resolveApplicantEmail = (
+  application: ApplicationWithOptionalAnimal,
+): string => {
+  const applicant = application.userId;
+
+  if (
+    applicant &&
+    typeof applicant === "object" &&
+    typeof applicant.email === "string"
+  ) {
+    return applicant.email.trim();
+  }
+
+  return "";
 };
 
 export const getMyApplications = async (
@@ -255,6 +298,7 @@ export const getOrganizationApplications = async (
         .map((application) => ({
           applicationId: application.id,
           applicantName: resolveApplicantName(application),
+          applicantEmail: resolveApplicantEmail(application),
           animalId: resolveAnimalId(application),
           animalName: resolveAnimalName(application),
           status: normalizeStatus(application.status),
@@ -276,5 +320,66 @@ export const getOrganizationApplications = async (
     res.status(200).json({ applications: formattedApplications });
   } catch (error) {
     res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
+  }
+};
+
+export const updateApplicationStatus = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: "Obehörig användare" });
+      return;
+    }
+
+    const organization =
+      await Organization.findById(userId).select("organization");
+
+    if (!organization?.organization) {
+      res
+        .status(403)
+        .json({ message: "Endast organisationer kan uppdatera ansökningar" });
+      return;
+    }
+
+    const { id } = req.params;
+    const { status } = req.body as { status?: string };
+
+    if (!status || !isUpdateableStatus(status)) {
+      res.status(400).json({ message: "Ogiltig status" });
+      return;
+    }
+
+    const application = await Application.findById(id).populate({
+      path: "animalId",
+      select: "organizationOwner name",
+    });
+
+    if (!application) {
+      res.status(404).json({ message: "Ansökan hittades inte" });
+      return;
+    }
+
+    const populatedAnimal = application.animalId as PopulatedAnimal;
+    if (
+      !populatedAnimal ||
+      typeof populatedAnimal !== "object" ||
+      populatedAnimal.organizationOwner !== organization.organization
+    ) {
+      res.status(403).json({ message: "Du kan inte uppdatera denna ansökan" });
+      return;
+    }
+
+    application.status = status;
+    await application.save();
+
+    res.status(200).json({
+      applicationId: application.id,
+      status: normalizeStatus(application.status),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Kunde inte uppdatera ansökan", error });
   }
 };

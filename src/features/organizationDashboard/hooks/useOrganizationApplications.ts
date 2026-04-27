@@ -6,6 +6,7 @@ type ApiApplication = {
   _id?: string;
   id?: string;
   applicantName?: string;
+  applicantEmail?: string;
   animalName?: string;
   status?: string;
   createdAt?: string;
@@ -113,6 +114,7 @@ export const useOrganizationApplications = (_username?: string) => {
                 application.id ||
                 `application-${index + 1}`,
               applicant: application.applicantName || "Okänd adoptör",
+              applicantEmail: application.applicantEmail || "",
               animal: application.animalName || "Okänt djur",
               date: toRelativeDate(application.createdAt),
               status,
@@ -157,24 +159,49 @@ export const useOrganizationApplications = (_username?: string) => {
     void loadApplications();
   }, [_username]);
 
-  const updateApplicationStatus = (
+  const updateApplicationStatus = async (
     id: number | string,
     nextStatus: ApplicationStatus,
   ) => {
-    setApplications((current) =>
-      current.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: nextStatus,
-              action:
-                nextStatus === "Godkänd" || nextStatus === "Nekad"
-                  ? "Klar"
-                  : "Granska",
-            }
-          : item,
-      ),
-    );
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:3000/api/applications/${id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: nextStatus }),
+        },
+      );
+
+      if (!response.ok) {
+        return;
+      }
+
+      setApplications((current) =>
+        current.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                status: nextStatus,
+                action:
+                  nextStatus === "Godkänd" || nextStatus === "Nekad"
+                    ? "Klar"
+                    : "Granska",
+              }
+            : item,
+        ),
+      );
+    } catch {
+      // Behåll nuvarande status om uppdateringen misslyckas.
+    }
   };
 
   const overviewStats = useMemo(() => {
