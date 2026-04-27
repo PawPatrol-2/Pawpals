@@ -28,6 +28,7 @@ const ApplyPage = () => {
 
   const { animalId } = useParams();
   const navigate = useNavigate();
+  const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +65,8 @@ const ApplyPage = () => {
     }
 
     if (response.ok) {
-      navigate("/mina-ansokningar");
+      setSubmitted(true);
+      setTimeout(() => navigate("/mina-ansokningar"), 2000);
     }
   };
 
@@ -207,6 +209,12 @@ const ApplyPage = () => {
           </label>
         </div>
 
+        {submitted && (
+          <p className={styles.successMessage}>
+            🐾 Din ansökan är skickad! Du skickas vidare till dina
+            ansökningar...
+          </p>
+        )}
         <Button
           type="submit"
           text="Skicka ansökan"

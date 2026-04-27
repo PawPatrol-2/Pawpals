@@ -5,10 +5,21 @@ import styles from "./AnimalCard.module.css";
 
 type AnimalCardProps = {
   animal: Animal;
+  variant?: "default" | "explore";
 };
 
-function AnimalCard({ animal }: AnimalCardProps) {
+function getAnimalEmoji(type: string) {
+  const normalizedType = type.trim().toLowerCase();
+
+  if (normalizedType === "hund") return "🐕";
+  if (normalizedType === "katt") return "🐱";
+  if (normalizedType === "kanin") return "🐇";
+  return "🐾";
+}
+
+function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [imageHasFailed, setImageHasFailed] = useState(false);
   const imageSrc = animal.image.startsWith("/uploads/")
     ? `http://localhost:3000${animal.image}`
     : animal.image;
@@ -16,18 +27,25 @@ function AnimalCard({ animal }: AnimalCardProps) {
   return (
     <Link
       to={`/djur/${animal._id}`}
-      className={styles.card}
+      className={`${styles.card} ${variant === "explore" ? styles.exploreCard : ""}`}
       aria-label={`Visa detaljer om ${animal.name}`}
     >
-      <article>
-        <img className={styles.image} src={imageSrc} alt={animal.name} />
-
-        <div className={styles.content}>
-          <h2 className={styles.name}>{animal.name}</h2>
-
-          <p className={styles.meta}>
-            {animal.age} år • {animal.keyTraits}
-          </p>
+      <article className={styles.article}>
+        <div
+          className={`${styles.media} ${variant === "explore" ? styles.exploreMedia : ""}`}
+        >
+          {!imageHasFailed && imageSrc ? (
+            <img
+              className={styles.image}
+              src={imageSrc}
+              alt={animal.name}
+              onError={() => setImageHasFailed(true)}
+            />
+          ) : (
+            <div className={styles.fallback} aria-hidden="true">
+              {getAnimalEmoji(animal.type)}
+            </div>
+          )}
 
           <button
             type="button"
@@ -37,9 +55,22 @@ function AnimalCard({ animal }: AnimalCardProps) {
               e.stopPropagation();
               setIsFavorite((prev) => !prev);
             }}
+            aria-label={
+              isFavorite
+                ? `Ta bort ${animal.name} från favoriter`
+                : `Lägg till ${animal.name} i favoriter`
+            }
           >
             ♥
           </button>
+        </div>
+
+        <div className={styles.content}>
+          <h2 className={styles.name}>{animal.name}</h2>
+          <p className={styles.meta}>
+            {animal.type} • {animal.age} år
+          </p>
+          <p className={styles.breed}>{animal.breed}</p>
         </div>
       </article>
     </Link>
