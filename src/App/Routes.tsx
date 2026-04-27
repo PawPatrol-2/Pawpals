@@ -1,3 +1,4 @@
+import AdminPage from "../pages/AdminPage";
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import ExplorePage from "../pages/ExplorePage";
@@ -12,12 +13,15 @@ import MyApplicationsPage from "../pages/MyApplicationsPage";
 import { useUser } from "../context/UserContext";
 
 export default function AppRoutes() {
-  const { user } = useUser();
+  const { user, isAuthLoading } = useUser();
+
+  if (isAuthLoading) return <div>Laddar...</div>;
 
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/utforska" element={<ExplorePage />} />
+      <Route path="/admin" element={ user?.role === "admin" ? (<AdminPage />) : (<Navigate to="/logga-in" replace />)}/>
       <Route path="/organisationer" element={<OrganizationsPage />} />
       <Route path="/logga-in" element={<LoginPage />} />
       <Route path="/registrera" element={<RegisterPage />} />
