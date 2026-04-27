@@ -1,9 +1,31 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
-  padding: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+  gap: 18px;
+  padding: 18px 22px 24px;
   align-items: start;
+  justify-content: center;
+}
+
+.exploreGrid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+  justify-content: start;
+}
+
+.empty {
+  margin: 0;
+  padding: 24px 22px 30px;
+  color: var(--gray-700);
+  font-size: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .empty {
+    padding: 16px;
+  }
 }
