@@ -36,6 +36,8 @@ export const buildEditDataFromAnimal = (
   age: String(getAgeNumber(animal.age)),
   keyTraits: animal.keyTraits,
   likes: animal.likes.join(", "),
+  city: animal.city,
+  childFriendly: animal.childFriendly,
   personality: animal.personality || "",
   description: animal.description,
   imagePreview: animal.image,

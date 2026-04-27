@@ -19,9 +19,24 @@ type ApiAnimal = {
   age: number;
   keyTraits: string;
   likes?: string[] | string;
+  city?: string;
+  childFriendly?: boolean | string;
   personality?: string;
   description?: string;
   organizationOwner?: string;
+};
+
+const parseBoolean = (value: boolean | string | undefined): boolean => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "true" || normalized === "1" || normalized === "on";
+  }
+
+  return false;
 };
 
 const parseLikes = (likes: string[] | string | undefined): string[] => {
@@ -92,6 +107,8 @@ export const useOrganizationAnimals = (username?: string) => {
               age: `${animal.age} år`,
               keyTraits: animal.keyTraits,
               likes: parseLikes(animal.likes),
+              city: animal.city?.trim() || "",
+              childFriendly: parseBoolean(animal.childFriendly),
               personality: animal.personality,
               image: resolveImageUrl(animal.image),
               description: animal.description || animal.keyTraits,
@@ -208,6 +225,12 @@ export const useOrganizationAnimals = (username?: string) => {
     setSubmitMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setSubmitMessage("Du behöver vara inloggad för att lägga upp djur.");
+        return false;
+      }
+
       const payload = new FormData();
       payload.append("type", formData.type);
       payload.append("breed", formData.breed);
@@ -215,6 +238,8 @@ export const useOrganizationAnimals = (username?: string) => {
       payload.append("age", String(Number(formData.age)));
       payload.append("keyTraits", formData.keyTraits);
       appendLikesToPayload(payload, formData.likes);
+      payload.append("city", formData.city.trim());
+      payload.append("childFriendly", String(formData.childFriendly));
       payload.append("personality", formData.personality);
       payload.append("description", formData.description);
       payload.append("organizationOwner", username || "");
@@ -230,6 +255,9 @@ export const useOrganizationAnimals = (username?: string) => {
 
       const response = await fetch("http://localhost:3000/api/animals", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: payload,
       });
 
@@ -271,6 +299,8 @@ export const useOrganizationAnimals = (username?: string) => {
           age: `${createdAnimal.age} år`,
           keyTraits: createdAnimal.keyTraits,
           likes: parseLikes(createdAnimal.likes),
+          city: createdAnimal.city?.trim() || "",
+          childFriendly: parseBoolean(createdAnimal.childFriendly),
           personality: createdAnimal.personality,
           image: resolveImageUrl(createdAnimal.image),
           description: createdAnimal.description || createdAnimal.keyTraits,
@@ -354,6 +384,12 @@ export const useOrganizationAnimals = (username?: string) => {
     setEditMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setEditMessage("Du behöver vara inloggad för att redigera djur.");
+        return false;
+      }
+
       const payload = new FormData();
       payload.append("type", editData.type);
       payload.append("breed", editData.breed);
@@ -361,9 +397,10 @@ export const useOrganizationAnimals = (username?: string) => {
       payload.append("age", String(Number(editData.age)));
       payload.append("keyTraits", editData.keyTraits);
       appendLikesToPayload(payload, editData.likes);
+      payload.append("city", editData.city.trim());
+      payload.append("childFriendly", String(editData.childFriendly));
       payload.append("personality", editData.personality);
       payload.append("description", editData.description);
-      payload.append("requester", username);
 
       if (editData.imageFile) {
         payload.append("imageFile", editData.imageFile);
@@ -375,6 +412,9 @@ export const useOrganizationAnimals = (username?: string) => {
         `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
         {
           method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           body: payload,
         },
       );
@@ -391,6 +431,8 @@ export const useOrganizationAnimals = (username?: string) => {
         likes?: string[] | string;
         personality?: string;
         description?: string;
+        city?: string;
+        childFriendly?: boolean | string;
         organizationOwner?: string;
       };
 
@@ -421,6 +463,14 @@ export const useOrganizationAnimals = (username?: string) => {
                 likes: data.likes
                   ? parseLikes(data.likes)
                   : parseLikes(editData.likes),
+                city:
+                  typeof data.city === "string"
+                    ? data.city.trim()
+                    : editData.city,
+                childFriendly:
+                  data.childFriendly !== undefined
+                    ? parseBoolean(data.childFriendly)
+                    : editData.childFriendly,
                 personality: data.personality || editData.personality,
                 image: resolveImageUrl(data.image || editData.imagePreview),
                 description: data.description || editData.description,
@@ -459,12 +509,21 @@ export const useOrganizationAnimals = (username?: string) => {
     setEditMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setEditMessage("Du behöver vara inloggad för att ta bort djur.");
+        return false;
+      }
+
       const response = await fetch(
         `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
         {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requester: username }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({}),
         },
       );
 

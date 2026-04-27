@@ -15,13 +15,21 @@ import styles from "./ExplorePage.module.css";
 
 const AGE_FILTERS = [
   { id: "baby", label: "Valp/kattunge", matches: (age: number) => age < 1 },
-  { id: "young", label: "1-3 år", matches: (age: number) => age >= 1 && age <= 3 },
+  {
+    id: "young",
+    label: "1-3 år",
+    matches: (age: number) => age >= 1 && age <= 3,
+  },
   { id: "adult", label: "3+ år", matches: (age: number) => age > 3 },
 ] as const;
 
 const TRAIT_FILTERS = [
   { id: "lugn", label: "Lugn", keywords: ["lugn", "mjuk", "gosig", "snäll"] },
-  { id: "aktiv", label: "Aktiv", keywords: ["aktiv", "lekfull", "energisk", "busig"] },
+  {
+    id: "aktiv",
+    label: "Aktiv",
+    keywords: ["aktiv", "lekfull", "energisk", "busig"],
+  },
 ] as const;
 
 function normalizeAnimal(data: Partial<Animal> & { _id: string }): Animal {
@@ -36,6 +44,8 @@ function normalizeAnimal(data: Partial<Animal> & { _id: string }): Animal {
     keyTraits: data.keyTraits ?? "",
     personality: data.personality ?? "",
     description: data.description ?? "",
+    city: data.city ?? "",
+    childFriendly: data.childFriendly ?? false,
     organizationOwner: data.organizationOwner,
     likes: Array.isArray(data.likes) ? data.likes : [],
   };
@@ -64,7 +74,10 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [selectedCategory, setSelectedCategory] = useState("alla");
   const [selectedAgeFilters, setSelectedAgeFilters] = useState<string[]>([]);
-  const [selectedTraitFilters, setSelectedTraitFilters] = useState<string[]>([]);
+  const [selectedTraitFilters, setSelectedTraitFilters] = useState<string[]>(
+    [],
+  );
+  const [childFriendlyOnly, setChildFriendlyOnly] = useState(false);
 
   useEffect(() => {
     setSearchTerm(searchParams.get("q") ?? "");
@@ -108,6 +121,7 @@ export default function ExplorePage() {
         animal.breed,
         animal.keyTraits,
         animal.personality,
+        animal.city,
         animal.organizationOwner,
       ]
         .filter(Boolean)
@@ -133,11 +147,22 @@ export default function ExplorePage() {
         selectedTraitFilters.some((filterId) => {
           const filter = TRAIT_FILTERS.find((item) => item.id === filterId);
           return filter
-            ? filter.keywords.some((keyword) => combinedTraits.includes(keyword))
+            ? filter.keywords.some((keyword) =>
+                combinedTraits.includes(keyword),
+              )
             : false;
         });
 
-      return matchesCategory && matchesSearch && matchesAge && matchesTraits;
+      const matchesChildFriendly =
+        !childFriendlyOnly || animal.childFriendly === true;
+
+      return (
+        matchesCategory &&
+        matchesSearch &&
+        matchesAge &&
+        matchesTraits &&
+        matchesChildFriendly
+      );
     });
   }, [
     animals,
@@ -145,6 +170,7 @@ export default function ExplorePage() {
     selectedCategory,
     selectedAgeFilters,
     selectedTraitFilters,
+    childFriendlyOnly,
   ]);
 
   const categoryOptions = useMemo(() => {
@@ -203,6 +229,14 @@ export default function ExplorePage() {
               checked: selectedTraitFilters.includes(filter.id),
               onToggle: () => toggleFilter(filter.id, setSelectedTraitFilters),
             }))}
+            childFriendlyFilters={[
+              {
+                id: "child-friendly",
+                label: "Barnvänlig",
+                checked: childFriendlyOnly,
+                onToggle: () => setChildFriendlyOnly((current) => !current),
+              },
+            ]}
           />
           <section className={styles.results}>
             {isLoading && <p className={styles.status}>Laddar djur...</p>}
