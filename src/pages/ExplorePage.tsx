@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import { useSearchParams } from "react-router-dom";
 import AnimalGrid from "../components/AnimalGrid/AnimalGrid";
 import type { Animal } from "../types/animal";
 import ExploreSearchBar from "../components/Explore/ExploreSearchBar";
@@ -50,13 +57,18 @@ function toggleFilter(
 }
 
 export default function ExplorePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [selectedCategory, setSelectedCategory] = useState("alla");
   const [selectedAgeFilters, setSelectedAgeFilters] = useState<string[]>([]);
   const [selectedTraitFilters, setSelectedTraitFilters] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchAnimals = async () => {
@@ -157,7 +169,21 @@ export default function ExplorePage() {
   return (
     <main className={styles.page}>
       <section className={styles.shell}>
-        <ExploreSearchBar value={searchTerm} onChange={setSearchTerm} />
+        <ExploreSearchBar
+          value={searchTerm}
+          onChange={(value) => {
+            setSearchTerm(value);
+
+            const nextParams = new URLSearchParams(searchParams);
+            if (value.trim()) {
+              nextParams.set("q", value);
+            } else {
+              nextParams.delete("q");
+            }
+
+            setSearchParams(nextParams, { replace: true });
+          }}
+        />
         <ExploreCategories
           categories={categoryOptions}
           selectedCategory={selectedCategory}
