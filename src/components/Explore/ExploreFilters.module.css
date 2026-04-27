@@ -1,0 +1,54 @@
+.sidebar {
+  padding: 26px 16px 30px;
+  background:
+    linear-gradient(180deg, rgba(248, 244, 239, 0.95) 0%, rgba(244, 238, 230, 0.95) 100%);
+  border-right: 1px solid var(--sand-dark);
+}
+
+.eyebrow {
+  margin: 0 0 20px;
+  color: var(--gray-700);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.group + .group {
+  margin-top: 28px;
+}
+
+.groupTitle {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  color: var(--black);
+}
+
+.options {
+  display: grid;
+  gap: 12px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #716a63;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--orange);
+}
+
+@media (max-width: 960px) {
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--sand-dark);
+  }
+}

@@ -1,79 +1,117 @@
 .card {
-  background: var(--white);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 22px rgba(26, 23, 20, 0.12);
-  cursor: pointer;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    outline-color 0.25s ease;
-  max-width: 360px;
-  margin: 0;
   display: block;
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
+  border-radius: 16px;
   outline: 2px solid transparent;
   outline-offset: 2px;
-  border: 1px solid var(--sand-dark);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    outline-color 0.22s ease;
+}
+
+.exploreCard {
+  border-radius: 24px;
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 30px rgba(26, 23, 20, 0.18);
+  transform: translateY(-4px);
 }
 
 .card:focus-visible {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 26px rgba(26, 23, 20, 0.2);
   outline-color: var(--orange);
+}
+
+.article {
+  overflow: hidden;
+  border: 1px solid var(--sand-dark);
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 10px 24px rgba(26, 23, 20, 0.08);
+}
+
+.exploreCard .article {
+  border-radius: 24px;
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(180deg, #efe8df 0%, #e8e0d5 100%);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.exploreMedia {
+  height: clamp(220px, 24vw, 280px);
+  aspect-ratio: auto;
 }
 
 .image {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
+.fallback {
+  font-size: clamp(4rem, 8vw, 5.5rem);
+}
+
 .content {
-  padding: 16px;
-  position: relative; /* viktigt */
+  padding: 16px 18px 18px;
 }
 
 .name {
-  margin: 0 0 8px;
-  font-size: 1.2rem;
+  margin: 0 0 6px;
   color: var(--black);
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
 .meta {
   margin: 0;
   color: var(--gray-700);
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.breed {
+  margin: 6px 0 0;
+  color: var(--gray-500);
   font-size: 0.95rem;
-  line-height: 1.4;
 }
 
 .heart {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-
-  background: none;
+  top: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
   border: none;
-
-  font-size: 1.8rem; /* gör den större från början */
-  cursor: pointer;
-
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.96);
   color: transparent;
-  -webkit-text-stroke: 2px red; /* outline */
-
+  -webkit-text-stroke: 1.6px #1f1b17;
+  font-size: 1.55rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(26, 23, 20, 0.1);
   transition:
     transform 0.2s ease,
-    color 0.2s ease;
+    background-color 0.2s ease,
+    color 0.2s ease,
+    -webkit-text-stroke 0.2s ease;
+}
+
+.heart:hover {
+  transform: scale(1.06);
 }
 
 .active {
-  color: red;
+  color: var(--orange);
   -webkit-text-stroke: 0;
 }
