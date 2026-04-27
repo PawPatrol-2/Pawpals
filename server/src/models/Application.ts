@@ -8,7 +8,8 @@ export type ApplicationStatus =
   | "Inskickad"
   | "Granskas"
   | "Godkänd"
-  | "Nekad";
+  | "Nekad"
+  | "Behöver mer info";
 
 export interface IApplication extends Document {
   animalNameSnapshot?: string;
@@ -50,6 +51,7 @@ const ApplicationSchema = new Schema<IApplication>({
       "Granskas",
       "Godkänd",
       "Nekad",
+      "Behöver mer info",
     ],
     default: "pending",
   },

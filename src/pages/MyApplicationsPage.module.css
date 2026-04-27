@@ -140,6 +140,15 @@
   color: #7d1a1a;
 }
 
+.moreInfo {
+  background: #ffe8c8;
+  color: #8b4f00;
+}
+
+.moreInfoText {
+  color: #8b4f00;
+}
+
 @media (max-width: 700px) {
   .card {
     grid-template-columns: 1fr;
