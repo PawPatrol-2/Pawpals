@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { Animal } from "../../types/animal";
+import { useUser } from "../../context/UserContext";
 import styles from "./AnimalCard.module.css";
 
 type AnimalCardProps = {
@@ -9,6 +10,8 @@ type AnimalCardProps = {
 
 function AnimalCard({ animal }: AnimalCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const { user } = useUser();
+  const navigate = useNavigate();
   const imageSrc = animal.image.startsWith("/uploads/")
     ? `http://localhost:3000${animal.image}`
     : animal.image;
@@ -35,6 +38,12 @@ function AnimalCard({ animal }: AnimalCardProps) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+
+              if (!user) {
+                navigate("/logga-in");
+                return;
+              }
+
               setIsFavorite((prev) => !prev);
             }}
           >
