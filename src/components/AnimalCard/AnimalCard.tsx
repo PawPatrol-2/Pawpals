@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { Animal } from "../../types/animal";
+import { useUser } from "../../context/UserContext";
 import styles from "./AnimalCard.module.css";
 
 type AnimalCardProps = {
@@ -19,6 +20,8 @@ function getAnimalEmoji(type: string) {
 
 function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const { user } = useUser();
+  const navigate = useNavigate();
   const [imageHasFailed, setImageHasFailed] = useState(false);
   const imageSrc = animal.image.startsWith("/uploads/")
     ? `http://localhost:3000${animal.image}`
@@ -53,6 +56,12 @@ function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+
+              if (!user) {
+                navigate("/logga-in");
+                return;
+              }
+
               setIsFavorite((prev) => !prev);
             }}
             aria-label={
