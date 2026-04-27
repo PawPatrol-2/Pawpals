@@ -115,8 +115,9 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-logo">
-        <span className="paw">🐾</span> PawPals
+      <Link to="/" className="navbar-logo" style={{ fontWeight: 700 }}>
+        <span style={{ color: '#E8713A', fontSize: '1.4rem', marginRight: 4 }}>🐾</span>
+        <span style={{ color: '#E8713A', display: 'inline' }}>Paw</span>Pals
       </Link>
       <div className="navbar-right">
         <ul className="navbar-nav">
@@ -129,6 +130,11 @@ export default function Navbar() {
           {!isAuthLoading && user && user.role === "organization" && (
             <li>
               <Link to="/organisation-dashboard">Dashboard</Link>
+            </li>
+          )}
+          {!isAuthLoading && user && user.role === "admin" && (
+            <li>
+              <Link to="/admin">Adminpanel</Link>
             </li>
           )}
           {!isAuthLoading && user && (

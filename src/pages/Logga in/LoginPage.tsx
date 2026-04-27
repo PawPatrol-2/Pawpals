@@ -25,6 +25,14 @@ export default function LoginPage() {
 
         if (res.ok && data.user && data.token) {
             localStorage.setItem("token", data.token);
+    
+            if (data.user.role === "organization") {
+                localStorage.setItem("accountType", "organization");
+            } else if (data.user.role === "admin") {
+                localStorage.setItem("accountType", "admin");
+            } else {
+                localStorage.setItem("accountType", "adopter");
+            }
             setUser({
                 id: data.user.id,
                 username: data.user.username,

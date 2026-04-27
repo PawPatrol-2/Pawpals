@@ -1,9 +1,52 @@
+// Hämta alla användare (endast admin)
+import { RequestHandler } from "express";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import User from "../models/User";
 import Organization from "../models/Organisation";
 import { AuthenticatedRequest } from "../middleware/auth";
+
+
+export const getAllUsers: RequestHandler = async (req, res) => {
+  try {
+    const users = await User.find().select("_id email username role");
+    const organizations = await Organization.find().select("_id email organization role");
+    const orgsAsUsers = organizations.map(org => ({
+      _id: org._id,
+      email: org.email,
+      username: org.organization,
+      role: org.role
+    }));
+    res.json([...users, ...orgsAsUsers]);
+  } catch (err) {
+    res.status(500).json({ message: "Kunde inte hämta användare", error: err });
+  }
+};
+
+export const createAdminUser = async (req: Request, res: Response) => {
+  console.log("BODY SECRET:", req.body.secret);
+  console.log("ENV SECRET:", process.env.ADMIN_SECRET);
+  if (req.body.secret !== process.env.ADMIN_SECRET) {
+    console.log("JÄMFÖRELSE MISSLYCKADES");
+    return res.status(403).json({ message: "Otillåtet" });
+  }
+  console.log("JÄMFÖRELSE OK");
+  const { email, username, password } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({
+      email,
+      username,
+      password: hashedPassword,
+      role: "admin",
+    });
+    await user.save();
+    res.status(201).json({ message: "Admin skapad!" });
+  } catch (err) {
+    res.status(500).json({ message: "Något gick fel", error: err });
+  }
+};
 
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET;
@@ -206,6 +249,21 @@ export const getCurrentUser = async (
     }
 
     return res.status(500).json({ message: "Något gick fel", error: err });
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Användaren hittades inte" });
+    }
+
+    res.status(200).json({ message: "Användaren borttagen" });
+  } catch (error) {
+    res.status(500).json({ message: "Ett fel inträffade", error });
   }
 };
 

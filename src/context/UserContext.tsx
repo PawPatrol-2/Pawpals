@@ -4,7 +4,7 @@ type User = {
     id: string;
     email: string;
     username: string;
-    role: 'adopter' | 'organization';
+    role: 'adopter' | 'organization' | 'admin';
 };
 
 type UserContextType = {

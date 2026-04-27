@@ -13,7 +13,7 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: true },
   role: {
     type: String,
-    enum: ["adopter", "organization"],
+    enum: ["adopter", "organization", "admin"],
     required: true,
   },
 });
