@@ -6,6 +6,7 @@ type ApiApplication = {
   _id?: string;
   id?: string;
   applicantName?: string;
+  applicantEmail?: string;
   animalName?: string;
   status?: string;
   createdAt?: string;
@@ -113,6 +114,7 @@ export const useOrganizationApplications = (_username?: string) => {
                 application.id ||
                 `application-${index + 1}`,
               applicant: application.applicantName || "Okänd adoptör",
+              applicantEmail: application.applicantEmail || "",
               animal: application.animalName || "Okänt djur",
               date: toRelativeDate(application.createdAt),
               status,

@@ -387,6 +387,7 @@
 .field {
   display: grid;
   gap: 7px;
+  max-width: 720px;
 }
 
 .field label {

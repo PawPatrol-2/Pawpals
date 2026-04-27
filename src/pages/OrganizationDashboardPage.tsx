@@ -145,7 +145,6 @@ export default function OrganizationDashboardPage() {
               overviewStats={overviewStats}
               statusClassMap={statusClassMap}
               onUpdateStatus={updateApplicationStatus}
-              onSetMessage={setSubmitMessage}
               styles={styles}
             />
           )}

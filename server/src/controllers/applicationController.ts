@@ -30,6 +30,7 @@ type MyApplicationResponse = {
 
 type OrganizationApplicationResponse = MyApplicationResponse & {
   applicantName: string;
+  applicantEmail: string;
   details: {
     housingType: string;
     housingSize: number | null;
@@ -171,6 +172,22 @@ const resolveApplicantName = (
   return "Okänd adoptör";
 };
 
+const resolveApplicantEmail = (
+  application: ApplicationWithOptionalAnimal,
+): string => {
+  const applicant = application.userId;
+
+  if (
+    applicant &&
+    typeof applicant === "object" &&
+    typeof applicant.email === "string"
+  ) {
+    return applicant.email.trim();
+  }
+
+  return "";
+};
+
 export const getMyApplications = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -281,6 +298,7 @@ export const getOrganizationApplications = async (
         .map((application) => ({
           applicationId: application.id,
           applicantName: resolveApplicantName(application),
+          applicantEmail: resolveApplicantEmail(application),
           animalId: resolveAnimalId(application),
           animalName: resolveAnimalName(application),
           status: normalizeStatus(application.status),

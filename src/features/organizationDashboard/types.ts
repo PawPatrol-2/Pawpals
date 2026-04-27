@@ -10,6 +10,7 @@ export type ApplicationStatus =
 export type ApplicationItem = {
   id: number | string;
   applicant: string;
+  applicantEmail: string;
   animal: string;
   date: string;
   status: ApplicationStatus;
