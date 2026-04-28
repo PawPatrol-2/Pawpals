@@ -61,6 +61,7 @@ export default function AddAnimalModal({
               type="file"
               accept="image/*"
               onChange={onImageChange}
+              required
             />
             {formData.imagePreview && (
               <img

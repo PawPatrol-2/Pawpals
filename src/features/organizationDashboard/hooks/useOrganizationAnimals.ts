@@ -215,9 +215,10 @@ export const useOrganizationAnimals = (username?: string) => {
       !formData.breed ||
       !formData.age ||
       !formData.keyTraits ||
-      !formData.description
+      !formData.description ||
+      !formData.imageFile
     ) {
-      setSubmitMessage("Fyll i alla obligatoriska fält.");
+      setSubmitMessage("Fyll i alla obligatoriska fält, inklusive en bild.");
       return false;
     }
 
@@ -244,14 +245,12 @@ export const useOrganizationAnimals = (username?: string) => {
       payload.append("description", formData.description);
       payload.append("organizationOwner", username || "");
 
-      if (formData.imageFile) {
-        payload.append("imageFile", formData.imageFile);
-      } else {
-        payload.append(
-          "image",
-          "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-        );
+      if (!formData.imageFile) {
+        setSubmitMessage("Du måste ladda upp en bild för djuret.");
+        return false;
       }
+
+      payload.append("imageFile", formData.imageFile);
 
       const response = await fetch("http://localhost:3000/api/animals", {
         method: "POST",
