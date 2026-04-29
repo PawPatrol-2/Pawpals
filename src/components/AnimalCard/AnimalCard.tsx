@@ -23,6 +23,7 @@ function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
   const { user } = useUser();
   const navigate = useNavigate();
   const [imageHasFailed, setImageHasFailed] = useState(false);
+  const cityText = animal.city?.trim() || "Ej angiven";
   const imageSrc = animal.image.startsWith("/uploads/")
     ? `http://localhost:3000${animal.image}`
     : animal.image;
@@ -80,6 +81,7 @@ function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
             {animal.type} • {animal.age} år
           </p>
           <p className={styles.breed}>{animal.breed}</p>
+          <p className={styles.city}>Stad: {cityText}</p>
         </div>
       </article>
     </Link>

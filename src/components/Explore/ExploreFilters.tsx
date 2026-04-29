@@ -10,6 +10,7 @@ type FilterOption = {
 type ExploreFiltersProps = {
   ageFilters: FilterOption[];
   traitFilters: FilterOption[];
+  childFriendlyFilters: FilterOption[];
 };
 
 function FilterGroup({
@@ -42,12 +43,14 @@ function FilterGroup({
 export default function ExploreFilters({
   ageFilters,
   traitFilters,
+  childFriendlyFilters,
 }: ExploreFiltersProps) {
   return (
     <aside className={styles.sidebar}>
       <p className={styles.eyebrow}>Filter</p>
       <FilterGroup title="Ålder" filters={ageFilters} />
       <FilterGroup title="Energinivå" filters={traitFilters} />
+      <FilterGroup title="Hem & familj" filters={childFriendlyFilters} />
     </aside>
   );
 }

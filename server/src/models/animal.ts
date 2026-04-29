@@ -10,6 +10,8 @@ const animalSchema = new mongoose.Schema(
     keyTraits: { type: String, required: true },
     personality: { type: String, required: false },
     description: { type: String, required: false },
+    city: { type: String, required: false },
+    childFriendly: { type: Boolean, required: false, default: false },
     organizationOwner: { type: String, required: false },
     likes: { type: [String], required: false },
   },
