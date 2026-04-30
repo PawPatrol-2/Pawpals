@@ -61,6 +61,7 @@ export default function AddAnimalModal({
               type="file"
               accept="image/*"
               onChange={onImageChange}
+              required
             />
             {formData.imagePreview && (
               <img
@@ -138,6 +139,32 @@ export default function AddAnimalModal({
               onChange={(event) => onFieldChange("likes", event.target.value)}
               placeholder="T.ex. promenader, kel, lek"
             />
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="city">Stad</label>
+            <input
+              id="city"
+              value={formData.city}
+              onChange={(event) => onFieldChange("city", event.target.value)}
+              placeholder="T.ex. Göteborg"
+              required
+            />
+          </div>
+
+          <div className={styles.checkboxField}>
+            <label className={styles.checkboxLabel} htmlFor="childFriendly">
+              <input
+                id="childFriendly"
+                className={styles.checkboxInput}
+                type="checkbox"
+                checked={formData.childFriendly}
+                onChange={(event) =>
+                  onFieldChange("childFriendly", event.target.checked)
+                }
+              />
+              Barnvänlig
+            </label>
           </div>
 
           <div className={styles.field}>

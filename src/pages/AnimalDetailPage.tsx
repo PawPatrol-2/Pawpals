@@ -47,6 +47,8 @@ export default function AnimalDetailPage() {
           keyTraits: data.keyTraits ?? "Ingen information",
           personality: data.personality ?? "Ingen information",
           description: data.description ?? "Ingen beskrivning tillgänglig.",
+          city: data.city ?? "",
+          childFriendly: data.childFriendly ?? false,
           organizationOwner: data.organizationOwner,
           likes: Array.isArray(data.likes) ? data.likes : [],
           createdAt: data.createdAt,
@@ -94,6 +96,8 @@ export default function AnimalDetailPage() {
       : animal.image;
   }, [animal]);
 
+  const cityText = animal?.city?.trim() || "Ej angiven";
+
   if (isLoading) {
     return (
       <main className={styles.page}>
@@ -130,6 +134,10 @@ export default function AnimalDetailPage() {
             <div>
               <span className={styles.label}>Ålder</span>
               <strong>{animal.age} år</strong>
+            </div>
+            <div>
+              <span className={styles.label}>Stad</span>
+              <strong>{cityText}</strong>
             </div>
             <div>
               <span className={styles.label}>Personlighet</span>

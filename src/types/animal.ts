@@ -9,6 +9,8 @@ export type Animal = {
   keyTraits: string;
   personality: string;
   description: string;
+  city?: string;
+  childFriendly?: boolean;
   organizationOwner?: string;
   likes: string[];
 };
