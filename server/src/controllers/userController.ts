@@ -1,4 +1,3 @@
-// Hämta alla användare (endast admin)
 import { RequestHandler } from "express";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
@@ -15,23 +14,37 @@ export const getAllUsers: RequestHandler = async (req, res) => {
     const orgsAsUsers = organizations.map(org => ({
       _id: org._id,
       email: org.email,
-      username: org.organization,
+      organisationsnamn: org.organization,
       role: org.role
     }));
-    res.json([...users, ...orgsAsUsers]);
-  } catch (err) {
-    res.status(500).json({ message: "Kunde inte hämta användare", error: err });
-  }
-};
+    const usersWithFullname = users.map(u => ({
+      _id: u._id,
+      email: u.email,
+      fullname: u.username,
+      role: u.role
+    }));
+    res.json([...usersWithFullname, ...orgsAsUsers]);
+  } catch (error: unknown) {
+    if(typeof error === "object" && error !== null && "name" in error) {
+      const err = error as { name: string; message?: string; path?: string;}
+      if(err.name === "ValidationError") {
+        return res.status(400).json({ error: err.message })
+      }
+      if(err.name === "CastError") {
+        if(err.path === "_id") {
+          return res.status(404).json({ error: 'Invalid id-format'})
+        }
+        return res.status(400).json({ error: `Invalid value for ${err.path}`})
+      }
+    }
+      res.status(500).json({ message: "Kunde inte hämta användare", error: error });
+    }
+  };
 
 export const createAdminUser = async (req: Request, res: Response) => {
-  console.log("BODY SECRET:", req.body.secret);
-  console.log("ENV SECRET:", process.env.ADMIN_SECRET);
   if (req.body.secret !== process.env.ADMIN_SECRET) {
-    console.log("JÄMFÖRELSE MISSLYCKADES");
     return res.status(403).json({ message: "Otillåtet" });
   }
-  console.log("JÄMFÖRELSE OK");
   const { email, username, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -43,8 +56,20 @@ export const createAdminUser = async (req: Request, res: Response) => {
     });
     await user.save();
     res.status(201).json({ message: "Admin skapad!" });
-  } catch (err) {
-    res.status(500).json({ message: "Något gick fel", error: err });
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && "name" in error) {
+      const err = error as { name: string; message?: string; path?: string };
+      if (err.name === "ValidationError") {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err.name === "CastError") {
+        if (err.path === "_id") {
+          return res.status(404).json({ error: "Invalid id-format" });
+        }
+        return res.status(400).json({ error: `Invalid value for ${err.path}` });
+      }
+    }
+    res.status(500).json({ message: "Något gick fel", error });
   }
 };
 
@@ -113,38 +138,37 @@ export const loginUser = async (req: Request, res: Response) => {
     return res.status(401).json({
       message: "Fel e-post eller lösenord",
     });
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      res.status(500).json({
-        message: "Något gick fel",
-        error: err.message,
-      });
-    } else {
-      res.status(500).json({
-        message: "Något gick fel",
-        error: err,
-      });
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'name' in error ) {
+    const err = error as { name: string; message?: string; path?: string }
+    if(err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message })
     }
+    if(err.name === "CastError") {
+      if(err.path === "_id") {
+        return res.status(404).json({ error: "Invalid id-format"})
+      }
+      return res.status(400).json({ error: `Invalid value for ${err.path}`})
+    }
+    }  
+    res.status(500).json({message: "Något gick fel", error})
+    
   }
 };
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const { email, username, password, role } = req.body;
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
     if (role === "organization") {
       const existingOrganization = await Organization.findOne({
         $or: [{ email }, { organization: username }],
       });
-
       if (existingOrganization) {
         return res.status(400).json({
           message: "Organisationen eller e-postadressen är redan registrerad.",
         });
       }
-
       const organization = new Organization({
         email,
         organization: username,
@@ -152,7 +176,6 @@ export const registerUser = async (req: Request, res: Response) => {
         role: "organization",
       });
       await organization.save();
-
       return res.status(201).json({
         message: "Organisation skapad!",
         user: {
@@ -162,21 +185,18 @@ export const registerUser = async (req: Request, res: Response) => {
         },
       });
     }
-
     const existingUsername = await User.findOne({ username });
     if (existingUsername) {
       return res.status(400).json({
         message: "Användarnamnet är taget.",
       });
     }
-
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       return res.status(400).json({
         message: "E-postadressen är redan registrerad.",
       });
     }
-
     const user = new User({
       email,
       username,
@@ -184,23 +204,24 @@ export const registerUser = async (req: Request, res: Response) => {
       role: "adopter",
     });
     await user.save();
-
     return res.status(201).json({
       message: "Användare skapad!",
       user: { email: user.email, username: user.username, role: user.role },
     });
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      res.status(500).json({
-        message: "Något gick fel",
-        error: err.message,
-      });
-    } else {
-      res.status(500).json({
-        message: "Något gick fel",
-        error: err,
-      });
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && "name" in error) {
+      const err = error as { name: string; message?: string; path?: string };
+      if (err.name === "ValidationError") {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err.name === "CastError") {
+        if (err.path === "_id") {
+          return res.status(404).json({ error: "Invalid id-format" });
+        }
+        return res.status(400).json({ error: `Invalid value for ${err.path}` });
+      }
     }
+    res.status(500).json({ message: "Något gick fel", error });
   }
 };
 
@@ -220,7 +241,7 @@ export const getCurrentUser = async (
         user: {
           id: user._id.toString(),
           email: user.email,
-          username: user.username,
+          fullname: user.username,
           role: user.role,
         },
       });
@@ -234,7 +255,7 @@ export const getCurrentUser = async (
         user: {
           id: organization._id.toString(),
           email: organization.email,
-          username: organization.organization,
+          organisationsnamn: organization.organization,
           role: organization.role,
         },
       });
@@ -256,13 +277,23 @@ export const deleteUser = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
     const user = await User.findByIdAndDelete(userId);
-
     if (!user) {
       return res.status(404).json({ message: "Användaren hittades inte" });
     }
-
     res.status(200).json({ message: "Användaren borttagen" });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && "name" in error) {
+      const err = error as { name: string; message?: string; path?: string };
+      if (err.name === "ValidationError") {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err.name === "CastError") {
+        if (err.path === "_id") {
+          return res.status(404).json({ error: "Invalid id-format" });
+        }
+        return res.status(400).json({ error: `Invalid value for ${err.path}` });
+      }
+    }
     res.status(500).json({ message: "Ett fel inträffade", error });
   }
 };

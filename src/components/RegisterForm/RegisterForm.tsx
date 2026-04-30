@@ -82,13 +82,13 @@ const RegisterForm: React.FC = () => {
         </button>
       </div>
       <label>
-        Namn
+        Fullständigt namn
         <input
           type="text"
           name="name"
           value={formData.name}
           onChange={handleInputChange}
-          placeholder="Ditt namn"
+          placeholder="Fullständigt namn"
           required
         />
       </label>
