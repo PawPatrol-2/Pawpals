@@ -6,6 +6,10 @@ import {
 import Application from "../models/Application";
 import Organization from "../models/Organisation";
 import type { AuthenticatedRequest } from "../middleware/auth";
+import {
+  notifyApplicantAboutStatusChange,
+  notifyOrganizationAboutApplication,
+} from "../services/notificationService";
 
 type LocalizedStatus =
   | "Inskickad"
@@ -246,6 +250,15 @@ export const createApplication = async (
     }
 
     const application = await Application.create({ ...body, userId });
+    void notifyOrganizationAboutApplication(
+      application as unknown as {
+        id: string;
+        userId: unknown;
+        animalId: unknown;
+        status?: string;
+        animalNameSnapshot?: string;
+      },
+    );
     res.status(201).json(application as ApplicationResponse);
   } catch (error) {
     next(error);
@@ -362,6 +375,7 @@ export const updateApplicationStatus = async (
       return;
     }
 
+    const previousStatus = normalizeStatus(application.status);
     const populatedAnimal = application.animalId as PopulatedAnimal;
     if (
       !populatedAnimal ||
@@ -374,6 +388,19 @@ export const updateApplicationStatus = async (
 
     application.status = status;
     await application.save();
+
+    const nextStatus = normalizeStatus(application.status);
+    if (previousStatus !== nextStatus) {
+      void notifyApplicantAboutStatusChange(
+        application as unknown as {
+          id: string;
+          userId: unknown;
+          animalId: unknown;
+          status?: string;
+          animalNameSnapshot?: string;
+        },
+      );
+    }
 
     res.status(200).json({
       applicationId: application.id,
