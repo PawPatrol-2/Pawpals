@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 interface User {
   _id: string;
   email: string;
-  username: string;
+  fullname?: string;
+  organisationsnamn?: string;
   role: string;
 }
 
@@ -86,11 +87,11 @@ const AdminUserList: React.FC<AdminUserListProps> = ({ adminToken }) => {
                 <span>
                   {role === 'organization' ? (
                     <>
-                      <strong>{user.username}</strong> <span style={{color:'#888'}}>(org)</span> – {user.email}
+                      <strong>{user.organisationsnamn}</strong> <span style={{color:'#888'}}>(org)</span> – {user.email}
                     </>
                   ) : (
                     <>
-                      {user.username} – {user.email}
+                      {user.fullname} – {user.email}
                     </>
                   )}
                   <span style={{marginLeft:8, color:'#aaa'}}>({role})</span>

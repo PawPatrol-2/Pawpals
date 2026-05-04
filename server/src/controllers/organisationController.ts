@@ -3,6 +3,14 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+const getJwtSecret = (): string => {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error("JWT_SECRET saknas i miljövariablerna");
+    }
+    return secret;
+};
+
 export const loginOrganization = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     try {
@@ -12,8 +20,17 @@ export const loginOrganization = async (req: Request, res: Response) => {
         const isMatch = await bcrypt.compare(password, org.password);
         if (!isMatch) return res.status(401).json({ message: "Fel lösenord" });
 
-        const token = jwt.sign({ id: org._id, role: org.id }, "hemligt nyckel");
-        res.json({ token, role: org.role });
+        const token = jwt.sign(
+            { userId: org._id },
+            getJwtSecret(),
+            { expiresIn: "7d" }
+        );
+        res.json({ token, user: {
+            id: org._id.toString(),
+            email: org.email,
+            organisationsnamn: org.organization,
+            role: org.role
+        }});
     } catch (error) {
         res.status(500).json({ message: "Serverfel", error });
     }

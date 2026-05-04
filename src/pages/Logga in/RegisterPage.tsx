@@ -96,7 +96,7 @@ export default function RegisterPage() {
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Ditt namn"
+            placeholder={accountType === "organization" ? "Organisation" : "Fullständigt namn"}
             required
           />
 
