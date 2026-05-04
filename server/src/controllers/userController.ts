@@ -255,6 +255,7 @@ export const getCurrentUser = async (
         user: {
           id: organization._id.toString(),
           email: organization.email,
+          username: organization.organization,
           organisationsnamn: organization.organization,
           role: organization.role,
         },
