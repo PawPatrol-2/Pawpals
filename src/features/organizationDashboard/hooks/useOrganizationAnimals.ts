@@ -16,8 +16,8 @@ type ApiAnimal = {
   breed: string;
   image: string;
   name: string;
-  age: number;
-  keyTraits: string;
+  age?: number;
+  keyTraits?: string;
   likes?: string[] | string;
   city?: string;
   childFriendly?: boolean | string;
@@ -66,6 +66,29 @@ const appendLikesToPayload = (payload: FormData, likesText: string) => {
   likes.forEach((like) => payload.append("likes", like));
 };
 
+const isRequiredTextFilled = (value: string) => value.trim().length > 0;
+
+const parseOptionalAge = (value: string): number | null => {
+  if (!value.trim()) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
+};
+
+const toAgeLabel = (age: number | undefined): string => {
+  if (typeof age === "number" && Number.isFinite(age) && age >= 0) {
+    return `${age} år`;
+  }
+
+  return "Okänd";
+};
+
 export const useOrganizationAnimals = (username?: string) => {
   const [animals, setAnimals] = useState<AnimalItem[]>([]);
   const [formData, setFormData] = useState<AnimalFormState>(
@@ -104,14 +127,14 @@ export const useOrganizationAnimals = (username?: string) => {
               name: animal.name,
               type: animal.type,
               breed: animal.breed,
-              age: `${animal.age} år`,
-              keyTraits: animal.keyTraits,
+              age: toAgeLabel(animal.age),
+              keyTraits: animal.keyTraits || "",
               likes: parseLikes(animal.likes),
               city: animal.city?.trim() || "",
               childFriendly: parseBoolean(animal.childFriendly),
               personality: animal.personality,
               image: resolveImageUrl(animal.image),
-              description: animal.description || animal.keyTraits,
+              description: animal.description || animal.keyTraits || "",
               organizationOwner: animal.organizationOwner,
               status: "Tillgänglig",
             }));
@@ -210,15 +233,21 @@ export const useOrganizationAnimals = (username?: string) => {
 
   const submitAddAnimal = async (): Promise<boolean> => {
     if (
-      !formData.name ||
-      !formData.type ||
-      !formData.breed ||
-      !formData.age ||
-      !formData.keyTraits ||
-      !formData.description ||
+      !isRequiredTextFilled(formData.name) ||
+      !isRequiredTextFilled(formData.type) ||
+      !isRequiredTextFilled(formData.breed) ||
+      !isRequiredTextFilled(formData.city) ||
       !formData.imageFile
     ) {
-      setSubmitMessage("Fyll i alla obligatoriska fält, inklusive en bild.");
+      setSubmitMessage(
+        "Fyll i obligatoriska fält: bild, namn, typ, ras och stad.",
+      );
+      return false;
+    }
+
+    const parsedAge = parseOptionalAge(formData.age);
+    if (formData.age.trim() && parsedAge === null) {
+      setSubmitMessage("Ålder måste vara ett tal större än eller lika med 0.");
       return false;
     }
 
@@ -233,16 +262,24 @@ export const useOrganizationAnimals = (username?: string) => {
       }
 
       const payload = new FormData();
-      payload.append("type", formData.type);
-      payload.append("breed", formData.breed);
-      payload.append("name", formData.name);
-      payload.append("age", String(Number(formData.age)));
-      payload.append("keyTraits", formData.keyTraits);
+      payload.append("type", formData.type.trim());
+      payload.append("breed", formData.breed.trim());
+      payload.append("name", formData.name.trim());
+      if (parsedAge !== null) {
+        payload.append("age", String(parsedAge));
+      }
+      if (formData.keyTraits.trim()) {
+        payload.append("keyTraits", formData.keyTraits.trim());
+      }
       appendLikesToPayload(payload, formData.likes);
       payload.append("city", formData.city.trim());
       payload.append("childFriendly", String(formData.childFriendly));
-      payload.append("personality", formData.personality);
-      payload.append("description", formData.description);
+      if (formData.personality.trim()) {
+        payload.append("personality", formData.personality.trim());
+      }
+      if (formData.description.trim()) {
+        payload.append("description", formData.description.trim());
+      }
       payload.append("organizationOwner", username || "");
 
       if (!formData.imageFile) {
@@ -295,14 +332,15 @@ export const useOrganizationAnimals = (username?: string) => {
           name: createdAnimal.name,
           type: createdAnimal.type,
           breed: createdAnimal.breed,
-          age: `${createdAnimal.age} år`,
-          keyTraits: createdAnimal.keyTraits,
+          age: toAgeLabel(createdAnimal.age),
+          keyTraits: createdAnimal.keyTraits || "",
           likes: parseLikes(createdAnimal.likes),
           city: createdAnimal.city?.trim() || "",
           childFriendly: parseBoolean(createdAnimal.childFriendly),
           personality: createdAnimal.personality,
           image: resolveImageUrl(createdAnimal.image),
-          description: createdAnimal.description || createdAnimal.keyTraits,
+          description:
+            createdAnimal.description || createdAnimal.keyTraits || "",
           organizationOwner: createdAnimal.organizationOwner || username,
           status: "Tillgänglig",
         },
@@ -368,14 +406,18 @@ export const useOrganizationAnimals = (username?: string) => {
     }
 
     if (
-      !editData.name ||
-      !editData.type ||
-      !editData.breed ||
-      !editData.age ||
-      !editData.keyTraits ||
-      !editData.description
+      !isRequiredTextFilled(editData.name) ||
+      !isRequiredTextFilled(editData.type) ||
+      !isRequiredTextFilled(editData.breed) ||
+      !isRequiredTextFilled(editData.city)
     ) {
-      setEditMessage("Fyll i alla obligatoriska fält.");
+      setEditMessage("Fyll i obligatoriska fält: namn, typ, ras och stad.");
+      return false;
+    }
+
+    const parsedAge = parseOptionalAge(editData.age);
+    if (editData.age.trim() && parsedAge === null) {
+      setEditMessage("Ålder måste vara ett tal större än eller lika med 0.");
       return false;
     }
 
@@ -390,16 +432,24 @@ export const useOrganizationAnimals = (username?: string) => {
       }
 
       const payload = new FormData();
-      payload.append("type", editData.type);
-      payload.append("breed", editData.breed);
-      payload.append("name", editData.name);
-      payload.append("age", String(Number(editData.age)));
-      payload.append("keyTraits", editData.keyTraits);
+      payload.append("type", editData.type.trim());
+      payload.append("breed", editData.breed.trim());
+      payload.append("name", editData.name.trim());
+      if (parsedAge !== null) {
+        payload.append("age", String(parsedAge));
+      }
+      if (editData.keyTraits.trim()) {
+        payload.append("keyTraits", editData.keyTraits.trim());
+      }
       appendLikesToPayload(payload, editData.likes);
       payload.append("city", editData.city.trim());
       payload.append("childFriendly", String(editData.childFriendly));
-      payload.append("personality", editData.personality);
-      payload.append("description", editData.description);
+      if (editData.personality.trim()) {
+        payload.append("personality", editData.personality.trim());
+      }
+      if (editData.description.trim()) {
+        payload.append("description", editData.description.trim());
+      }
 
       if (editData.imageFile) {
         payload.append("imageFile", editData.imageFile);
@@ -457,8 +507,13 @@ export const useOrganizationAnimals = (username?: string) => {
                 name: data.name || editData.name,
                 type: data.type || editData.type,
                 breed: data.breed || editData.breed,
-                age: `${data.age ?? Number(editData.age)} år`,
-                keyTraits: data.keyTraits || editData.keyTraits,
+                age:
+                  data.age !== undefined
+                    ? toAgeLabel(data.age)
+                    : parsedAge !== null
+                      ? toAgeLabel(parsedAge)
+                      : "Okänd",
+                keyTraits: data.keyTraits || editData.keyTraits || "",
                 likes: data.likes
                   ? parseLikes(data.likes)
                   : parseLikes(editData.likes),
@@ -472,7 +527,7 @@ export const useOrganizationAnimals = (username?: string) => {
                     : editData.childFriendly,
                 personality: data.personality || editData.personality,
                 image: resolveImageUrl(data.image || editData.imagePreview),
-                description: data.description || editData.description,
+                description: data.description || editData.description || "",
                 organizationOwner:
                   data.organizationOwner || animal.organizationOwner,
               }

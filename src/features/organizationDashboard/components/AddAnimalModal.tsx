@@ -41,7 +41,7 @@ export default function AddAnimalModal({
           <div>
             <h3>Lägg upp djur</h3>
             <p className={styles.helperText}>
-              Bilden skickas till serverns API.
+              Fält märkta med * är obligatoriska.
             </p>
           </div>
           <button
@@ -55,7 +55,7 @@ export default function AddAnimalModal({
 
         <form className={styles.formGrid} onSubmit={onSubmit}>
           <div className={styles.field}>
-            <label htmlFor="imageFile">Bild</label>
+            <label htmlFor="imageFile">Bild*</label>
             <input
               id="imageFile"
               type="file"
@@ -73,7 +73,7 @@ export default function AddAnimalModal({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="name">Namn</label>
+            <label htmlFor="name">Namn*</label>
             <input
               id="name"
               value={formData.name}
@@ -84,7 +84,7 @@ export default function AddAnimalModal({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="type">Typ</label>
+            <label htmlFor="type">Typ*</label>
             <input
               id="type"
               value={formData.type}
@@ -95,7 +95,7 @@ export default function AddAnimalModal({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="breed">Ras</label>
+            <label htmlFor="breed">Ras*</label>
             <input
               id="breed"
               value={formData.breed}
@@ -114,7 +114,6 @@ export default function AddAnimalModal({
               value={formData.age}
               onChange={(event) => onFieldChange("age", event.target.value)}
               placeholder="T.ex. 2"
-              required
             />
           </div>
 
@@ -127,7 +126,6 @@ export default function AddAnimalModal({
                 onFieldChange("keyTraits", event.target.value)
               }
               placeholder="T.ex. lugn, social"
-              required
             />
           </div>
 
@@ -142,7 +140,7 @@ export default function AddAnimalModal({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="city">Stad</label>
+            <label htmlFor="city">Stad*</label>
             <input
               id="city"
               value={formData.city}
@@ -188,7 +186,6 @@ export default function AddAnimalModal({
                 onFieldChange("description", event.target.value)
               }
               placeholder="Kort beskrivning av djuret"
-              required
             />
           </div>
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "../../context/UserContext";
+import { useUnreadNotificationCount } from "../../hooks/useUnreadNotificationCount";
 import "./Navbar.css";
 
 const avatarStyles = ["sun", "sea", "mint", "berry"] as const;
@@ -8,6 +9,7 @@ type AvatarStyle = (typeof avatarStyles)[number];
 
 export default function Navbar() {
   const { user, isAuthLoading, logout } = useUser();
+  const { unreadCount } = useUnreadNotificationCount();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const [avatarStyle, setAvatarStyle] = useState<AvatarStyle>("sun");
@@ -35,7 +37,9 @@ export default function Navbar() {
     if (!user) return;
 
     const savedImage = localStorage.getItem(storageImageKey);
-    const savedStyle = localStorage.getItem(storageStyleKey) as AvatarStyle | null;
+    const savedStyle = localStorage.getItem(
+      storageStyleKey,
+    ) as AvatarStyle | null;
 
     const frameId = window.requestAnimationFrame(() => {
       setAvatarImage(savedImage);
@@ -111,11 +115,21 @@ export default function Navbar() {
     logout();
   };
 
+  const getBadge = () => {
+    if (!user || unreadCount <= 0) {
+      return null;
+    }
+
+    return <span className="navbar-notification-badge">{unreadCount}</span>;
+  };
+
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo" style={{ fontWeight: 700 }}>
-        <span style={{ color: '#E8713A', fontSize: '1.4rem', marginRight: 4 }}>🐾</span>
-        <span style={{ color: '#E8713A', display: 'inline' }}>Paw</span>Pals
+        <span style={{ color: "#E8713A", fontSize: "1.4rem", marginRight: 4 }}>
+          🐾
+        </span>
+        <span style={{ color: "#E8713A", display: "inline" }}>Paw</span>Pals
       </Link>
       <div className="navbar-right">
         <ul className="navbar-nav">
@@ -127,7 +141,10 @@ export default function Navbar() {
           </li>
           {!isAuthLoading && user && user.role === "organization" && (
             <li>
-              <Link to="/organisation-dashboard">Dashboard</Link>
+              <Link to="/organisation-dashboard">
+                Dashboard
+                {user.role === "organization" ? getBadge() : null}
+              </Link>
             </li>
           )}
           {!isAuthLoading && user && user.role === "admin" && (
@@ -137,7 +154,10 @@ export default function Navbar() {
           )}
           {!isAuthLoading && user && (
             <li>
-              <Link to="/mina-ansokningar">Mina ansökningar</Link>
+              <Link to="/mina-ansokningar">
+                Mina ansökningar
+                {user.role === "adopter" ? getBadge() : null}
+              </Link>
             </li>
           )}
           {!isAuthLoading && !user && (
@@ -158,7 +178,11 @@ export default function Navbar() {
             >
               <span className={`avatar-circle avatar-${avatarStyle}`}>
                 {avatarImage ? (
-                  <img src={avatarImage} alt="Profilbild" className="avatar-image" />
+                  <img
+                    src={avatarImage}
+                    alt="Profilbild"
+                    className="avatar-image"
+                  />
                 ) : (
                   <span className="avatar-initials">{userInitials}</span>
                 )}
@@ -168,9 +192,15 @@ export default function Navbar() {
             {menuOpen && (
               <div className="navbar-dropdown" role="menu">
                 <div className="navbar-dropdown-header">
-                  <span className={`avatar-circle avatar-large avatar-${avatarStyle}`}>
+                  <span
+                    className={`avatar-circle avatar-large avatar-${avatarStyle}`}
+                  >
                     {avatarImage ? (
-                      <img src={avatarImage} alt="Profilbild" className="avatar-image" />
+                      <img
+                        src={avatarImage}
+                        alt="Profilbild"
+                        className="avatar-image"
+                      />
                     ) : (
                       <span className="avatar-initials">{userInitials}</span>
                     )}
@@ -185,7 +215,11 @@ export default function Navbar() {
                   <p className="navbar-section-title">Profilbild</p>
                   <label className="navbar-upload">
                     Ladda upp bild
-                    <input type="file" accept="image/*" onChange={handleUpload} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUpload}
+                    />
                   </label>
                   <div className="avatar-style-row">
                     {avatarStyles.map((style) => (
