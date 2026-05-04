@@ -34,25 +34,23 @@ export default function Navbar() {
   }, [user]);
 
   useEffect(() => {
-    if (!user) {
-      setAvatarImage(null);
-      setAvatarStyle("sun");
-      setMenuOpen(false);
-      setAvatarError("");
-      return;
-    }
+    if (!user) return;
 
     const savedImage = localStorage.getItem(storageImageKey);
     const savedStyle = localStorage.getItem(
       storageStyleKey,
     ) as AvatarStyle | null;
 
-    setAvatarImage(savedImage);
-    if (savedStyle && avatarStyles.includes(savedStyle)) {
-      setAvatarStyle(savedStyle);
-    } else {
-      setAvatarStyle("sun");
-    }
+    const frameId = window.requestAnimationFrame(() => {
+      setAvatarImage(savedImage);
+      if (savedStyle && avatarStyles.includes(savedStyle)) {
+        setAvatarStyle(savedStyle);
+      } else {
+        setAvatarStyle("sun");
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
   }, [storageImageKey, storageStyleKey, user]);
 
   useEffect(() => {
