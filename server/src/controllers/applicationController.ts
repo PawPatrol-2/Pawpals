@@ -179,14 +179,18 @@ export const getMyApplications = async (
   }
 };
 
+<<<<<<< Updated upstream
 export const createApplication = async (
+=======
+export const getMyApplications = async (
+>>>>>>> Stashed changes
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction,
-): Promise<void> => {
+) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
+<<<<<<< Updated upstream
       res.status(401).json({ message: "Obehörig användare" });
       return;
     }
@@ -204,9 +208,17 @@ export const createApplication = async (
 
     const application = await Application.create({ ...body, userId });
     res.status(201).json(application as ApplicationResponse);
+=======
+      return res.status(400).json({ message: "Användar-ID saknas" });
+    }
+
+    const applications = await Application.find({ userId });
+    res.status(200).json({ applications });
+>>>>>>> Stashed changes
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
   }
+<<<<<<< Updated upstream
 };
 
 export const getOrganizationApplications = async (
@@ -278,3 +290,6 @@ export const getOrganizationApplications = async (
     res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
   }
 };
+=======
+};
+>>>>>>> Stashed changes
