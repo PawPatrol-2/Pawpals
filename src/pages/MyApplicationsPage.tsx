@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import { useMarkNotificationsAsReadOnMount } from "../hooks/useMarkNotificationsAsReadOnMount";
 import styles from "./MyApplicationsPage.module.css";
 
 type ApplicationStatus =
@@ -42,6 +43,7 @@ const formatDate = (dateString: string) => {
 export default function MyApplicationsPage() {
   const navigate = useNavigate();
   const { user, isAuthLoading, logout } = useUser();
+  useMarkNotificationsAsReadOnMount("application-status-updated");
   const [applications, setApplications] = useState<MyApplication[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>("");

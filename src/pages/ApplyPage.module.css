@@ -1,16 +1,20 @@
+.page {
+  background:
+    radial-gradient(circle at top right, #ffe7da 0%, transparent 45%),
+    var(--gray-50, #f8f7f5);
+  min-height: 100vh;
+  padding: 40px 24px;
+}
+
 .pageTitle {
   font-size: 2rem;
   font-weight: 700;
   color: #1a1714;
-  max-width: 600px;
-  margin: 48px auto 0 auto;
-  padding: 0 24px;
+  max-width: 660px;
+  margin: 0 auto 24px auto;
 }
 
 .form {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 48px 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -99,4 +103,14 @@
   color: #2a7a2a;
   font-weight: 600;
   margin-bottom: 12px;
+}
+
+.formCard {
+  max-width: 660px;
+  margin: 0 auto 48px auto;
+  background: #ffffff;
+  border: 1px solid #e5e0d8;
+  border-radius: 24px;
+  box-shadow: 0 14px 28px rgba(26, 23, 20, 0.1);
+  padding: 40px;
 }

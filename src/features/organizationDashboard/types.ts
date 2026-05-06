@@ -39,6 +39,8 @@ export type AnimalItem = {
   age: string;
   keyTraits: string;
   likes: string[];
+  city: string;
+  childFriendly: boolean;
   personality?: string;
   image: string;
   description: string;
@@ -53,6 +55,8 @@ export type AnimalFormState = {
   age: string;
   keyTraits: string;
   likes: string;
+  city: string;
+  childFriendly: boolean;
   personality: string;
   description: string;
   imagePreview: string;
