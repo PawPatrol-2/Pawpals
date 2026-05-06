@@ -11,7 +11,6 @@ type ApplicationsSectionProps = {
   };
   statusClassMap: Record<ApplicationStatus, string>;
   onUpdateStatus: (id: number | string, nextStatus: ApplicationStatus) => void;
-  onSetMessage: (message: string) => void;
   styles: Record<string, string>;
 };
 
@@ -20,7 +19,6 @@ export default function ApplicationsSection({
   overviewStats,
   statusClassMap,
   onUpdateStatus,
-  onSetMessage,
   styles,
 }: ApplicationsSectionProps) {
   const [expandedApplicationId, setExpandedApplicationId] = useState<
@@ -44,6 +42,22 @@ export default function ApplicationsSection({
 
   const toggleExpandedApplication = (id: number | string) => {
     setExpandedApplicationId((current) => (current === id ? null : id));
+  };
+
+  const handleContactApplicant = (application: ApplicationItem) => {
+    if (!application.applicantEmail) {
+      window.alert("Saknar e-postadress för den här ansökningen.");
+      return;
+    }
+
+    const subject = encodeURIComponent(
+      `Angående din ansökan om ${application.animal}`,
+    );
+    const body = encodeURIComponent(
+      `Hej ${application.applicant},\n\nJag kontaktar dig angående din ansökan om ${application.animal}.\n\nVänliga hälsningar`,
+    );
+
+    window.location.href = `mailto:${application.applicantEmail}?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -114,9 +128,7 @@ export default function ApplicationsSection({
                         <button
                           type="button"
                           className={styles.secondaryAction}
-                          onClick={() =>
-                            onSetMessage(`Kontaktade ${application.applicant}.`)
-                          }
+                          onClick={() => handleContactApplicant(application)}
                         >
                           Kontakta
                         </button>

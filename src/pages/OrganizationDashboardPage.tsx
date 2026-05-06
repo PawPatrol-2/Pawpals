@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import styles from "./OrganizationDashboardPage.module.css";
 import { useUser } from "../context/UserContext";
+import { useMarkNotificationsAsReadOnMount } from "../hooks/useMarkNotificationsAsReadOnMount";
 import {
   navItems,
   sectionMeta,
@@ -30,6 +31,7 @@ const statusClassMap: Record<ApplicationStatus, string> = {
 
 export default function OrganizationDashboardPage() {
   const { user } = useUser();
+  useMarkNotificationsAsReadOnMount("application-created");
   const [activeSection, setActiveSection] = useState<SectionKey>("overview");
 
   const { applications, updateApplicationStatus, overviewStats, reviewCount } =
@@ -145,7 +147,6 @@ export default function OrganizationDashboardPage() {
               overviewStats={overviewStats}
               statusClassMap={statusClassMap}
               onUpdateStatus={updateApplicationStatus}
-              onSetMessage={setSubmitMessage}
               styles={styles}
             />
           )}

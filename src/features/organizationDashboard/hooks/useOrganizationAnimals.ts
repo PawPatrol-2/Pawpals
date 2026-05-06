@@ -16,12 +16,27 @@ type ApiAnimal = {
   breed: string;
   image: string;
   name: string;
-  age: number;
-  keyTraits: string;
+  age?: number;
+  keyTraits?: string;
   likes?: string[] | string;
+  city?: string;
+  childFriendly?: boolean | string;
   personality?: string;
   description?: string;
   organizationOwner?: string;
+};
+
+const parseBoolean = (value: boolean | string | undefined): boolean => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "true" || normalized === "1" || normalized === "on";
+  }
+
+  return false;
 };
 
 const parseLikes = (likes: string[] | string | undefined): string[] => {
@@ -49,6 +64,29 @@ const appendLikesToPayload = (payload: FormData, likesText: string) => {
     .filter(Boolean);
 
   likes.forEach((like) => payload.append("likes", like));
+};
+
+const isRequiredTextFilled = (value: string) => value.trim().length > 0;
+
+const parseOptionalAge = (value: string): number | null => {
+  if (!value.trim()) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
+};
+
+const toAgeLabel = (age: number | undefined): string => {
+  if (typeof age === "number" && Number.isFinite(age) && age >= 0) {
+    return `${age} år`;
+  }
+
+  return "Okänd";
 };
 
 export const useOrganizationAnimals = (username?: string) => {
@@ -89,12 +127,14 @@ export const useOrganizationAnimals = (username?: string) => {
               name: animal.name,
               type: animal.type,
               breed: animal.breed,
-              age: `${animal.age} år`,
-              keyTraits: animal.keyTraits,
+              age: toAgeLabel(animal.age),
+              keyTraits: animal.keyTraits || "",
               likes: parseLikes(animal.likes),
+              city: animal.city?.trim() || "",
+              childFriendly: parseBoolean(animal.childFriendly),
               personality: animal.personality,
               image: resolveImageUrl(animal.image),
-              description: animal.description || animal.keyTraits,
+              description: animal.description || animal.keyTraits || "",
               organizationOwner: animal.organizationOwner,
               status: "Tillgänglig",
             }));
@@ -193,14 +233,21 @@ export const useOrganizationAnimals = (username?: string) => {
 
   const submitAddAnimal = async (): Promise<boolean> => {
     if (
-      !formData.name ||
-      !formData.type ||
-      !formData.breed ||
-      !formData.age ||
-      !formData.keyTraits ||
-      !formData.description
+      !isRequiredTextFilled(formData.name) ||
+      !isRequiredTextFilled(formData.type) ||
+      !isRequiredTextFilled(formData.breed) ||
+      !isRequiredTextFilled(formData.city) ||
+      !formData.imageFile
     ) {
-      setSubmitMessage("Fyll i alla obligatoriska fält.");
+      setSubmitMessage(
+        "Fyll i obligatoriska fält: bild, namn, typ, ras och stad.",
+      );
+      return false;
+    }
+
+    const parsedAge = parseOptionalAge(formData.age);
+    if (formData.age.trim() && parsedAge === null) {
+      setSubmitMessage("Ålder måste vara ett tal större än eller lika med 0.");
       return false;
     }
 
@@ -208,28 +255,45 @@ export const useOrganizationAnimals = (username?: string) => {
     setSubmitMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setSubmitMessage("Du behöver vara inloggad för att lägga upp djur.");
+        return false;
+      }
+
       const payload = new FormData();
-      payload.append("type", formData.type);
-      payload.append("breed", formData.breed);
-      payload.append("name", formData.name);
-      payload.append("age", String(Number(formData.age)));
-      payload.append("keyTraits", formData.keyTraits);
+      payload.append("type", formData.type.trim());
+      payload.append("breed", formData.breed.trim());
+      payload.append("name", formData.name.trim());
+      if (parsedAge !== null) {
+        payload.append("age", String(parsedAge));
+      }
+      if (formData.keyTraits.trim()) {
+        payload.append("keyTraits", formData.keyTraits.trim());
+      }
       appendLikesToPayload(payload, formData.likes);
-      payload.append("personality", formData.personality);
-      payload.append("description", formData.description);
+      payload.append("city", formData.city.trim());
+      payload.append("childFriendly", String(formData.childFriendly));
+      if (formData.personality.trim()) {
+        payload.append("personality", formData.personality.trim());
+      }
+      if (formData.description.trim()) {
+        payload.append("description", formData.description.trim());
+      }
       payload.append("organizationOwner", username || "");
 
-      if (formData.imageFile) {
-        payload.append("imageFile", formData.imageFile);
-      } else {
-        payload.append(
-          "image",
-          "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-        );
+      if (!formData.imageFile) {
+        setSubmitMessage("Du måste ladda upp en bild för djuret.");
+        return false;
       }
+
+      payload.append("imageFile", formData.imageFile);
 
       const response = await fetch("http://localhost:3000/api/animals", {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: payload,
       });
 
@@ -268,12 +332,15 @@ export const useOrganizationAnimals = (username?: string) => {
           name: createdAnimal.name,
           type: createdAnimal.type,
           breed: createdAnimal.breed,
-          age: `${createdAnimal.age} år`,
-          keyTraits: createdAnimal.keyTraits,
+          age: toAgeLabel(createdAnimal.age),
+          keyTraits: createdAnimal.keyTraits || "",
           likes: parseLikes(createdAnimal.likes),
+          city: createdAnimal.city?.trim() || "",
+          childFriendly: parseBoolean(createdAnimal.childFriendly),
           personality: createdAnimal.personality,
           image: resolveImageUrl(createdAnimal.image),
-          description: createdAnimal.description || createdAnimal.keyTraits,
+          description:
+            createdAnimal.description || createdAnimal.keyTraits || "",
           organizationOwner: createdAnimal.organizationOwner || username,
           status: "Tillgänglig",
         },
@@ -339,14 +406,18 @@ export const useOrganizationAnimals = (username?: string) => {
     }
 
     if (
-      !editData.name ||
-      !editData.type ||
-      !editData.breed ||
-      !editData.age ||
-      !editData.keyTraits ||
-      !editData.description
+      !isRequiredTextFilled(editData.name) ||
+      !isRequiredTextFilled(editData.type) ||
+      !isRequiredTextFilled(editData.breed) ||
+      !isRequiredTextFilled(editData.city)
     ) {
-      setEditMessage("Fyll i alla obligatoriska fält.");
+      setEditMessage("Fyll i obligatoriska fält: namn, typ, ras och stad.");
+      return false;
+    }
+
+    const parsedAge = parseOptionalAge(editData.age);
+    if (editData.age.trim() && parsedAge === null) {
+      setEditMessage("Ålder måste vara ett tal större än eller lika med 0.");
       return false;
     }
 
@@ -354,16 +425,31 @@ export const useOrganizationAnimals = (username?: string) => {
     setEditMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setEditMessage("Du behöver vara inloggad för att redigera djur.");
+        return false;
+      }
+
       const payload = new FormData();
-      payload.append("type", editData.type);
-      payload.append("breed", editData.breed);
-      payload.append("name", editData.name);
-      payload.append("age", String(Number(editData.age)));
-      payload.append("keyTraits", editData.keyTraits);
+      payload.append("type", editData.type.trim());
+      payload.append("breed", editData.breed.trim());
+      payload.append("name", editData.name.trim());
+      if (parsedAge !== null) {
+        payload.append("age", String(parsedAge));
+      }
+      if (editData.keyTraits.trim()) {
+        payload.append("keyTraits", editData.keyTraits.trim());
+      }
       appendLikesToPayload(payload, editData.likes);
-      payload.append("personality", editData.personality);
-      payload.append("description", editData.description);
-      payload.append("requester", username);
+      payload.append("city", editData.city.trim());
+      payload.append("childFriendly", String(editData.childFriendly));
+      if (editData.personality.trim()) {
+        payload.append("personality", editData.personality.trim());
+      }
+      if (editData.description.trim()) {
+        payload.append("description", editData.description.trim());
+      }
 
       if (editData.imageFile) {
         payload.append("imageFile", editData.imageFile);
@@ -375,6 +461,9 @@ export const useOrganizationAnimals = (username?: string) => {
         `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
         {
           method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           body: payload,
         },
       );
@@ -391,6 +480,8 @@ export const useOrganizationAnimals = (username?: string) => {
         likes?: string[] | string;
         personality?: string;
         description?: string;
+        city?: string;
+        childFriendly?: boolean | string;
         organizationOwner?: string;
       };
 
@@ -416,14 +507,27 @@ export const useOrganizationAnimals = (username?: string) => {
                 name: data.name || editData.name,
                 type: data.type || editData.type,
                 breed: data.breed || editData.breed,
-                age: `${data.age ?? Number(editData.age)} år`,
-                keyTraits: data.keyTraits || editData.keyTraits,
+                age:
+                  data.age !== undefined
+                    ? toAgeLabel(data.age)
+                    : parsedAge !== null
+                      ? toAgeLabel(parsedAge)
+                      : "Okänd",
+                keyTraits: data.keyTraits || editData.keyTraits || "",
                 likes: data.likes
                   ? parseLikes(data.likes)
                   : parseLikes(editData.likes),
+                city:
+                  typeof data.city === "string"
+                    ? data.city.trim()
+                    : editData.city,
+                childFriendly:
+                  data.childFriendly !== undefined
+                    ? parseBoolean(data.childFriendly)
+                    : editData.childFriendly,
                 personality: data.personality || editData.personality,
                 image: resolveImageUrl(data.image || editData.imagePreview),
-                description: data.description || editData.description,
+                description: data.description || editData.description || "",
                 organizationOwner:
                   data.organizationOwner || animal.organizationOwner,
               }
@@ -459,12 +563,21 @@ export const useOrganizationAnimals = (username?: string) => {
     setEditMessage("");
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setEditMessage("Du behöver vara inloggad för att ta bort djur.");
+        return false;
+      }
+
       const response = await fetch(
         `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
         {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requester: username }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({}),
         },
       );
 

@@ -159,6 +159,33 @@ export default function AnimalDetailsModal({
           </div>
 
           <div className={styles.field}>
+            <label htmlFor="editCity">Stad</label>
+            <input
+              id="editCity"
+              value={editData.city}
+              onChange={(event) => onFieldChange("city", event.target.value)}
+              disabled={!canEditSelectedAnimal || !isEditMode}
+              required
+            />
+          </div>
+
+          <div className={styles.checkboxField}>
+            <label className={styles.checkboxLabel} htmlFor="editChildFriendly">
+              <input
+                id="editChildFriendly"
+                className={styles.checkboxInput}
+                type="checkbox"
+                checked={editData.childFriendly}
+                onChange={(event) =>
+                  onFieldChange("childFriendly", event.target.checked)
+                }
+                disabled={!canEditSelectedAnimal || !isEditMode}
+              />
+              Barnvänlig
+            </label>
+          </div>
+
+          <div className={styles.field}>
             <label htmlFor="editPersonality">Personlighet</label>
             <input
               id="editPersonality"

@@ -387,6 +387,7 @@
 .field {
   display: grid;
   gap: 7px;
+  max-width: 720px;
 }
 
 .field label {
@@ -408,6 +409,26 @@
 .field textarea {
   min-height: 120px;
   resize: vertical;
+}
+
+.checkboxField {
+  display: block;
+  max-width: 720px;
+}
+
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #4b423b;
+}
+
+.checkboxInput {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #e5722f;
 }
 
 .formActions {

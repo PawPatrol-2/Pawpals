@@ -6,6 +6,7 @@ import {
   createAnimal,
   updateAnimal,
 } from "../controllers/animalController";
+import authenticate from "../middleware/auth";
 import multer from "multer";
 import path from "node:path";
 import fs from "node:fs";
@@ -28,8 +29,8 @@ const upload = multer({ storage });
 
 router.get("/", getAnimals);
 router.get("/:id", getAnimalById);
-router.delete("/:id", deleteAnimal);
-router.post("/", upload.single("imageFile"), createAnimal);
-router.put("/:id", upload.single("imageFile"), updateAnimal);
+router.delete("/:id", authenticate, deleteAnimal);
+router.post("/", authenticate, upload.single("imageFile"), createAnimal);
+router.put("/:id", authenticate, upload.single("imageFile"), updateAnimal);
 
 export default router;
