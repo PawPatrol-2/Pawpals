@@ -1,28 +1,15 @@
-import { Request, Response, NextFunction } from "express";
-import {
-  ApplicationResponse,
-  CreateApplicationBody,
-} from "../types/applicationTypes";
-import Application from "../models/Application";
-import Organization from "../models/Organisation";
-import type { AuthenticatedRequest } from "../middleware/auth";
+import { Request, Response, NextFunction } from 'express';
+import { ApplicationResponse, CreateApplicationBody } from '../types/applicationTypes';
+import Application from '../models/Application';
+import Organization from '../models/Organisation';
+import type { AuthenticatedRequest } from '../middleware/auth';
 import {
   notifyApplicantAboutStatusChange,
   notifyOrganizationAboutApplication,
-} from "../services/notificationService";
+} from '../services/notificationService';
 
-type LocalizedStatus =
-  | "Inskickad"
-  | "Granskas"
-  | "Godkänd"
-  | "Nekad"
-  | "Behöver mer info";
-type UpdateableStatus =
-  | LocalizedStatus
-  | "pending"
-  | "reviewing"
-  | "approved"
-  | "rejected";
+type LocalizedStatus = 'Inskickad' | 'Granskas' | 'Godkänd' | 'Nekad' | 'Behöver mer info';
+type UpdateableStatus = LocalizedStatus | 'pending' | 'reviewing' | 'approved' | 'rejected';
 
 type MyApplicationResponse = {
   applicationId: string;
@@ -77,119 +64,80 @@ type ApplicationWithOptionalAnimal = {
 };
 
 const normalizeBoolean = (value: unknown): boolean | null => {
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (value === "true") {
-    return true;
-  }
-
-  if (value === "false") {
-    return false;
-  }
-
+  if (typeof value === 'boolean') return value;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
   return null;
 };
 
 const normalizeNumber = (value: unknown): number | null => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
   }
-
   return null;
 };
 
 const normalizeStatus = (status: string | undefined): LocalizedStatus => {
-  if (status === "Behöver mer info") return "Behöver mer info";
-  if (status === "Granskas" || status === "reviewing") return "Granskas";
-  if (status === "Godkänd" || status === "approved") return "Godkänd";
-  if (status === "Nekad" || status === "rejected") return "Nekad";
-  return "Inskickad";
+  if (status === 'Behöver mer info') return 'Behöver mer info';
+  if (status === 'Granskas' || status === 'reviewing') return 'Granskas';
+  if (status === 'Godkänd' || status === 'approved') return 'Godkänd';
+  if (status === 'Nekad' || status === 'rejected') return 'Nekad';
+  return 'Inskickad';
 };
 
 const isUpdateableStatus = (status: string): status is UpdateableStatus => {
   return [
-    "Inskickad",
-    "Granskas",
-    "Godkänd",
-    "Nekad",
-    "Behöver mer info",
-    "pending",
-    "reviewing",
-    "approved",
-    "rejected",
+    'Inskickad',
+    'Granskas',
+    'Godkänd',
+    'Nekad',
+    'Behöver mer info',
+    'pending',
+    'reviewing',
+    'approved',
+    'rejected',
   ].includes(status);
 };
 
-const resolveAnimalName = (
-  application: ApplicationWithOptionalAnimal,
-): string => {
+const resolveAnimalName = (application: ApplicationWithOptionalAnimal): string => {
   const animal = application.animalId;
-  if (animal && typeof animal === "object" && typeof animal.name === "string") {
+  if (animal && typeof animal === 'object' && typeof animal.name === 'string') {
     const name = animal.name.trim();
     if (name) return name;
   }
   const fallbackName = application.animalNameSnapshot?.trim();
   if (fallbackName) return fallbackName;
-  return "Okänt djur";
+  return 'Okänt djur';
 };
 
-const resolveAnimalId = (
-  application: ApplicationWithOptionalAnimal,
-): string | null => {
+const resolveAnimalId = (application: ApplicationWithOptionalAnimal): string | null => {
   const animal = application.animalId;
-  if (typeof animal === "string") return animal;
-  if (animal && typeof animal === "object" && animal._id)
-    return String(animal._id);
+  if (typeof animal === 'string') return animal;
+  if (animal && typeof animal === 'object' && animal._id) return String(animal._id);
   return null;
 };
 
-const resolveApplicantName = (
-  application: ApplicationWithOptionalAnimal,
-): string => {
+const resolveApplicantName = (application: ApplicationWithOptionalAnimal): string => {
   const applicant = application.userId;
-
-  if (
-    applicant &&
-    typeof applicant === "object" &&
-    typeof applicant.username === "string"
-  ) {
+  if (applicant && typeof applicant === 'object' && typeof applicant.username === 'string') {
     const username = applicant.username.trim();
     if (username) return username;
   }
-
-  if (
-    applicant &&
-    typeof applicant === "object" &&
-    typeof applicant.email === "string"
-  ) {
+  if (applicant && typeof applicant === 'object' && typeof applicant.email === 'string') {
     const email = applicant.email.trim();
     if (email) return email;
   }
-
-  return "Okänd adoptör";
+  return 'Okänd adoptör';
 };
 
-const resolveApplicantEmail = (
-  application: ApplicationWithOptionalAnimal,
-): string => {
+const resolveApplicantEmail = (application: ApplicationWithOptionalAnimal): string => {
   const applicant = application.userId;
-
-  if (
-    applicant &&
-    typeof applicant === "object" &&
-    typeof applicant.email === "string"
-  ) {
+  if (applicant && typeof applicant === 'object' && typeof applicant.email === 'string') {
     return applicant.email.trim();
   }
-
-  return "";
+  return '';
 };
 
 export const getMyApplications = async (
@@ -199,30 +147,28 @@ export const getMyApplications = async (
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      res.status(401).json({ message: "Obehörig användare" });
+      res.status(401).json({ message: 'Obehörig användare' });
       return;
     }
 
     const applications = await Application.find({ userId })
       .sort({ createdAt: -1 })
-      .populate({ path: "animalId", select: "name" });
+      .populate({ path: 'animalId', select: 'name' });
 
-    const formattedApplications: MyApplicationResponse[] = applications.map(
-      (application) => {
-        const app = application as unknown as ApplicationWithOptionalAnimal;
-        return {
-          applicationId: app.id,
-          animalId: resolveAnimalId(app),
-          animalName: resolveAnimalName(app),
-          status: normalizeStatus(app.status),
-          createdAt: app.createdAt,
-        };
-      },
-    );
+    const formattedApplications: MyApplicationResponse[] = applications.map((application) => {
+      const app = application as unknown as ApplicationWithOptionalAnimal;
+      return {
+        applicationId: app.id,
+        animalId: resolveAnimalId(app),
+        animalName: resolveAnimalName(app),
+        status: normalizeStatus(app.status),
+        createdAt: app.createdAt,
+      };
+    });
 
     res.status(200).json({ applications: formattedApplications });
   } catch (error) {
-    res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
+    res.status(500).json({ message: 'Kunde inte hämta ansökningar', error });
   }
 };
 
@@ -234,7 +180,7 @@ export const createApplication = async (
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      res.status(401).json({ message: "Obehörig användare" });
+      res.status(401).json({ message: 'Obehörig användare' });
       return;
     }
 
@@ -244,7 +190,7 @@ export const createApplication = async (
     if (animalId) {
       const existing = await Application.findOne({ userId, animalId });
       if (existing) {
-        res.status(409).json({ message: "Du har redan ansökt om detta djur" });
+        res.status(409).json({ message: 'Du har redan ansökt om detta djur' });
         return;
       }
     }
@@ -272,67 +218,52 @@ export const getOrganizationApplications = async (
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      res.status(401).json({ message: "Obehörig användare" });
+      res.status(401).json({ message: 'Obehörig användare' });
       return;
     }
 
-    const organization =
-      await Organization.findById(userId).select("organization");
+    const organization = await Organization.findById(userId).select('organization');
 
     if (!organization?.organization) {
-      res
-        .status(403)
-        .json({ message: "Endast organisationer kan hämta dessa ansökningar" });
+      res.status(403).json({ message: 'Endast organisationer kan hämta dessa ansökningar' });
       return;
     }
 
     const applications = await Application.find()
       .sort({ createdAt: -1 })
       .populate({
-        path: "animalId",
-        select: "name organizationOwner",
+        path: 'animalId',
+        select: 'name organizationOwner',
         match: { organizationOwner: organization.organization },
       })
-      .populate({
-        path: "userId",
-        select: "username email",
-      });
+      .populate({ path: 'userId', select: 'username email' });
 
-    const formattedApplications: OrganizationApplicationResponse[] =
-      applications
-        .map(
-          (application) =>
-            application as unknown as ApplicationWithOptionalAnimal,
-        )
-        .filter(
-          (application) =>
-            !!application.animalId && typeof application.animalId === "object",
-        )
-        .map((application) => ({
-          applicationId: application.id,
-          applicantName: resolveApplicantName(application),
-          applicantEmail: resolveApplicantEmail(application),
-          animalId: resolveAnimalId(application),
-          animalName: resolveAnimalName(application),
-          status: normalizeStatus(application.status),
-          createdAt: application.createdAt,
-          details: {
-            housingType: application.housingType || "",
-            housingSize: normalizeNumber(application.housingSize),
-            hasAnimalExperience: normalizeBoolean(
-              application.hasAnimalExperience,
-            ),
-            hasChildren: normalizeBoolean(application.hasChildren),
-            hasAllergies: normalizeBoolean(application.hasAllergies),
-            allergyDetails: application.allergyDetails || "",
-            motivation: application.motivation || "",
-            gdprConsent: normalizeBoolean(application.gdprConsent),
-          },
-        }));
+    const formattedApplications: OrganizationApplicationResponse[] = applications
+      .map((application) => application as unknown as ApplicationWithOptionalAnimal)
+      .filter((application) => !!application.animalId && typeof application.animalId === 'object')
+      .map((application) => ({
+        applicationId: application.id,
+        applicantName: resolveApplicantName(application),
+        applicantEmail: resolveApplicantEmail(application),
+        animalId: resolveAnimalId(application),
+        animalName: resolveAnimalName(application),
+        status: normalizeStatus(application.status),
+        createdAt: application.createdAt,
+        details: {
+          housingType: application.housingType || '',
+          housingSize: normalizeNumber(application.housingSize),
+          hasAnimalExperience: normalizeBoolean(application.hasAnimalExperience),
+          hasChildren: normalizeBoolean(application.hasChildren),
+          hasAllergies: normalizeBoolean(application.hasAllergies),
+          allergyDetails: application.allergyDetails || '',
+          motivation: application.motivation || '',
+          gdprConsent: normalizeBoolean(application.gdprConsent),
+        },
+      }));
 
     res.status(200).json({ applications: formattedApplications });
   } catch (error) {
-    res.status(500).json({ message: "Kunde inte hämta ansökningar", error });
+    res.status(500).json({ message: 'Kunde inte hämta ansökningar', error });
   }
 };
 
@@ -343,17 +274,14 @@ export const updateApplicationStatus = async (
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      res.status(401).json({ message: "Obehörig användare" });
+      res.status(401).json({ message: 'Obehörig användare' });
       return;
     }
 
-    const organization =
-      await Organization.findById(userId).select("organization");
+    const organization = await Organization.findById(userId).select('organization');
 
     if (!organization?.organization) {
-      res
-        .status(403)
-        .json({ message: "Endast organisationer kan uppdatera ansökningar" });
+      res.status(403).json({ message: 'Endast organisationer kan uppdatera ansökningar' });
       return;
     }
 
@@ -361,17 +289,17 @@ export const updateApplicationStatus = async (
     const { status } = req.body as { status?: string };
 
     if (!status || !isUpdateableStatus(status)) {
-      res.status(400).json({ message: "Ogiltig status" });
+      res.status(400).json({ message: 'Ogiltig status' });
       return;
     }
 
     const application = await Application.findById(id).populate({
-      path: "animalId",
-      select: "organizationOwner name",
+      path: 'animalId',
+      select: 'organizationOwner name',
     });
 
     if (!application) {
-      res.status(404).json({ message: "Ansökan hittades inte" });
+      res.status(404).json({ message: 'Ansökan hittades inte' });
       return;
     }
 
@@ -379,10 +307,10 @@ export const updateApplicationStatus = async (
     const populatedAnimal = application.animalId as PopulatedAnimal;
     if (
       !populatedAnimal ||
-      typeof populatedAnimal !== "object" ||
+      typeof populatedAnimal !== 'object' ||
       populatedAnimal.organizationOwner !== organization.organization
     ) {
-      res.status(403).json({ message: "Du kan inte uppdatera denna ansökan" });
+      res.status(403).json({ message: 'Du kan inte uppdatera denna ansökan' });
       return;
     }
 
@@ -407,6 +335,6 @@ export const updateApplicationStatus = async (
       status: normalizeStatus(application.status),
     });
   } catch (error) {
-    res.status(500).json({ message: "Kunde inte uppdatera ansökan", error });
+    res.status(500).json({ message: 'Kunde inte uppdatera ansökan', error });
   }
 };
