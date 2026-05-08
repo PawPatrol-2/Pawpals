@@ -7,55 +7,66 @@ import Organization from "../models/Organisation";
 import { AuthenticatedRequest } from "../middleware/auth";
 
 
-export const getAllUsers: RequestHandler = async (req, res) => {
-  try {
-    const users = await User.find().select("_id email username role");
-    const organizations = await Organization.find().select("_id email organization role");
-    const orgsAsUsers = organizations.map(org => ({
-      _id: org._id,
-      email: org.email,
-      organisationsnamn: org.organization,
-      role: org.role
-    }));
-    const usersWithFullname = users.map(u => ({
-      _id: u._id,
-      email: u.email,
-      fullname: u.username,
-      role: u.role
-    }));
-    res.json([...usersWithFullname, ...orgsAsUsers]);
-  } catch (error: unknown) {
-    if(typeof error === "object" && error !== null && "name" in error) {
-      const err = error as { name: string; message?: string; path?: string;}
-      if(err.name === "ValidationError") {
-        return res.status(400).json({ error: err.message })
-      }
-      if(err.name === "CastError") {
-        if(err.path === "_id") {
-          return res.status(404).json({ error: 'Invalid id-format'})
-        }
-        return res.status(400).json({ error: `Invalid value for ${err.path}`})
-      }
-    }
-      res.status(500).json({ message: "Kunde inte hämta användare", error: error });
-    }
-  };
-
-export const createAdminUser = async (req: Request, res: Response) => {
-  if (req.body.secret !== process.env.ADMIN_SECRET) {
-    return res.status(403).json({ message: "Otillåtet" });
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET saknas i miljövariablerna");
   }
-  const { email, username, password } = req.body;
+  return secret;
+};
+
+export const registerUser = async (req: Request, res: Response) => {
   try {
+    const { email, username, password, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
+    if (role === "organization") {
+      const existingOrganization = await Organization.findOne({
+        $or: [{ email }, { organization: username }],
+      });
+      if (existingOrganization) {
+        return res.status(400).json({
+          message: "Organisationen eller e-postadressen är redan registrerad.",
+        });
+      }
+      const organization = new Organization({
+        email,
+        organization: username,
+        password: hashedPassword,
+        role: "organization",
+      });
+      await organization.save();
+      return res.status(201).json({
+        message: "Organisation skapad!",
+        user: {
+          email: organization.email,
+          username: organization.organization,
+          role: organization.role,
+        },
+      });
+    }
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({
+        message: "Användarnamnet är taget.",
+      });
+    }
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({
+        message: "E-postadressen är redan registrerad.",
+      });
+    }
     const user = new User({
       email,
       username,
       password: hashedPassword,
-      role: "admin",
+      role: "adopter",
     });
     await user.save();
-    res.status(201).json({ message: "Admin skapad!" });
+    return res.status(201).json({
+      message: "Användare skapad!",
+      user: { email: user.email, username: user.username, role: user.role },
+    });
   } catch (error: unknown) {
     if (typeof error === "object" && error !== null && "name" in error) {
       const err = error as { name: string; message?: string; path?: string };
@@ -71,14 +82,6 @@ export const createAdminUser = async (req: Request, res: Response) => {
     }
     res.status(500).json({ message: "Något gick fel", error });
   }
-};
-
-const getJwtSecret = (): string => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("JWT_SECRET saknas i miljövariablerna");
-  }
-  return secret;
 };
 
 export const loginUser = async (req: Request, res: Response) => {
@@ -156,75 +159,6 @@ export const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-export const registerUser = async (req: Request, res: Response) => {
-  try {
-    const { email, username, password, role } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    if (role === "organization") {
-      const existingOrganization = await Organization.findOne({
-        $or: [{ email }, { organization: username }],
-      });
-      if (existingOrganization) {
-        return res.status(400).json({
-          message: "Organisationen eller e-postadressen är redan registrerad.",
-        });
-      }
-      const organization = new Organization({
-        email,
-        organization: username,
-        password: hashedPassword,
-        role: "organization",
-      });
-      await organization.save();
-      return res.status(201).json({
-        message: "Organisation skapad!",
-        user: {
-          email: organization.email,
-          username: organization.organization,
-          role: organization.role,
-        },
-      });
-    }
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
-      return res.status(400).json({
-        message: "Användarnamnet är taget.",
-      });
-    }
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({
-        message: "E-postadressen är redan registrerad.",
-      });
-    }
-    const user = new User({
-      email,
-      username,
-      password: hashedPassword,
-      role: "adopter",
-    });
-    await user.save();
-    return res.status(201).json({
-      message: "Användare skapad!",
-      user: { email: user.email, username: user.username, role: user.role },
-    });
-  } catch (error: unknown) {
-    if (typeof error === "object" && error !== null && "name" in error) {
-      const err = error as { name: string; message?: string; path?: string };
-      if (err.name === "ValidationError") {
-        return res.status(400).json({ error: err.message });
-      }
-      if (err.name === "CastError") {
-        if (err.path === "_id") {
-          return res.status(404).json({ error: "Invalid id-format" });
-        }
-        return res.status(400).json({ error: `Invalid value for ${err.path}` });
-      }
-    }
-    res.status(500).json({ message: "Något gick fel", error });
-  }
-};
-
 export const getCurrentUser = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -296,6 +230,72 @@ export const deleteUser = async (req: Request, res: Response) => {
       }
     }
     res.status(500).json({ message: "Ett fel inträffade", error });
+  }
+};
+
+export const getAllUsers: RequestHandler = async (req, res) => {
+  try {
+    const users = await User.find().select("_id email username role");
+    const organizations = await Organization.find().select("_id email organization role");
+    const orgsAsUsers = organizations.map(org => ({
+      _id: org._id,
+      email: org.email,
+      organisationsnamn: org.organization,
+      role: org.role
+    }));
+    const usersWithFullname = users.map(u => ({
+      _id: u._id,
+      email: u.email,
+      fullname: u.username,
+      role: u.role
+    }));
+    res.json([...usersWithFullname, ...orgsAsUsers]);
+  } catch (error: unknown) {
+    if(typeof error === "object" && error !== null && "name" in error) {
+      const err = error as { name: string; message?: string; path?: string;}
+      if(err.name === "ValidationError") {
+        return res.status(400).json({ error: err.message })
+      }
+      if(err.name === "CastError") {
+        if(err.path === "_id") {
+          return res.status(404).json({ error: 'Invalid id-format'})
+        }
+        return res.status(400).json({ error: `Invalid value for ${err.path}`})
+      }
+    }
+      res.status(500).json({ message: "Kunde inte hämta användare", error: error });
+    }
+  };
+
+export const createAdminUser = async (req: Request, res: Response) => {
+  if (req.body.secret !== process.env.ADMIN_SECRET) {
+    return res.status(403).json({ message: "Otillåtet" });
+  }
+  const { email, username, password } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({
+      email,
+      username,
+      password: hashedPassword,
+      role: "admin",
+    });
+    await user.save();
+    res.status(201).json({ message: "Admin skapad!" });
+  } catch (error: unknown) {
+    if (typeof error === "object" && error !== null && "name" in error) {
+      const err = error as { name: string; message?: string; path?: string };
+      if (err.name === "ValidationError") {
+        return res.status(400).json({ error: err.message });
+      }
+      if (err.name === "CastError") {
+        if (err.path === "_id") {
+          return res.status(404).json({ error: "Invalid id-format" });
+        }
+        return res.status(400).json({ error: `Invalid value for ${err.path}` });
+      }
+    }
+    res.status(500).json({ message: "Något gick fel", error });
   }
 };
 
