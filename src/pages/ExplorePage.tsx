@@ -76,7 +76,7 @@ export default function ExplorePage() {
     totalPages: number;
     totalAnimals: number;
   } | null>(null);
-  const [limit, setLimit] = useState(3);
+  const limit = 3;
   const [page, setPage] = useState(1);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
@@ -89,13 +89,41 @@ export default function ExplorePage() {
 
   useEffect(() => {
     setSearchTerm(searchParams.get("q") ?? "");
+    setPage(1);
   }, [searchParams]);
 
   useEffect(() => {
     const fetchAnimals = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`http://localhost:3000/api/animals?page=${page}&limit=${limit}`);
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(limit),
+        });
+
+        if (searchTerm.trim()) {
+          params.set("q", searchTerm.trim());
+        }
+
+        if (selectedCategory !== "alla") {
+          params.set("category", selectedCategory);
+        }
+
+        selectedAgeFilters.forEach((filter) => {
+          params.append("age", filter);
+        });
+
+        selectedTraitFilters.forEach((filter) => {
+          params.append("trait", filter);
+        });
+
+        if (childFriendlyOnly) {
+          params.set("childFriendly", "true");
+        }
+
+        const response = await fetch(
+          `http://localhost:3000/api/animals?${params.toString()}`,
+        );
         if (!response.ok) {
           throw new Error("Kunde inte hämta djur");
         }
@@ -123,7 +151,34 @@ export default function ExplorePage() {
     };
 
     void fetchAnimals();
-  }, [page, limit]);
+  }, [
+    page,
+    searchTerm,
+    selectedCategory,
+    selectedAgeFilters,
+    selectedTraitFilters,
+    childFriendlyOnly,
+  ]);
+
+  const selectCategory = (category: string) => {
+    setSelectedCategory(category);
+    setPage(1);
+  };
+
+  const toggleAgeFilter = (filterId: string) => {
+    toggleFilter(filterId, setSelectedAgeFilters);
+    setPage(1);
+  };
+
+  const toggleTraitFilter = (filterId: string) => {
+    toggleFilter(filterId, setSelectedTraitFilters);
+    setPage(1);
+  };
+
+  const toggleChildFriendlyOnly = () => {
+    setChildFriendlyOnly((current) => !current);
+    setPage(1);
+  };
 
   const visibleAnimals = useMemo(() => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -217,6 +272,7 @@ export default function ExplorePage() {
           value={searchTerm}
           onChange={(value) => {
             setSearchTerm(value);
+            setPage(1);
 
             const nextParams = new URLSearchParams(searchParams);
             if (value.trim()) {
@@ -231,7 +287,7 @@ export default function ExplorePage() {
         <ExploreCategories
           categories={categoryOptions}
           selectedCategory={selectedCategory}
-          onSelect={setSelectedCategory}
+          onSelect={selectCategory}
         />
         <div className={styles.content}>
           <ExploreFilters
@@ -239,20 +295,20 @@ export default function ExplorePage() {
               id: filter.id,
               label: filter.label,
               checked: selectedAgeFilters.includes(filter.id),
-              onToggle: () => toggleFilter(filter.id, setSelectedAgeFilters),
+              onToggle: () => toggleAgeFilter(filter.id),
             }))}
             traitFilters={TRAIT_FILTERS.map((filter) => ({
               id: filter.id,
               label: filter.label,
               checked: selectedTraitFilters.includes(filter.id),
-              onToggle: () => toggleFilter(filter.id, setSelectedTraitFilters),
+              onToggle: () => toggleTraitFilter(filter.id),
             }))}
             childFriendlyFilters={[
               {
                 id: "child-friendly",
                 label: "Barnvänlig",
                 checked: childFriendlyOnly,
-                onToggle: () => setChildFriendlyOnly((current) => !current),
+                onToggle: toggleChildFriendlyOnly,
               },
             ]}
           />

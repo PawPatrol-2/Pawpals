@@ -87,19 +87,118 @@ const resolveOrganizationName = async (
   return organization.organization;
 };
 
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getQueryValues = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => (typeof item === "string" ? item.split(",") : []))
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
+const traitKeywords: Record<string, string[]> = {
+  lugn: ["lugn", "mjuk", "gosig", "snäll"],
+  aktiv: ["aktiv", "lekfull", "energisk", "busig"],
+};
+
 export const getAnimals = async (req: Request, res: Response) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = Math.max(parseInt(req.query.page as string) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit as string) || 10, 1);
+    const searchTerm =
+      typeof req.query.q === "string" ? req.query.q.trim() : "";
+    const category =
+      typeof req.query.category === "string" ? req.query.category.trim() : "";
+    const ageFilters = getQueryValues(req.query.age);
+    const traitFilters = getQueryValues(req.query.trait);
+    const childFriendlyOnly = req.query.childFriendly === "true";
+    const searchRegex = searchTerm
+      ? new RegExp(escapeRegex(searchTerm), "i")
+      : null;
+    const queryParts: Record<string, unknown>[] = [];
+
+    if (searchRegex) {
+      queryParts.push({
+        $or: [
+          { name: searchRegex },
+          { type: searchRegex },
+          { breed: searchRegex },
+          { keyTraits: searchRegex },
+          { personality: searchRegex },
+          { city: searchRegex },
+          { organizationOwner: searchRegex },
+        ],
+      });
+    }
+
+    if (category && category !== "alla") {
+      queryParts.push({ type: new RegExp(`^${escapeRegex(category)}$`, "i") });
+    }
+
+    if (ageFilters.length > 0) {
+      const ageQuery: Record<string, unknown>[] = [];
+
+      if (ageFilters.includes("baby")) {
+        ageQuery.push({ age: { $lt: 1 } });
+      }
+
+      if (ageFilters.includes("young")) {
+        ageQuery.push({ age: { $gte: 1, $lte: 3 } });
+      }
+
+      if (ageFilters.includes("adult")) {
+        ageQuery.push({ age: { $gt: 3 } });
+      }
+
+      if (ageQuery.length > 0) {
+        queryParts.push({ $or: ageQuery });
+      }
+    }
+
+    const selectedTraitKeywords = traitFilters.flatMap(
+      (filter) => traitKeywords[filter] ?? [],
+    );
+    if (selectedTraitKeywords.length > 0) {
+      const traitRegex = new RegExp(
+        selectedTraitKeywords.map(escapeRegex).join("|"),
+        "i",
+      );
+      queryParts.push({
+        $or: [{ keyTraits: traitRegex }, { personality: traitRegex }],
+      });
+    }
+
+    if (childFriendlyOnly) {
+      queryParts.push({ childFriendly: true });
+    }
+
+    const query = queryParts.length > 0 ? { $and: queryParts } : {};
 
     const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
     console.log("Mongoose collection:", Animal.collection.collectionName);
-    const animals = await Animal.find().sort({ createdAt: -1, _id: -1 }).skip(startIndex).limit(limit);
+    const animals = await Animal.find(query)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(startIndex)
+      .limit(limit);
     console.log("Hittade dessa djur i databasen:", animals);
-    const totalAnimals = await Animal.countDocuments();
+    const totalAnimals = await Animal.countDocuments(query);
     const totalPages = Math.ceil(totalAnimals / limit);
-    res.json({animals, pagination: { page, limit, totalPages, totalAnimals }});
+    res.json({
+      animals,
+      pagination: { page, limit, totalPages, totalAnimals },
+    });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch animals", err });
   }
