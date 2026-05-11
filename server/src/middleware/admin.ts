@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction} from "express"
 import jwt from "jsonwebtoken"
-import User, { User as UserType } from "../models/User";
+import User from "../models/User";
 export const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers.authorization;

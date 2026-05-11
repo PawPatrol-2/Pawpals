@@ -47,7 +47,7 @@ export default function LoginPage() {
         <div className="LoginPage">
             <h2>Logga in</h2>
             <p>Logga in på ditt konto</p>
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} className="loginForm">
                 <div>
                     <label htmlFor="email">E-post:</label>
                     <input
@@ -82,9 +82,9 @@ export default function LoginPage() {
                     <button className='loginbutton' type="submit">Logga in</button>
                 </div>
             </form>
-            <div>{message}</div>
-            <div>
-                <Link to={'/registrera'}>Registrera dig</Link>
+            <div className="loginMessage">{message}</div>
+            <div className="loginFooter">
+            <Link to={'/registrera'}>Registrera dig</Link>
             </div>
         </div>
     )
