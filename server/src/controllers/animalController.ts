@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import { Animal } from "../models/animal";
 import Organization from "../models/Organisation";
 import type { AuthenticatedRequest } from "../middleware/auth";
+import {
+  deleteAnimalImage,
+  uploadAnimalImage,
+} from "../services/cloudinaryService";
 
 type AnimalRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 
@@ -132,6 +136,10 @@ export const deleteAnimal = async (req: AnimalRequest, res: Response) => {
       return res.status(404).json({ error: "Animal not found" });
     }
 
+    await deleteAnimalImage(
+      (animal as unknown as { imagePublicId?: string }).imagePublicId,
+    );
+
     res.json({ message: "Animal deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: "Failed to delete animal", err });
@@ -147,21 +155,21 @@ export const createAnimal = async (req: AnimalRequest, res: Response) => {
       });
     }
 
-    const imagePath = req.file
-      ? `/uploads/${req.file.filename}`
-      : req.body.image;
-
     const name = toRequiredText(req.body.name);
     const type = toRequiredText(req.body.type);
     const breed = toRequiredText(req.body.breed);
     const city = toCity(req.body.city);
+    const hasImage = !!req.file || !!req.body.image;
 
-    if (!imagePath || !name || !type || !breed || !city) {
+    if (!hasImage || !name || !type || !breed || !city) {
       return res.status(400).json({
         error:
           "Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.",
       });
     }
+
+    const uploadedImage = req.file ? await uploadAnimalImage(req.file) : null;
+    const imagePath = uploadedImage?.url ?? req.body.image;
 
     const payload = {
       ...req.body,
@@ -169,6 +177,7 @@ export const createAnimal = async (req: AnimalRequest, res: Response) => {
       type,
       breed,
       image: imagePath,
+      imagePublicId: uploadedImage?.publicId,
       city,
       age: toOptionalAge(req.body.age),
       keyTraits: toOptionalText(req.body.keyTraits),
@@ -209,9 +218,6 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
       });
     }
 
-    const imagePath = req.file
-      ? `/uploads/${req.file.filename}`
-      : req.body.image;
     const { requester: _requester, ...restBody } = req.body as {
       requester?: string;
       [key: string]: unknown;
@@ -221,13 +227,17 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
     const type = toRequiredText(restBody.type);
     const breed = toRequiredText(restBody.breed);
     const city = toCity(restBody.city);
+    const hasImage = !!req.file || !!restBody.image;
 
-    if (!imagePath || !name || !type || !breed || !city) {
+    if (!hasImage || !name || !type || !breed || !city) {
       return res.status(400).json({
         error:
           "Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.",
       });
     }
+
+    const uploadedImage = req.file ? await uploadAnimalImage(req.file) : null;
+    const imagePath = uploadedImage?.url ?? restBody.image;
 
     const payload = {
       ...restBody,
@@ -235,6 +245,9 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
       type,
       breed,
       image: imagePath,
+      imagePublicId:
+        uploadedImage?.publicId ??
+        (existingAnimal as unknown as { imagePublicId?: string }).imagePublicId,
       city,
       age: toOptionalAge(restBody.age),
       keyTraits: toOptionalText(restBody.keyTraits),
@@ -252,6 +265,12 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
         runValidators: true,
       },
     );
+
+    if (uploadedImage) {
+      await deleteAnimalImage(
+        (existingAnimal as unknown as { imagePublicId?: string }).imagePublicId,
+      );
+    }
 
     res.json(updatedAnimal);
   } catch (err) {
