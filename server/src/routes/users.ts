@@ -4,7 +4,7 @@ import { createAdminUser, deleteUser, getAllUsers } from '../controllers/adminUs
 import { updateUserPreferences } from '../controllers/userController';
 import authenticate from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
-import { registerSchema, loginSchema } from '../schemas/userSchemas';
+import { registerSchema, loginSchema, preferencesSchema } from '../schemas/userSchemas';
 import { validateRequest } from '../middleware/validate';
 
 const router = express.Router();
@@ -15,6 +15,11 @@ router.post('/login', validateRequest({ body: loginSchema }), login);
 router.get('/me', authenticate, getCurrentUser);
 router.get('/', requireAdmin, getAllUsers);
 router.delete('/:id', requireAdmin, deleteUser);
-router.put('/preferences', authenticate, updateUserPreferences);
+router.put(
+  '/preferences',
+  authenticate,
+  validateRequest({ body: preferencesSchema }),
+  updateUserPreferences,
+);
 
 export default router;

@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { useUser } from "../../context/UserContext";
-import { useUnreadNotificationCount } from "../../hooks/useUnreadNotificationCount";
-import "./Navbar.css";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
+import { useUnreadNotificationCount } from '../../hooks/useUnreadNotificationCount';
+import './Navbar.css';
+import PreferencesModal from '../Modal/PreferencesModal';
 
-const avatarStyles = ["sun", "sea", "mint", "berry"] as const;
+const avatarStyles = ['sun', 'sea', 'mint', 'berry'] as const;
 type AvatarStyle = (typeof avatarStyles)[number];
 
 export default function Navbar() {
@@ -12,22 +13,17 @@ export default function Navbar() {
   const { unreadCount } = useUnreadNotificationCount();
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
-  const [avatarStyle, setAvatarStyle] = useState<AvatarStyle>("sun");
-  const [avatarError, setAvatarError] = useState<string>("");
+  const [avatarStyle, setAvatarStyle] = useState<AvatarStyle>('sun');
+  const [avatarError, setAvatarError] = useState<string>('');
   const menuRef = useRef<HTMLDivElement>(null);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
 
-  const storageImageKey = useMemo(
-    () => (user ? `pawpals:avatar:image:${user.id}` : ""),
-    [user],
-  );
-  const storageStyleKey = useMemo(
-    () => (user ? `pawpals:avatar:style:${user.id}` : ""),
-    [user],
-  );
+  const storageImageKey = useMemo(() => (user ? `pawpals:avatar:image:${user.id}` : ''), [user]);
+  const storageStyleKey = useMemo(() => (user ? `pawpals:avatar:style:${user.id}` : ''), [user]);
 
   const userInitials = useMemo(() => {
-    if (!user) return "PP";
-    const source = user.username?.trim() || user.email?.trim() || "PawPals";
+    if (!user) return 'PP';
+    const source = user.username?.trim() || user.email?.trim() || 'PawPals';
     const words = source.split(/\s+/).filter(Boolean);
     if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
     return `${words[0][0]}${words[1][0]}`.toUpperCase();
@@ -37,16 +33,14 @@ export default function Navbar() {
     if (!user) return;
 
     const savedImage = localStorage.getItem(storageImageKey);
-    const savedStyle = localStorage.getItem(
-      storageStyleKey,
-    ) as AvatarStyle | null;
+    const savedStyle = localStorage.getItem(storageStyleKey) as AvatarStyle | null;
 
     const frameId = window.requestAnimationFrame(() => {
       setAvatarImage(savedImage);
       if (savedStyle && avatarStyles.includes(savedStyle)) {
         setAvatarStyle(savedStyle);
       } else {
-        setAvatarStyle("sun");
+        setAvatarStyle('sun');
       }
     });
 
@@ -64,23 +58,23 @@ export default function Navbar() {
     };
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         setMenuOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleOutsideClick);
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
     return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
     };
   }, [menuOpen]);
 
   const handleStylePick = (style: AvatarStyle) => {
     setAvatarStyle(style);
     setAvatarImage(null);
-    setAvatarError("");
+    setAvatarError('');
     if (storageStyleKey) localStorage.setItem(storageStyleKey, style);
     if (storageImageKey) localStorage.removeItem(storageImageKey);
   };
@@ -89,22 +83,22 @@ export default function Navbar() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    if (!file.type.startsWith("image/")) {
-      setAvatarError("Välj en bildfil.");
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Välj en bildfil.');
       return;
     }
 
     if (file.size > 1_000_000) {
-      setAvatarError("Bilden är för stor (max 1 MB).");
+      setAvatarError('Bilden är för stor (max 1 MB).');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
+      const result = typeof reader.result === 'string' ? reader.result : '';
       if (!result) return;
       setAvatarImage(result);
-      setAvatarError("");
+      setAvatarError('');
       localStorage.setItem(storageImageKey, result);
     };
     reader.readAsDataURL(file);
@@ -126,10 +120,8 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo" style={{ fontWeight: 700 }}>
-        <span style={{ color: "#E8713A", fontSize: "1.4rem", marginRight: 4 }}>
-          🐾
-        </span>
-        <span style={{ color: "#E8713A", display: "inline" }}>Paw</span>Pals
+        <span style={{ color: '#E8713A', fontSize: '1.4rem', marginRight: 4 }}>🐾</span>
+        <span style={{ color: '#E8713A', display: 'inline' }}>Paw</span>Pals
       </Link>
       <div className="navbar-right">
         <ul className="navbar-nav">
@@ -139,15 +131,15 @@ export default function Navbar() {
           <li>
             <Link to="/organisationer">Organisationer</Link>
           </li>
-          {!isAuthLoading && user && user.role === "organization" && (
+          {!isAuthLoading && user && user.role === 'organization' && (
             <li>
               <Link to="/organisation-dashboard">
                 Dashboard
-                {user.role === "organization" ? getBadge() : null}
+                {user.role === 'organization' ? getBadge() : null}
               </Link>
             </li>
           )}
-          {!isAuthLoading && user && user.role === "admin" && (
+          {!isAuthLoading && user && user.role === 'admin' && (
             <li>
               <Link to="/admin">Adminpanel</Link>
             </li>
@@ -156,7 +148,7 @@ export default function Navbar() {
             <li>
               <Link to="/mina-ansokningar">
                 Mina ansökningar
-                {user.role === "adopter" ? getBadge() : null}
+                {user.role === 'adopter' ? getBadge() : null}
               </Link>
             </li>
           )}
@@ -178,11 +170,7 @@ export default function Navbar() {
             >
               <span className={`avatar-circle avatar-${avatarStyle}`}>
                 {avatarImage ? (
-                  <img
-                    src={avatarImage}
-                    alt="Profilbild"
-                    className="avatar-image"
-                  />
+                  <img src={avatarImage} alt="Profilbild" className="avatar-image" />
                 ) : (
                   <span className="avatar-initials">{userInitials}</span>
                 )}
@@ -192,15 +180,9 @@ export default function Navbar() {
             {menuOpen && (
               <div className="navbar-dropdown" role="menu">
                 <div className="navbar-dropdown-header">
-                  <span
-                    className={`avatar-circle avatar-large avatar-${avatarStyle}`}
-                  >
+                  <span className={`avatar-circle avatar-large avatar-${avatarStyle}`}>
                     {avatarImage ? (
-                      <img
-                        src={avatarImage}
-                        alt="Profilbild"
-                        className="avatar-image"
-                      />
+                      <img src={avatarImage} alt="Profilbild" className="avatar-image" />
                     ) : (
                       <span className="avatar-initials">{userInitials}</span>
                     )}
@@ -215,11 +197,7 @@ export default function Navbar() {
                   <p className="navbar-section-title">Profilbild</p>
                   <label className="navbar-upload">
                     Ladda upp bild
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleUpload}
-                    />
+                    <input type="file" accept="image/*" onChange={handleUpload} />
                   </label>
                   <div className="avatar-style-row">
                     {avatarStyles.map((style) => (
@@ -227,7 +205,7 @@ export default function Navbar() {
                         key={style}
                         type="button"
                         className={`avatar-style-btn avatar-${style} ${
-                          avatarStyle === style && !avatarImage ? "active" : ""
+                          avatarStyle === style && !avatarImage ? 'active' : ''
                         }`}
                         onClick={() => handleStylePick(style)}
                         aria-label={`Välj avatar ${style}`}
@@ -236,12 +214,17 @@ export default function Navbar() {
                   </div>
                   {avatarError && <p className="avatar-error">{avatarError}</p>}
                 </div>
-
                 <button
                   type="button"
-                  className="navbar-dropdown-logout"
-                  onClick={handleLogout}
+                  className="navbar-dropdown-preferences"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setPreferencesOpen(true);
+                  }}
                 >
+                  update preferences
+                </button>
+                <button type="button" className="navbar-dropdown-logout" onClick={handleLogout}>
                   Logga ut
                 </button>
               </div>
@@ -249,6 +232,7 @@ export default function Navbar() {
           </div>
         )}
       </div>
+      {preferencesOpen && <PreferencesModal onClose={() => setPreferencesOpen(false)} />}
     </nav>
   );
 }
