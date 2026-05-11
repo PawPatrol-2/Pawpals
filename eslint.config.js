@@ -20,4 +20,10 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ['server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-namespace': 'off',
+    },
+  },
 ])

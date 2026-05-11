@@ -29,13 +29,10 @@ const authenticate = (
     return res.status(401).json({ message: 'Saknar giltig token' });
   }
 
-  console.log("Authorization header:", authHeader);
-
   const token = authHeader.slice(7);
 
   try {
     const decoded = jwt.verify(token, getJwtSecret()) as AuthTokenPayload;
-    console.log("Decoded token:", decoded);
     if (!decoded.userId) {
       return res.status(401).json({ message: 'Ogiltig token' });
     }
