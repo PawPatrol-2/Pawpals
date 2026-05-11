@@ -1,8 +1,14 @@
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = 'http://localhost:3000/api';
 
-export type NotificationType =
-  | "application-created"
-  | "application-status-updated";
+export type NotificationType = 'application-created' | 'application-status-updated';
+
+export type NotificationSnapshot = {
+  title: string;
+  message: string;
+  previousStatus: string | null;
+  nextStatus: string | null;
+  isUnread: boolean;
+};
 
 export type NotificationSummary = {
   applicationCreated: number;
@@ -10,11 +16,7 @@ export type NotificationSummary = {
   total: number;
 };
 
-const requestJson = async <T>(
-  path: string,
-  token: string,
-  init?: RequestInit,
-): Promise<T> => {
+const requestJson = async <T>(path: string, token: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
@@ -31,10 +33,7 @@ const requestJson = async <T>(
 };
 
 export const fetchNotificationSummary = async (token: string) => {
-  const data = await requestJson<{ summary: NotificationSummary }>(
-    "/notifications/summary",
-    token,
-  );
+  const data = await requestJson<{ summary: NotificationSummary }>('/notifications/summary', token);
 
   return data.summary;
 };
@@ -42,16 +41,17 @@ export const fetchNotificationSummary = async (token: string) => {
 export const markNotificationsAsRead = async (
   token: string,
   type?: NotificationType,
+  applicationId?: string,
 ) => {
   await requestJson<{ updatedCount: number; summary: NotificationSummary }>(
-    "/notifications/read",
+    '/notifications/read',
     token,
     {
-      method: "PATCH",
+      method: 'PATCH',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(type ? { type } : {}),
+      body: JSON.stringify(type || applicationId ? { type, applicationId } : {}),
     },
   );
 };

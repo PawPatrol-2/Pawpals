@@ -229,6 +229,30 @@
   margin-top: 2px;
 }
 
+.applicationIdentity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rowUpdateText {
+  margin-top: 6px;
+  color: #6f6964;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.unreadDot {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #2f78f2;
+  box-shadow: 0 0 0 4px rgba(47, 120, 242, 0.14);
+  flex: 0 0 auto;
+}
+
 .statusPill {
   display: inline-flex;
   align-items: center;
@@ -539,4 +563,46 @@
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+.unreadMarker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 0 0 auto;
+}
+
+.unreadMarker {
+  cursor: pointer;
+}
+
+.unreadBadge {
+  background: #2f78f2;
+  color: #fff;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rowUpdateNotification {
+  margin-top: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  background: #f0f6ff;
+  border: 1px solid #d9e6fb;
+  border-left: 3px solid #2f78f2;
+  border-radius: 8px;
+}
+
+.rowUpdateNotification .rowUpdateText {
+  margin: 0;
+  color: #2d5a8a;
+  font-weight: 500;
+}
+
+.unreadRow {
+  background: rgba(240, 246, 255, 0.5);
 }
