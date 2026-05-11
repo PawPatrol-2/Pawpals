@@ -246,6 +246,23 @@
   cursor: pointer;
 }
 
+.navbar-dropdown-preferences {
+  width: 100%;
+  border: 1px solid #e0dbd6;
+  border-radius: 10px;
+  padding: 0.56rem;
+  background: #faf8f6;
+  color: #1f1d1b;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.navbar-dropdown-preferences:hover {
+  background: #f0ebe6;
+}
+
 .navbar-dropdown-logout:hover {
   background: #de6e1e;
 }
