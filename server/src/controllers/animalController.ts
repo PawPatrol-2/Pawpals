@@ -83,12 +83,19 @@ const resolveOrganizationName = async (
   return organization.organization;
 };
 
-export const getAnimals = async (_req: Request, res: Response) => {
+export const getAnimals = async (req: Request, res: Response) => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
     console.log("Mongoose collection:", Animal.collection.collectionName);
-    const animals = await Animal.find().sort({ createdAt: -1, _id: -1 });
+    const animals = await Animal.find().sort({ createdAt: -1, _id: -1 }).skip(startIndex).limit(limit);
     console.log("Hittade dessa djur i databasen:", animals);
-    res.json(animals);
+    const totalAnimals = await Animal.countDocuments();
+    const totalPages = Math.ceil(totalAnimals / limit);
+    res.json({animals, pagination: { page, limit, totalPages, totalAnimals }});
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch animals", err });
   }

@@ -20,7 +20,7 @@ export default function HomePage() {
         return res.json();
       })
       .then((data) => {
-        setAnimals(data);
+        setAnimals(data.animals);
         setInfoMessage(null);
       })
       .catch((err) => {

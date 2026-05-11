@@ -70,6 +70,14 @@ export default function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalAnimals: number;
+  } | null>(null);
+  const [limit, setLimit] = useState(3);
+  const [page, setPage] = useState(1);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
   const [selectedCategory, setSelectedCategory] = useState("alla");
@@ -85,17 +93,27 @@ export default function ExplorePage() {
 
   useEffect(() => {
     const fetchAnimals = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch("http://localhost:3000/api/animals");
+        const response = await fetch(`http://localhost:3000/api/animals?page=${page}&limit=${limit}`);
         if (!response.ok) {
           throw new Error("Kunde inte hämta djur");
         }
 
-        const data = (await response.json()) as Array<
-          Partial<Animal> & { _id: string }
-        >;
-        setAnimals(data.map(normalizeAnimal));
+        const data = (await response.json()) as {
+          animals: Array<Partial<Animal> & { _id: string }>;
+          pagination: {
+            page: number;
+            limit: number;
+            totalPages: number;
+            totalAnimals: number;
+          };
+        };
+
+        setAnimals(data.animals.map(normalizeAnimal));
+        setPagination(data.pagination);
         setInfoMessage(null);
+        console.log("API response:", data);
       } catch {
         setAnimals([]);
         setInfoMessage("Kunde inte hämta djur från servern.");
@@ -105,7 +123,7 @@ export default function ExplorePage() {
     };
 
     void fetchAnimals();
-  }, []);
+  }, [page, limit]);
 
   const visibleAnimals = useMemo(() => {
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -255,6 +273,27 @@ export default function ExplorePage() {
             )}
           </section>
         </div>
+          <div className={styles.pagination}>
+            <button
+              className={styles.pageButton}
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Föregående
+            </button>
+
+            <span className={styles.pageInfo}>
+              Sida {pagination?.page ?? page} av {pagination?.totalPages ?? 1}
+            </span>
+
+            <button
+              className={styles.pageButton}
+              disabled={!pagination || page >= pagination.totalPages}
+              onClick={() => setPage(page + 1)}
+            >
+              Nästa
+            </button>
+          </div>
       </section>
     </main>
   );
