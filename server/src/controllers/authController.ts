@@ -35,7 +35,7 @@ export const registerUser = async (req: Request, res: Response) => {
       });
       await organization.save();
       return res.status(201).json({
-        message: "Organisation skapad!",
+        message: "Organisation skapad!", 
         user: {
           email: organization.email,
           username: organization.organization,
