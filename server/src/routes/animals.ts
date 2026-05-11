@@ -8,24 +8,23 @@ import {
 } from "../controllers/animalController";
 import authenticate from "../middleware/auth";
 import multer from "multer";
-import path from "node:path";
-import fs from "node:fs";
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    const uploadDir = path.join(process.cwd(), "uploads");
-    fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+      return;
+    }
+
+    cb(new Error("Only image uploads are allowed"));
   },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
-    cb(null, `animal-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+  limits: {
+    fileSize: 5 * 1024 * 1024,
   },
 });
-
-const upload = multer({ storage });
 
 router.get("/", getAnimals);
 router.get("/:id", getAnimalById);
