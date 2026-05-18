@@ -48,7 +48,6 @@ export default function OrganizationDashboardPage() {
     isEditMode,
     isDeletingAnimal,
     canEditSelectedAnimal,
-    setSubmitMessage,
     updateFormField,
     updateEditField,
     onAddImageChange,

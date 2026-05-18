@@ -1,7 +1,14 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Animal } from "../../types/animal";
 import { useUser } from "../../context/UserContext";
+import {
+  getFavoriteIdsSnapshot,
+  notifyFavoritesChanged,
+  parseFavoriteIdsSnapshot,
+  subscribeToFavorites,
+  toggleFavoriteAnimal,
+} from "../../utils/favorites";
 import styles from "./AnimalCard.module.css";
 
 type AnimalCardProps = {
@@ -19,7 +26,6 @@ function getAnimalEmoji(type: string) {
 }
 
 function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
   const [imageHasFailed, setImageHasFailed] = useState(false);
@@ -27,6 +33,25 @@ function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
   const imageSrc = animal.image.startsWith("/uploads/")
     ? `http://localhost:3000${animal.image}`
     : animal.image;
+  const userId = user?.id;
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => subscribeToFavorites(userId, onStoreChange),
+    [userId],
+  );
+  const getSnapshot = useCallback(() => getFavoriteIdsSnapshot(userId), [userId]);
+  const snapshot = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    () => "[]",
+  );
+  const favoriteAnimalIds = useMemo(
+    () => parseFavoriteIdsSnapshot(snapshot),
+    [snapshot],
+  );
+  const isFavorite = useMemo(
+    () => favoriteAnimalIds.includes(animal._id),
+    [animal._id, favoriteAnimalIds],
+  );
 
   return (
     <Link
@@ -63,7 +88,8 @@ function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
                 return;
               }
 
-              setIsFavorite((prev) => !prev);
+              toggleFavoriteAnimal(user.id, animal._id);
+              notifyFavoritesChanged(user.id);
             }}
             aria-label={
               isFavorite

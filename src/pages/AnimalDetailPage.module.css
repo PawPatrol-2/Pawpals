@@ -16,6 +16,11 @@
   box-shadow: 0 14px 28px rgba(26, 23, 20, 0.14);
   display: grid;
   grid-template-columns: minmax(280px, 420px) 1fr;
+  position: relative;
+}
+
+.imageWrap {
+  position: relative;
 }
 
 .image {
@@ -100,6 +105,65 @@
   line-height: 1.7;
 }
 
+.detailFavoriteButton {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  color: transparent;
+  -webkit-text-stroke: 1.6px #1f1b17;
+  font-size: 1.55rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(26, 23, 20, 0.1);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    -webkit-text-stroke 0.2s ease;
+}
+
+.detailFavoriteButton:hover {
+  transform: scale(1.06);
+}
+
+.detailFavoriteButton:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--orange) 46%, white);
+  outline-offset: 2px;
+}
+
+.detailFavoriteActive {
+  color: var(--orange);
+  -webkit-text-stroke: 0;
+}
+
+.applyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  margin-bottom: 12px;
+  margin-right: 14px;
+  border-radius: 10px;
+  border: none;
+  background: var(--orange);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
 .backButton {
   display: inline-flex;
   align-items: center;
@@ -139,6 +203,18 @@
   box-shadow: 0 10px 22px rgba(26, 23, 20, 0.12);
 }
 
+.applyButton:hover {
+  background: var(--orange-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(232, 113, 58, 0.32);
+}
+
+.alreadyApplied {
+  color: var(--gray-500);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
 @media (max-width: 900px) {
   .detailCard {
     grid-template-columns: 1fr;
@@ -161,37 +237,4 @@
   .stats {
     grid-template-columns: 1fr;
   }
-}
-
-.applyButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
-  margin-bottom: 12px;
-  border-radius: 10px;
-  border: none;
-  background: var(--orange);
-  color: var(--white);
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
-  margin-right: 14px;
-}
-
-.applyButton:hover {
-  background: var(--orange-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(232, 113, 58, 0.32);
-}
-
-.alreadyApplied {
-  color: var(--gray-500);
-  font-style: italic;
-  margin-bottom: 12px;
 }
