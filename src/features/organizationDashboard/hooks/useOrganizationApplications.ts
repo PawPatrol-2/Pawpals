@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ApplicationItem, ApplicationStatus } from "../types";
+import { useEffect, useMemo, useState } from 'react';
+import { emitNotificationChange } from '../../../utils/notificationEvents';
+import { markNotificationsAsRead } from '../../../utils/services/notifications';
+import type { ApplicationItem, ApplicationStatus } from '../types';
 
 type ApiApplication = {
   applicationId?: string;
@@ -18,6 +20,13 @@ type ApiApplication = {
   allergyDetails?: string;
   motivation?: string;
   gdprConsent?: boolean;
+  notification?: {
+    title?: string;
+    message?: string;
+    previousStatus?: string | null;
+    nextStatus?: string | null;
+    isUnread?: boolean;
+  } | null;
   details?: {
     housingType?: string;
     housingSize?: number;
@@ -31,7 +40,7 @@ type ApiApplication = {
 };
 
 const toBooleanOrNull = (value: unknown): boolean | null => {
-  if (typeof value === "boolean") {
+  if (typeof value === 'boolean') {
     return value;
   }
 
@@ -39,32 +48,29 @@ const toBooleanOrNull = (value: unknown): boolean | null => {
 };
 
 const mapApiStatus = (status: string | undefined): ApplicationStatus => {
-  if (status === "Granskas" || status === "reviewing") return "Granskas";
-  if (status === "Godkänd" || status === "approved") return "Godkänd";
-  if (status === "Nekad" || status === "rejected") return "Nekad";
-  if (status === "Behöver mer info") return "Behöver mer info";
-  return "Inskickad";
+  if (status === 'Granskas' || status === 'reviewing') return 'Granskas';
+  if (status === 'Godkänd' || status === 'approved') return 'Godkänd';
+  if (status === 'Nekad' || status === 'rejected') return 'Nekad';
+  if (status === 'Behöver mer info') return 'Behöver mer info';
+  return 'Inskickad';
 };
 
 const toRelativeDate = (dateText: string | undefined): string => {
   if (!dateText) {
-    return "okänt datum";
+    return 'okänt datum';
   }
 
   const created = new Date(dateText);
   if (Number.isNaN(created.getTime())) {
-    return "okänt datum";
+    return 'okänt datum';
   }
 
   const now = new Date();
   const oneDay = 1000 * 60 * 60 * 24;
-  const diffDays = Math.max(
-    0,
-    Math.floor((now.getTime() - created.getTime()) / oneDay),
-  );
+  const diffDays = Math.max(0, Math.floor((now.getTime() - created.getTime()) / oneDay));
 
-  if (diffDays === 0) return "idag";
-  if (diffDays === 1) return "igår";
+  if (diffDays === 0) return 'idag';
+  if (diffDays === 1) return 'igår';
   return `${diffDays} dgr`;
 };
 
@@ -74,20 +80,17 @@ export const useOrganizationApplications = (_username?: string) => {
   useEffect(() => {
     const loadApplications = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         if (!token) {
           setApplications([]);
           return;
         }
 
-        const response = await fetch(
-          "http://localhost:3000/api/applications/organization",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch('http://localhost:3000/api/applications/organization', {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         if (!response.ok) {
           setApplications([]);
@@ -98,57 +101,52 @@ export const useOrganizationApplications = (_username?: string) => {
           applications?: ApiApplication[];
         };
 
-        const apiApplications = Array.isArray(data.applications)
-          ? data.applications
-          : [];
+        const apiApplications = Array.isArray(data.applications) ? data.applications : [];
 
-        const mappedApplications: ApplicationItem[] = apiApplications.map(
-          (application, index) => {
-            const status = mapApiStatus(application.status);
-            const details = application.details;
+        const mappedApplications: ApplicationItem[] = apiApplications.map((application, index) => {
+          const status = mapApiStatus(application.status);
+          const details = application.details;
 
-            return {
-              id:
-                application.applicationId ||
-                application._id ||
-                application.id ||
-                `application-${index + 1}`,
-              applicant: application.applicantName || "Okänd adoptör",
-              applicantEmail: application.applicantEmail || "",
-              animal: application.animalName || "Okänt djur",
-              date: toRelativeDate(application.createdAt),
-              status,
-              action:
-                status === "Godkänd" || status === "Nekad" ? "Klar" : "Granska",
-              details: {
-                housingType:
-                  details?.housingType || application.housingType || "",
-                housingSize:
-                  typeof details?.housingSize === "number"
-                    ? details.housingSize
-                    : typeof application.housingSize === "number"
-                      ? application.housingSize
-                      : null,
-                hasAnimalExperience: toBooleanOrNull(
-                  details?.hasAnimalExperience ??
-                    application.hasAnimalExperience,
-                ),
-                hasChildren: toBooleanOrNull(
-                  details?.hasChildren ?? application.hasChildren,
-                ),
-                hasAllergies: toBooleanOrNull(
-                  details?.hasAllergies ?? application.hasAllergies,
-                ),
-                allergyDetails:
-                  details?.allergyDetails || application.allergyDetails || "",
-                motivation: details?.motivation || application.motivation || "",
-                gdprConsent: toBooleanOrNull(
-                  details?.gdprConsent ?? application.gdprConsent,
-                ),
-              },
-            };
-          },
-        );
+          return {
+            id:
+              application.applicationId ||
+              application._id ||
+              application.id ||
+              `application-${index + 1}`,
+            applicant: application.applicantName || 'Okänd adoptör',
+            applicantEmail: application.applicantEmail || '',
+            animal: application.animalName || 'Okänt djur',
+            date: toRelativeDate(application.createdAt),
+            status,
+            action: status === 'Godkänd' || status === 'Nekad' ? 'Klar' : 'Granska',
+            notification: application.notification
+              ? {
+                  title: application.notification.title || 'Ny uppdatering',
+                  message: application.notification.message || 'Det finns en ny uppdatering.',
+                  previousStatus: application.notification.previousStatus ?? null,
+                  nextStatus: application.notification.nextStatus ?? null,
+                  isUnread: Boolean(application.notification.isUnread),
+                }
+              : null,
+            details: {
+              housingType: details?.housingType || application.housingType || '',
+              housingSize:
+                typeof details?.housingSize === 'number'
+                  ? details.housingSize
+                  : typeof application.housingSize === 'number'
+                    ? application.housingSize
+                    : null,
+              hasAnimalExperience: toBooleanOrNull(
+                details?.hasAnimalExperience ?? application.hasAnimalExperience,
+              ),
+              hasChildren: toBooleanOrNull(details?.hasChildren ?? application.hasChildren),
+              hasAllergies: toBooleanOrNull(details?.hasAllergies ?? application.hasAllergies),
+              allergyDetails: details?.allergyDetails || application.allergyDetails || '',
+              motivation: details?.motivation || application.motivation || '',
+              gdprConsent: toBooleanOrNull(details?.gdprConsent ?? application.gdprConsent),
+            },
+          };
+        });
 
         setApplications(mappedApplications);
       } catch {
@@ -159,27 +157,21 @@ export const useOrganizationApplications = (_username?: string) => {
     void loadApplications();
   }, [_username]);
 
-  const updateApplicationStatus = async (
-    id: number | string,
-    nextStatus: ApplicationStatus,
-  ) => {
+  const updateApplicationStatus = async (id: number | string, nextStatus: ApplicationStatus) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
         return;
       }
 
-      const response = await fetch(
-        `http://localhost:3000/api/applications/${id}/status`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status: nextStatus }),
+      const response = await fetch(`http://localhost:3000/api/applications/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ status: nextStatus }),
+      });
 
       if (!response.ok) {
         return;
@@ -191,10 +183,7 @@ export const useOrganizationApplications = (_username?: string) => {
             ? {
                 ...item,
                 status: nextStatus,
-                action:
-                  nextStatus === "Godkänd" || nextStatus === "Nekad"
-                    ? "Klar"
-                    : "Granska",
+                action: nextStatus === 'Godkänd' || nextStatus === 'Nekad' ? 'Klar' : 'Granska',
               }
             : item,
         ),
@@ -204,13 +193,36 @@ export const useOrganizationApplications = (_username?: string) => {
     }
   };
 
+  const markApplicationNotificationAsRead = async (applicationId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return;
+      }
+
+      await markNotificationsAsRead(token, 'application-created', applicationId);
+      setApplications((current) =>
+        current.map((application) =>
+          String(application.id) === applicationId && application.notification
+            ? {
+                ...application,
+                notification: {
+                  ...application.notification,
+                  isUnread: false,
+                },
+              }
+            : application,
+        ),
+      );
+      emitNotificationChange();
+    } catch {
+      // Lämna notisen oläst om uppdateringen misslyckas.
+    }
+  };
+
   const overviewStats = useMemo(() => {
-    const approved = applications.filter(
-      (application) => application.status === "Godkänd",
-    ).length;
-    const rejected = applications.filter(
-      (application) => application.status === "Nekad",
-    ).length;
+    const approved = applications.filter((application) => application.status === 'Godkänd').length;
+    const rejected = applications.filter((application) => application.status === 'Nekad').length;
 
     return {
       approved,
@@ -221,15 +233,15 @@ export const useOrganizationApplications = (_username?: string) => {
 
   const reviewCount = useMemo(
     () =>
-      applications.filter(
-        (item) => item.status === "Inskickad" || item.status === "Granskas",
-      ).length,
+      applications.filter((item) => item.status === 'Inskickad' || item.status === 'Granskas')
+        .length,
     [applications],
   );
 
   return {
     applications,
     updateApplicationStatus,
+    markApplicationNotificationAsRead,
     overviewStats,
     reviewCount,
   };

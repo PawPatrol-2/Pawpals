@@ -1,10 +1,18 @@
-import { Types } from "mongoose";
-import Notification, { NotificationType } from "../models/Notification";
-import Organization from "../models/Organisation";
-import { Animal } from "../models/animal";
+import { Types } from 'mongoose';
+import Notification, { NotificationType } from '../models/Notification';
+import Organization from '../models/Organisation';
+import { Animal } from '../models/animal';
+
+export type NotificationApplicationSnapshot = {
+  title: string;
+  message: string;
+  previousStatus: string | null;
+  nextStatus: string | null;
+  isUnread: boolean;
+};
 
 const resolveId = (value: unknown): string | null => {
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value;
   }
 
@@ -12,15 +20,15 @@ const resolveId = (value: unknown): string | null => {
     return value.toString();
   }
 
-  if (value && typeof value === "object") {
+  if (value && typeof value === 'object') {
     const objectValue = value as { _id?: unknown; id?: unknown };
-    if (typeof objectValue._id === "string") {
+    if (typeof objectValue._id === 'string') {
       return objectValue._id;
     }
     if (objectValue._id instanceof Types.ObjectId) {
       return objectValue._id.toString();
     }
-    if (typeof objectValue.id === "string") {
+    if (typeof objectValue.id === 'string') {
       return objectValue.id;
     }
   }
@@ -29,7 +37,7 @@ const resolveId = (value: unknown): string | null => {
 };
 
 const resolveText = (value: unknown, fallback: string) => {
-  if (typeof value !== "string") {
+  if (typeof value !== 'string') {
     return fallback;
   }
 
@@ -37,13 +45,11 @@ const resolveText = (value: unknown, fallback: string) => {
   return trimmed || fallback;
 };
 
-const resolveOrganizationRecipientId = async (
-  organizationName: string,
-): Promise<string | null> => {
+const resolveOrganizationRecipientId = async (organizationName: string): Promise<string | null> => {
   const organization = await Organization.findOne({
     organization: organizationName,
   })
-    .select("_id")
+    .select('_id')
     .lean();
 
   if (!organization?._id) {
@@ -60,6 +66,8 @@ const upsertNotification = async (params: {
   title: string;
   message: string;
   targetUrl: string;
+  previousStatus?: string | null;
+  nextStatus?: string | null;
 }) => {
   const notification = await Notification.findOneAndUpdate(
     {
@@ -74,6 +82,8 @@ const upsertNotification = async (params: {
       title: params.title,
       message: params.message,
       targetUrl: params.targetUrl,
+      previousStatus: params.previousStatus ?? null,
+      nextStatus: params.nextStatus ?? null,
       readAt: null,
     },
     {
@@ -95,25 +105,19 @@ type ApplicationLike = {
   animalNameSnapshot?: string;
 };
 
-export const notifyOrganizationAboutApplication = async (
-  application: ApplicationLike,
-) => {
+export const notifyOrganizationAboutApplication = async (application: ApplicationLike) => {
   const animalId = resolveId(application.animalId);
   if (!animalId) {
     return null;
   }
 
-  const animal = await Animal.findById(animalId)
-    .select("name organizationOwner")
-    .lean();
+  const animal = await Animal.findById(animalId).select('name organizationOwner').lean();
 
   if (!animal?.organizationOwner) {
     return null;
   }
 
-  const recipientUserId = await resolveOrganizationRecipientId(
-    animal.organizationOwner,
-  );
+  const recipientUserId = await resolveOrganizationRecipientId(animal.organizationOwner);
   if (!recipientUserId) {
     return null;
   }
@@ -123,21 +127,22 @@ export const notifyOrganizationAboutApplication = async (
     return null;
   }
 
-  const title = "Ny ansökan";
-  const message = `Du har fått en ny ansökan för ${resolveText(animal.name, "ett djur")}.`;
+  const title = 'Ny ansökan';
+  const message = `Du har fått en ny ansökan för ${resolveText(animal.name, 'ett djur')}.`;
 
   return upsertNotification({
     recipientUserId,
-    type: "application-created",
+    type: 'application-created',
     applicationId,
     title,
     message,
-    targetUrl: "/organisation-dashboard",
+    targetUrl: '/organisation-dashboard',
   });
 };
 
 export const notifyApplicantAboutStatusChange = async (
   application: ApplicationLike,
+  previousStatus: string,
 ) => {
   const recipientUserId = resolveId(application.userId);
   if (!recipientUserId) {
@@ -150,26 +155,60 @@ export const notifyApplicantAboutStatusChange = async (
   }
 
   const animalId = resolveId(application.animalId);
-  let animalName = resolveText(application.animalNameSnapshot, "ditt djur");
+  let animalName = resolveText(application.animalNameSnapshot, 'ditt djur');
 
   if (animalId) {
-    const animal = await Animal.findById(animalId).select("name").lean();
+    const animal = await Animal.findById(animalId).select('name').lean();
     if (animal?.name) {
       animalName = animal.name.trim() || animalName;
     }
   }
 
-  const title = "Ansökan uppdaterad";
-  const message = `Statusen för din ansökan om ${animalName} har ändrats.`;
+  const title = 'Ansökan uppdaterad';
+  const nextStatus = resolveText(application.status, 'Granskas');
+  const message = `Statusen för din ansökan om ${animalName} ändrades från ${resolveText(previousStatus, 'Inskickad')} till ${nextStatus}.`;
 
   return upsertNotification({
     recipientUserId,
-    type: "application-status-updated",
+    type: 'application-status-updated',
     applicationId,
     title,
     message,
-    targetUrl: "/mina-ansokningar",
+    targetUrl: '/mina-ansokningar',
+    previousStatus,
+    nextStatus,
   });
+};
+
+export const getNotificationSnapshotsByApplicationIds = async (
+  recipientUserId: string,
+  type: NotificationType,
+  applicationIds: string[],
+) => {
+  if (applicationIds.length === 0) {
+    return new Map<string, NotificationApplicationSnapshot>();
+  }
+
+  const notifications = await Notification.find({
+    recipientUserId,
+    type,
+    applicationId: { $in: applicationIds },
+  })
+    .select('applicationId title message previousStatus nextStatus readAt createdAt')
+    .lean();
+
+  return new Map(
+    notifications.map((notification) => [
+      notification.applicationId,
+      {
+        title: notification.title,
+        message: notification.message,
+        previousStatus: notification.previousStatus ?? null,
+        nextStatus: notification.nextStatus ?? null,
+        isUnread: notification.readAt === null,
+      },
+    ]),
+  );
 };
 
 export const getNotificationSummary = async (recipientUserId: string) => {
@@ -178,15 +217,15 @@ export const getNotificationSummary = async (recipientUserId: string) => {
     count: number;
   }>([
     { $match: { recipientUserId, readAt: null } },
-    { $group: { _id: "$type", count: { $sum: 1 } } },
+    { $group: { _id: '$type', count: { $sum: 1 } } },
   ]);
 
   const summary = counts.reduce(
     (accumulator, item) => {
-      if (item._id === "application-created") {
+      if (item._id === 'application-created') {
         accumulator.applicationCreated = item.count;
       }
-      if (item._id === "application-status-updated") {
+      if (item._id === 'application-status-updated') {
         accumulator.applicationStatusUpdated = item.count;
       }
       accumulator.total += item.count;
@@ -205,10 +244,12 @@ export const getNotificationSummary = async (recipientUserId: string) => {
 export const markNotificationsAsRead = async (
   recipientUserId: string,
   type?: NotificationType,
+  applicationId?: string,
 ) => {
   const filter: {
     recipientUserId: string;
     type?: NotificationType;
+    applicationId?: string;
     readAt: null;
   } = {
     recipientUserId,
@@ -217,6 +258,10 @@ export const markNotificationsAsRead = async (
 
   if (type) {
     filter.type = type;
+  }
+
+  if (applicationId) {
+    filter.applicationId = applicationId;
   }
 
   const result = await Notification.updateMany(filter, {

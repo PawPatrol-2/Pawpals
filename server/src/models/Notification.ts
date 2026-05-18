@@ -1,8 +1,6 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-export type NotificationType =
-  | "application-created"
-  | "application-status-updated";
+export type NotificationType = 'application-created' | 'application-status-updated';
 
 export interface NotificationDocument extends Document {
   recipientUserId: string;
@@ -11,6 +9,8 @@ export interface NotificationDocument extends Document {
   title: string;
   message: string;
   targetUrl: string;
+  previousStatus?: string | null;
+  nextStatus?: string | null;
   readAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -21,7 +21,7 @@ const NotificationSchema = new Schema<NotificationDocument>(
     recipientUserId: { type: String, required: true, index: true },
     type: {
       type: String,
-      enum: ["application-created", "application-status-updated"],
+      enum: ['application-created', 'application-status-updated'],
       required: true,
       index: true,
     },
@@ -29,17 +29,13 @@ const NotificationSchema = new Schema<NotificationDocument>(
     title: { type: String, required: true },
     message: { type: String, required: true },
     targetUrl: { type: String, required: true },
+    previousStatus: { type: String, required: false, default: null },
+    nextStatus: { type: String, required: false, default: null },
     readAt: { type: Date, required: false, default: null, index: true },
   },
   { timestamps: true },
 );
 
-NotificationSchema.index(
-  { recipientUserId: 1, type: 1, applicationId: 1 },
-  { unique: true },
-);
+NotificationSchema.index({ recipientUserId: 1, type: 1, applicationId: 1 }, { unique: true });
 
-export default mongoose.model<NotificationDocument>(
-  "Notification",
-  NotificationSchema,
-);
+export default mongoose.model<NotificationDocument>('Notification', NotificationSchema);

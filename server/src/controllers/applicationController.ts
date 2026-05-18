@@ -4,8 +4,10 @@ import Application from '../models/Application';
 import Organization from '../models/Organisation';
 import type { AuthenticatedRequest } from '../middleware/auth';
 import {
+  getNotificationSnapshotsByApplicationIds,
   notifyApplicantAboutStatusChange,
   notifyOrganizationAboutApplication,
+  type NotificationApplicationSnapshot,
 } from '../services/notificationService';
 
 type LocalizedStatus = 'Inskickad' | 'Granskas' | 'Godkänd' | 'Nekad' | 'Behöver mer info';
@@ -17,6 +19,7 @@ type MyApplicationResponse = {
   animalName: string;
   status: LocalizedStatus;
   createdAt: Date;
+  notification: NotificationApplicationSnapshot | null;
 };
 
 type OrganizationApplicationResponse = MyApplicationResponse & {
@@ -155,18 +158,33 @@ export const getMyApplications = async (
       .sort({ createdAt: -1 })
       .populate({ path: 'animalId', select: 'name' });
 
-    const formattedApplications: MyApplicationResponse[] = applications.map((application) => {
-      const app = application as unknown as ApplicationWithOptionalAnimal;
-      return {
-        applicationId: app.id,
-        animalId: resolveAnimalId(app),
-        animalName: resolveAnimalName(app),
-        status: normalizeStatus(app.status),
-        createdAt: app.createdAt,
-      };
-    });
+    const formattedApplications: Omit<MyApplicationResponse, 'notification'>[] = applications.map(
+      (application) => {
+        const app = application as unknown as ApplicationWithOptionalAnimal;
+        return {
+          applicationId: app.id,
+          animalId: resolveAnimalId(app),
+          animalName: resolveAnimalName(app),
+          status: normalizeStatus(app.status),
+          createdAt: app.createdAt,
+        };
+      },
+    );
 
-    res.status(200).json({ applications: formattedApplications });
+    const notificationSnapshots = await getNotificationSnapshotsByApplicationIds(
+      userId,
+      'application-status-updated',
+      formattedApplications.map((application) => application.applicationId),
+    );
+
+    const applicationsWithNotifications: MyApplicationResponse[] = formattedApplications.map(
+      (application) => ({
+        ...application,
+        notification: notificationSnapshots.get(application.applicationId) ?? null,
+      }),
+    );
+
+    res.status(200).json({ applications: applicationsWithNotifications });
   } catch (error) {
     res.status(500).json({ message: 'Kunde inte hämta ansökningar', error });
   }
@@ -238,30 +256,43 @@ export const getOrganizationApplications = async (
       })
       .populate({ path: 'userId', select: 'username email' });
 
-    const formattedApplications: OrganizationApplicationResponse[] = applications
-      .map((application) => application as unknown as ApplicationWithOptionalAnimal)
-      .filter((application) => !!application.animalId && typeof application.animalId === 'object')
-      .map((application) => ({
-        applicationId: application.id,
-        applicantName: resolveApplicantName(application),
-        applicantEmail: resolveApplicantEmail(application),
-        animalId: resolveAnimalId(application),
-        animalName: resolveAnimalName(application),
-        status: normalizeStatus(application.status),
-        createdAt: application.createdAt,
-        details: {
-          housingType: application.housingType || '',
-          housingSize: normalizeNumber(application.housingSize),
-          hasAnimalExperience: normalizeBoolean(application.hasAnimalExperience),
-          hasChildren: normalizeBoolean(application.hasChildren),
-          hasAllergies: normalizeBoolean(application.hasAllergies),
-          allergyDetails: application.allergyDetails || '',
-          motivation: application.motivation || '',
-          gdprConsent: normalizeBoolean(application.gdprConsent),
-        },
+    const formattedApplications: Omit<OrganizationApplicationResponse, 'notification'>[] =
+      applications
+        .map((application) => application as unknown as ApplicationWithOptionalAnimal)
+        .filter((application) => !!application.animalId && typeof application.animalId === 'object')
+        .map((application) => ({
+          applicationId: application.id,
+          applicantName: resolveApplicantName(application),
+          applicantEmail: resolveApplicantEmail(application),
+          animalId: resolveAnimalId(application),
+          animalName: resolveAnimalName(application),
+          status: normalizeStatus(application.status),
+          createdAt: application.createdAt,
+          details: {
+            housingType: application.housingType || '',
+            housingSize: normalizeNumber(application.housingSize),
+            hasAnimalExperience: normalizeBoolean(application.hasAnimalExperience),
+            hasChildren: normalizeBoolean(application.hasChildren),
+            hasAllergies: normalizeBoolean(application.hasAllergies),
+            allergyDetails: application.allergyDetails || '',
+            motivation: application.motivation || '',
+            gdprConsent: normalizeBoolean(application.gdprConsent),
+          },
+        }));
+
+    const notificationSnapshots = await getNotificationSnapshotsByApplicationIds(
+      userId,
+      'application-created',
+      formattedApplications.map((application) => application.applicationId),
+    );
+
+    const applicationsWithNotifications: OrganizationApplicationResponse[] =
+      formattedApplications.map((application) => ({
+        ...application,
+        notification: notificationSnapshots.get(application.applicationId) ?? null,
       }));
 
-    res.status(200).json({ applications: formattedApplications });
+    res.status(200).json({ applications: applicationsWithNotifications });
   } catch (error) {
     res.status(500).json({ message: 'Kunde inte hämta ansökningar', error });
   }
@@ -327,6 +358,7 @@ export const updateApplicationStatus = async (
           status?: string;
           animalNameSnapshot?: string;
         },
+        previousStatus,
       );
     }
 

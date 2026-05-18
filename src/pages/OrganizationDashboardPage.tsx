@@ -1,41 +1,38 @@
-import { useMemo, useState, type FormEvent } from "react";
-import styles from "./OrganizationDashboardPage.module.css";
-import { useUser } from "../context/UserContext";
-import { useMarkNotificationsAsReadOnMount } from "../hooks/useMarkNotificationsAsReadOnMount";
-import {
-  navItems,
-  sectionMeta,
-} from "../features/organizationDashboard/constants";
-import type {
-  ApplicationStatus,
-  SectionKey,
-} from "../features/organizationDashboard/types";
-import { useOrganizationApplications } from "../features/organizationDashboard/hooks/useOrganizationApplications";
-import { useOrganizationAnimals } from "../features/organizationDashboard/hooks/useOrganizationAnimals";
-import SidebarNav from "../features/organizationDashboard/components/SidebarNav";
-import DashboardHeader from "../features/organizationDashboard/components/DashboardHeader";
-import OverviewSection from "../features/organizationDashboard/components/OverviewSection";
-import ApplicationsSection from "../features/organizationDashboard/components/ApplicationsSection";
-import AnimalsSection from "../features/organizationDashboard/components/AnimalsSection";
-import AddAnimalSection from "../features/organizationDashboard/components/AddAnimalSection";
-import AddAnimalModal from "../features/organizationDashboard/components/AddAnimalModal";
-import AnimalDetailsModal from "../features/organizationDashboard/components/AnimalDetailsModal";
+import { useMemo, useState, type FormEvent } from 'react';
+import styles from './OrganizationDashboardPage.module.css';
+import { useUser } from '../context/UserContext';
+import { navItems, sectionMeta } from '../features/organizationDashboard/constants';
+import type { ApplicationStatus, SectionKey } from '../features/organizationDashboard/types';
+import { useOrganizationApplications } from '../features/organizationDashboard/hooks/useOrganizationApplications';
+import { useOrganizationAnimals } from '../features/organizationDashboard/hooks/useOrganizationAnimals';
+import SidebarNav from '../features/organizationDashboard/components/SidebarNav';
+import DashboardHeader from '../features/organizationDashboard/components/DashboardHeader';
+import OverviewSection from '../features/organizationDashboard/components/OverviewSection';
+import ApplicationsSection from '../features/organizationDashboard/components/ApplicationsSection';
+import AnimalsSection from '../features/organizationDashboard/components/AnimalsSection';
+import AddAnimalSection from '../features/organizationDashboard/components/AddAnimalSection';
+import AddAnimalModal from '../features/organizationDashboard/components/AddAnimalModal';
+import AnimalDetailsModal from '../features/organizationDashboard/components/AnimalDetailsModal';
 
 const statusClassMap: Record<ApplicationStatus, string> = {
   Inskickad: styles.statusSubmitted,
   Granskas: styles.statusReview,
   Godkänd: styles.statusApproved,
   Nekad: styles.statusRejected,
-  "Behöver mer info": styles.statusMoreInfo,
+  'Behöver mer info': styles.statusMoreInfo,
 };
 
 export default function OrganizationDashboardPage() {
   const { user } = useUser();
-  useMarkNotificationsAsReadOnMount("application-created");
-  const [activeSection, setActiveSection] = useState<SectionKey>("overview");
+  const [activeSection, setActiveSection] = useState<SectionKey>('overview');
 
-  const { applications, updateApplicationStatus, overviewStats, reviewCount } =
-    useOrganizationApplications(user?.username);
+  const {
+    applications,
+    updateApplicationStatus,
+    markApplicationNotificationAsRead,
+    overviewStats,
+    reviewCount,
+  } = useOrganizationApplications(user?.username);
 
   const {
     animals,
@@ -78,13 +75,13 @@ export default function OrganizationDashboardPage() {
 
   const handleOpenAnimalModal = () => {
     openAnimalModal();
-    setActiveSection("add-animal");
+    setActiveSection('add-animal');
   };
 
   const handleSectionClick = (key: SectionKey) => {
     setActiveSection(key);
 
-    if (key === "add-animal") {
+    if (key === 'add-animal') {
       openAnimalModal();
     } else {
       closeAnimalModal();
@@ -96,7 +93,7 @@ export default function OrganizationDashboardPage() {
     const success = await submitAddAnimal();
 
     if (success) {
-      setActiveSection("animals");
+      setActiveSection('animals');
     }
   };
 
@@ -109,7 +106,7 @@ export default function OrganizationDashboardPage() {
     const success = await deleteSelectedAnimal();
 
     if (success) {
-      setActiveSection("animals");
+      setActiveSection('animals');
     }
   };
 
@@ -127,12 +124,12 @@ export default function OrganizationDashboardPage() {
           <DashboardHeader
             activeSection={activeSection}
             sectionMeta={sectionMeta}
-            onOpenApplications={() => setActiveSection("applications")}
+            onOpenApplications={() => setActiveSection('applications')}
             onOpenAddAnimal={handleOpenAnimalModal}
             styles={styles}
           />
 
-          {activeSection === "overview" && (
+          {activeSection === 'overview' && (
             <OverviewSection
               stats={stats}
               overviewStats={overviewStats}
@@ -141,17 +138,18 @@ export default function OrganizationDashboardPage() {
             />
           )}
 
-          {activeSection === "applications" && (
+          {activeSection === 'applications' && (
             <ApplicationsSection
               applications={applications}
               overviewStats={overviewStats}
               statusClassMap={statusClassMap}
               onUpdateStatus={updateApplicationStatus}
+              onMarkNotificationRead={markApplicationNotificationAsRead}
               styles={styles}
             />
           )}
 
-          {activeSection === "animals" && (
+          {activeSection === 'animals' && (
             <AnimalsSection
               animals={animals}
               onOpenAnimalDetails={openAnimalDetails}
@@ -159,11 +157,11 @@ export default function OrganizationDashboardPage() {
             />
           )}
 
-          {activeSection === "add-animal" && (
+          {activeSection === 'add-animal' && (
             <AddAnimalSection
               submitMessage={submitMessage}
               onOpenForm={handleOpenAnimalModal}
-              onGoToAnimals={() => setActiveSection("animals")}
+              onGoToAnimals={() => setActiveSection('animals')}
               styles={styles}
             />
           )}

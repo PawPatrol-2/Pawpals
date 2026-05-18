@@ -1,12 +1,8 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { sortAnimalsNewestFirst } from "../../../utils/sortAnimalsNewestFirst";
-import { initialAnimalFormState } from "../constants";
-import type { AnimalFormState, AnimalItem } from "../types";
-import {
-  buildEditDataFromAnimal,
-  normalizeImageForApi,
-  resolveImageUrl,
-} from "../utils";
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { sortAnimalsNewestFirst } from '../../../utils/sortAnimalsNewestFirst';
+import { initialAnimalFormState } from '../constants';
+import type { AnimalFormState, AnimalItem } from '../types';
+import { buildEditDataFromAnimal, normalizeImageForApi, resolveImageUrl } from '../utils';
 
 type ApiAnimal = {
   _id?: string;
@@ -27,13 +23,13 @@ type ApiAnimal = {
 };
 
 const parseBoolean = (value: boolean | string | undefined): boolean => {
-  if (typeof value === "boolean") {
+  if (typeof value === 'boolean') {
     return value;
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase();
-    return normalized === "true" || normalized === "1" || normalized === "on";
+    return normalized === 'true' || normalized === '1' || normalized === 'on';
   }
 
   return false;
@@ -42,14 +38,14 @@ const parseBoolean = (value: boolean | string | undefined): boolean => {
 const parseLikes = (likes: string[] | string | undefined): string[] => {
   if (Array.isArray(likes)) {
     return likes
-      .flatMap((value) => value.split(","))
+      .flatMap((value) => value.split(','))
       .map((value) => value.trim())
       .filter(Boolean);
   }
 
-  if (typeof likes === "string") {
+  if (typeof likes === 'string') {
     return likes
-      .split(",")
+      .split(',')
       .map((value) => value.trim())
       .filter(Boolean);
   }
@@ -59,11 +55,11 @@ const parseLikes = (likes: string[] | string | undefined): string[] => {
 
 const appendLikesToPayload = (payload: FormData, likesText: string) => {
   const likes = likesText
-    .split(",")
+    .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
 
-  likes.forEach((like) => payload.append("likes", like));
+  likes.forEach((like) => payload.append('likes', like));
 };
 
 const isRequiredTextFilled = (value: string) => value.trim().length > 0;
@@ -82,26 +78,24 @@ const parseOptionalAge = (value: string): number | null => {
 };
 
 const toAgeLabel = (age: number | undefined): string => {
-  if (typeof age === "number" && Number.isFinite(age) && age >= 0) {
+  if (typeof age === 'number' && Number.isFinite(age) && age >= 0) {
     return `${age} år`;
   }
 
-  return "Okänd";
+  return 'Okänd';
 };
 
 export const useOrganizationAnimals = (username?: string) => {
   const [animals, setAnimals] = useState<AnimalItem[]>([]);
-  const [formData, setFormData] = useState<AnimalFormState>(
-    initialAnimalFormState,
-  );
+  const [formData, setFormData] = useState<AnimalFormState>(initialAnimalFormState);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitMessage, setSubmitMessage] = useState('');
 
   const [selectedAnimal, setSelectedAnimal] = useState<AnimalItem | null>(null);
   const [isAnimalDetailsOpen, setIsAnimalDetailsOpen] = useState(false);
   const [editData, setEditData] = useState<AnimalFormState | null>(null);
-  const [editMessage, setEditMessage] = useState("");
+  const [editMessage, setEditMessage] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDeletingAnimal, setIsDeletingAnimal] = useState(false);
@@ -109,13 +103,15 @@ export const useOrganizationAnimals = (username?: string) => {
   useEffect(() => {
     const loadAnimals = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/animals");
+        const response = await fetch('http://localhost:3000/api/animals');
 
         if (!response.ok) {
           return;
         }
 
-        const data = (await response.json()) as ApiAnimal[];
+        const raw = await response.json();
+
+        const data = Array.isArray(raw) ? raw : (raw?.animals ?? []);
 
         if (Array.isArray(data) && data.length > 0) {
           const ownerAnimals: AnimalItem[] = sortAnimalsNewestFirst(data)
@@ -128,15 +124,15 @@ export const useOrganizationAnimals = (username?: string) => {
               type: animal.type,
               breed: animal.breed,
               age: toAgeLabel(animal.age),
-              keyTraits: animal.keyTraits || "",
+              keyTraits: animal.keyTraits || '',
               likes: parseLikes(animal.likes),
-              city: animal.city?.trim() || "",
+              city: animal.city?.trim() || '',
               childFriendly: parseBoolean(animal.childFriendly),
               personality: animal.personality,
               image: resolveImageUrl(animal.image),
-              description: animal.description || animal.keyTraits || "",
+              description: animal.description || animal.keyTraits || '',
               organizationOwner: animal.organizationOwner,
-              status: "Tillgänglig",
+              status: 'Tillgänglig',
             }));
 
           setAnimals(ownerAnimals);
@@ -150,15 +146,12 @@ export const useOrganizationAnimals = (username?: string) => {
   }, [username]);
 
   const canEditSelectedAnimal = useMemo(
-    () =>
-      !!selectedAnimal &&
-      !!username &&
-      selectedAnimal.organizationOwner === username,
+    () => !!selectedAnimal && !!username && selectedAnimal.organizationOwner === username,
     [selectedAnimal, username],
   );
 
   const openAnimalModal = () => {
-    setSubmitMessage("");
+    setSubmitMessage('');
     setIsModalOpen(true);
   };
 
@@ -172,7 +165,7 @@ export const useOrganizationAnimals = (username?: string) => {
     if (!file) {
       setFormData((current) => ({
         ...current,
-        imagePreview: "",
+        imagePreview: '',
         imageFile: null,
       }));
       return;
@@ -182,7 +175,7 @@ export const useOrganizationAnimals = (username?: string) => {
     reader.onload = () => {
       setFormData((current) => ({
         ...current,
-        imagePreview: typeof reader.result === "string" ? reader.result : "",
+        imagePreview: typeof reader.result === 'string' ? reader.result : '',
         imageFile: file,
       }));
     };
@@ -203,10 +196,7 @@ export const useOrganizationAnimals = (username?: string) => {
     reader.onload = () => {
       setEditData({
         ...editData,
-        imagePreview:
-          typeof reader.result === "string"
-            ? reader.result
-            : editData.imagePreview,
+        imagePreview: typeof reader.result === 'string' ? reader.result : editData.imagePreview,
         imageFile: file,
       });
     };
@@ -239,58 +229,56 @@ export const useOrganizationAnimals = (username?: string) => {
       !isRequiredTextFilled(formData.city) ||
       !formData.imageFile
     ) {
-      setSubmitMessage(
-        "Fyll i obligatoriska fält: bild, namn, typ, ras och stad.",
-      );
+      setSubmitMessage('Fyll i obligatoriska fält: bild, namn, typ, ras och stad.');
       return false;
     }
 
     const parsedAge = parseOptionalAge(formData.age);
     if (formData.age.trim() && parsedAge === null) {
-      setSubmitMessage("Ålder måste vara ett tal större än eller lika med 0.");
+      setSubmitMessage('Ålder måste vara ett tal större än eller lika med 0.');
       return false;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage("");
+    setSubmitMessage('');
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        setSubmitMessage("Du behöver vara inloggad för att lägga upp djur.");
+        setSubmitMessage('Du behöver vara inloggad för att lägga upp djur.');
         return false;
       }
 
       const payload = new FormData();
-      payload.append("type", formData.type.trim());
-      payload.append("breed", formData.breed.trim());
-      payload.append("name", formData.name.trim());
+      payload.append('type', formData.type.trim());
+      payload.append('breed', formData.breed.trim());
+      payload.append('name', formData.name.trim());
       if (parsedAge !== null) {
-        payload.append("age", String(parsedAge));
+        payload.append('age', String(parsedAge));
       }
       if (formData.keyTraits.trim()) {
-        payload.append("keyTraits", formData.keyTraits.trim());
+        payload.append('keyTraits', formData.keyTraits.trim());
       }
       appendLikesToPayload(payload, formData.likes);
-      payload.append("city", formData.city.trim());
-      payload.append("childFriendly", String(formData.childFriendly));
+      payload.append('city', formData.city.trim());
+      payload.append('childFriendly', String(formData.childFriendly));
       if (formData.personality.trim()) {
-        payload.append("personality", formData.personality.trim());
+        payload.append('personality', formData.personality.trim());
       }
       if (formData.description.trim()) {
-        payload.append("description", formData.description.trim());
+        payload.append('description', formData.description.trim());
       }
-      payload.append("organizationOwner", username || "");
+      payload.append('organizationOwner', username || '');
 
       if (!formData.imageFile) {
-        setSubmitMessage("Du måste ladda upp en bild för djuret.");
+        setSubmitMessage('Du måste ladda upp en bild för djuret.');
         return false;
       }
 
-      payload.append("imageFile", formData.imageFile);
+      payload.append('imageFile', formData.imageFile);
 
-      const response = await fetch("http://localhost:3000/api/animals", {
-        method: "POST",
+      const response = await fetch('http://localhost:3000/api/animals', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -305,20 +293,20 @@ export const useOrganizationAnimals = (username?: string) => {
 
         if (response.status === 413) {
           setSubmitMessage(
-            "Bilden är för stor att skicka. Testa en mindre bildfil (eller komprimera den) och försök igen.",
+            'Bilden är för stor att skicka. Testa en mindre bildfil (eller komprimera den) och försök igen.',
           );
           return false;
         }
 
         const detailText =
-          typeof errorData.err === "string"
+          typeof errorData.err === 'string'
             ? errorData.err
-            : errorData.err && typeof errorData.err === "object"
+            : errorData.err && typeof errorData.err === 'object'
               ? JSON.stringify(errorData.err)
-              : "";
+              : '';
 
         setSubmitMessage(
-          `${errorData.error || "Kunde inte skapa djuret."} (HTTP ${response.status})${detailText ? ` - ${detailText}` : ""}`,
+          `${errorData.error || 'Kunde inte skapa djuret.'} (HTTP ${response.status})${detailText ? ` - ${detailText}` : ''}`,
         );
         return false;
       }
@@ -333,26 +321,25 @@ export const useOrganizationAnimals = (username?: string) => {
           type: createdAnimal.type,
           breed: createdAnimal.breed,
           age: toAgeLabel(createdAnimal.age),
-          keyTraits: createdAnimal.keyTraits || "",
+          keyTraits: createdAnimal.keyTraits || '',
           likes: parseLikes(createdAnimal.likes),
-          city: createdAnimal.city?.trim() || "",
+          city: createdAnimal.city?.trim() || '',
           childFriendly: parseBoolean(createdAnimal.childFriendly),
           personality: createdAnimal.personality,
           image: resolveImageUrl(createdAnimal.image),
-          description:
-            createdAnimal.description || createdAnimal.keyTraits || "",
+          description: createdAnimal.description || createdAnimal.keyTraits || '',
           organizationOwner: createdAnimal.organizationOwner || username,
-          status: "Tillgänglig",
+          status: 'Tillgänglig',
         },
         ...current,
       ]);
 
       setFormData(initialAnimalFormState);
       setIsModalOpen(false);
-      setSubmitMessage("Djuret har sparats på servern.");
+      setSubmitMessage('Djuret har sparats på servern.');
       return true;
     } catch {
-      setSubmitMessage("Något gick fel när djuret skulle sparas.");
+      setSubmitMessage('Något gick fel när djuret skulle sparas.');
       return false;
     } finally {
       setIsSubmitting(false);
@@ -362,7 +349,7 @@ export const useOrganizationAnimals = (username?: string) => {
   const openAnimalDetails = (animal: AnimalItem) => {
     setSelectedAnimal(animal);
     setEditData(buildEditDataFromAnimal(animal));
-    setEditMessage("");
+    setEditMessage('');
     setIsEditMode(false);
     setIsAnimalDetailsOpen(true);
   };
@@ -371,7 +358,7 @@ export const useOrganizationAnimals = (username?: string) => {
     setIsAnimalDetailsOpen(false);
     setSelectedAnimal(null);
     setEditData(null);
-    setEditMessage("");
+    setEditMessage('');
     setIsEditMode(false);
   };
 
@@ -380,7 +367,7 @@ export const useOrganizationAnimals = (username?: string) => {
       return;
     }
 
-    setEditMessage("");
+    setEditMessage('');
     setIsEditMode(true);
   };
 
@@ -389,7 +376,7 @@ export const useOrganizationAnimals = (username?: string) => {
       setEditData(buildEditDataFromAnimal(selectedAnimal));
     }
 
-    setEditMessage("");
+    setEditMessage('');
     setIsEditMode(false);
   };
 
@@ -400,7 +387,7 @@ export const useOrganizationAnimals = (username?: string) => {
 
     if (!selectedAnimal.mongoId) {
       setEditMessage(
-        "Det här djuret saknar databas-id och kan inte uppdateras. Ladda om sidan och testa igen.",
+        'Det här djuret saknar databas-id och kan inte uppdateras. Ladda om sidan och testa igen.',
       );
       return false;
     }
@@ -411,62 +398,59 @@ export const useOrganizationAnimals = (username?: string) => {
       !isRequiredTextFilled(editData.breed) ||
       !isRequiredTextFilled(editData.city)
     ) {
-      setEditMessage("Fyll i obligatoriska fält: namn, typ, ras och stad.");
+      setEditMessage('Fyll i obligatoriska fält: namn, typ, ras och stad.');
       return false;
     }
 
     const parsedAge = parseOptionalAge(editData.age);
     if (editData.age.trim() && parsedAge === null) {
-      setEditMessage("Ålder måste vara ett tal större än eller lika med 0.");
+      setEditMessage('Ålder måste vara ett tal större än eller lika med 0.');
       return false;
     }
 
     setIsSavingEdit(true);
-    setEditMessage("");
+    setEditMessage('');
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        setEditMessage("Du behöver vara inloggad för att redigera djur.");
+        setEditMessage('Du behöver vara inloggad för att redigera djur.');
         return false;
       }
 
       const payload = new FormData();
-      payload.append("type", editData.type.trim());
-      payload.append("breed", editData.breed.trim());
-      payload.append("name", editData.name.trim());
+      payload.append('type', editData.type.trim());
+      payload.append('breed', editData.breed.trim());
+      payload.append('name', editData.name.trim());
       if (parsedAge !== null) {
-        payload.append("age", String(parsedAge));
+        payload.append('age', String(parsedAge));
       }
       if (editData.keyTraits.trim()) {
-        payload.append("keyTraits", editData.keyTraits.trim());
+        payload.append('keyTraits', editData.keyTraits.trim());
       }
       appendLikesToPayload(payload, editData.likes);
-      payload.append("city", editData.city.trim());
-      payload.append("childFriendly", String(editData.childFriendly));
+      payload.append('city', editData.city.trim());
+      payload.append('childFriendly', String(editData.childFriendly));
       if (editData.personality.trim()) {
-        payload.append("personality", editData.personality.trim());
+        payload.append('personality', editData.personality.trim());
       }
       if (editData.description.trim()) {
-        payload.append("description", editData.description.trim());
+        payload.append('description', editData.description.trim());
       }
 
       if (editData.imageFile) {
-        payload.append("imageFile", editData.imageFile);
+        payload.append('imageFile', editData.imageFile);
       } else {
-        payload.append("image", normalizeImageForApi(editData.imagePreview));
+        payload.append('image', normalizeImageForApi(editData.imagePreview));
       }
 
-      const response = await fetch(
-        `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: payload,
+      const response = await fetch(`http://localhost:3000/api/animals/${selectedAnimal.mongoId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: payload,
+      });
 
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
@@ -488,13 +472,13 @@ export const useOrganizationAnimals = (username?: string) => {
       if (!response.ok) {
         if (response.status === 404) {
           setEditMessage(
-            "Djuret hittades inte i databasen (HTTP 404). Om servern nyligen ändrats, starta om backend och ladda om sidan.",
+            'Djuret hittades inte i databasen (HTTP 404). Om servern nyligen ändrats, starta om backend och ladda om sidan.',
           );
           return false;
         }
 
         setEditMessage(
-          `${data.error || "Kunde inte spara ändringarna."} (HTTP ${response.status})`,
+          `${data.error || 'Kunde inte spara ändringarna.'} (HTTP ${response.status})`,
         );
         return false;
       }
@@ -512,34 +496,28 @@ export const useOrganizationAnimals = (username?: string) => {
                     ? toAgeLabel(data.age)
                     : parsedAge !== null
                       ? toAgeLabel(parsedAge)
-                      : "Okänd",
-                keyTraits: data.keyTraits || editData.keyTraits || "",
-                likes: data.likes
-                  ? parseLikes(data.likes)
-                  : parseLikes(editData.likes),
-                city:
-                  typeof data.city === "string"
-                    ? data.city.trim()
-                    : editData.city,
+                      : 'Okänd',
+                keyTraits: data.keyTraits || editData.keyTraits || '',
+                likes: data.likes ? parseLikes(data.likes) : parseLikes(editData.likes),
+                city: typeof data.city === 'string' ? data.city.trim() : editData.city,
                 childFriendly:
                   data.childFriendly !== undefined
                     ? parseBoolean(data.childFriendly)
                     : editData.childFriendly,
                 personality: data.personality || editData.personality,
                 image: resolveImageUrl(data.image || editData.imagePreview),
-                description: data.description || editData.description || "",
-                organizationOwner:
-                  data.organizationOwner || animal.organizationOwner,
+                description: data.description || editData.description || '',
+                organizationOwner: data.organizationOwner || animal.organizationOwner,
               }
             : animal,
         ),
       );
 
-      setEditMessage("Ändringarna sparades.");
+      setEditMessage('Ändringarna sparades.');
       setIsEditMode(false);
       return true;
     } catch {
-      setEditMessage("Något gick fel när djuret skulle uppdateras.");
+      setEditMessage('Något gick fel när djuret skulle uppdateras.');
       return false;
     } finally {
       setIsSavingEdit(false);
@@ -560,48 +538,41 @@ export const useOrganizationAnimals = (username?: string) => {
     }
 
     setIsDeletingAnimal(true);
-    setEditMessage("");
+    setEditMessage('');
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        setEditMessage("Du behöver vara inloggad för att ta bort djur.");
+        setEditMessage('Du behöver vara inloggad för att ta bort djur.');
         return false;
       }
 
-      const response = await fetch(
-        `http://localhost:3000/api/animals/${selectedAnimal.mongoId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({}),
+      const response = await fetch(`http://localhost:3000/api/animals/${selectedAnimal.mongoId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({}),
+      });
 
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
       };
 
       if (!response.ok) {
-        setEditMessage(
-          `${data.error || "Kunde inte ta bort djuret."} (HTTP ${response.status})`,
-        );
+        setEditMessage(`${data.error || 'Kunde inte ta bort djuret.'} (HTTP ${response.status})`);
         return false;
       }
 
       setAnimals((current) =>
-        current.filter(
-          (animal) => String(animal.id) !== String(selectedAnimal.id),
-        ),
+        current.filter((animal) => String(animal.id) !== String(selectedAnimal.id)),
       );
       closeAnimalDetails();
-      setSubmitMessage("Djuret togs bort från servern.");
+      setSubmitMessage('Djuret togs bort från servern.');
       return true;
     } catch {
-      setEditMessage("Något gick fel när djuret skulle tas bort.");
+      setEditMessage('Något gick fel när djuret skulle tas bort.');
       return false;
     } finally {
       setIsDeletingAnimal(false);

@@ -1,11 +1,6 @@
-export type SectionKey = "overview" | "animals" | "applications" | "add-animal";
+export type SectionKey = 'overview' | 'animals' | 'applications' | 'add-animal';
 
-export type ApplicationStatus =
-  | "Inskickad"
-  | "Granskas"
-  | "Godkänd"
-  | "Nekad"
-  | "Behöver mer info";
+export type ApplicationStatus = 'Inskickad' | 'Granskas' | 'Godkänd' | 'Nekad' | 'Behöver mer info';
 
 export type ApplicationItem = {
   id: number | string;
@@ -15,6 +10,13 @@ export type ApplicationItem = {
   date: string;
   status: ApplicationStatus;
   action: string;
+  notification: {
+    title: string;
+    message: string;
+    previousStatus: string | null;
+    nextStatus: string | null;
+    isUnread: boolean;
+  } | null;
   details: {
     housingType: string;
     housingSize: number | null;
@@ -27,7 +29,7 @@ export type ApplicationItem = {
   };
 };
 
-export type AnimalStatus = "Tillgänglig" | "Reserverad" | "Adopterad";
+export type AnimalStatus = 'Tillgänglig' | 'Reserverad' | 'Adopterad';
 
 export type AnimalItem = {
   id: number | string;

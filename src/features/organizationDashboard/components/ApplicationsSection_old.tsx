@@ -1,6 +1,6 @@
-import { Fragment, useState, useMemo } from 'react';
-import { applicationStatuses } from '../constants';
-import type { ApplicationItem, ApplicationStatus } from '../types';
+import { Fragment, useState } from "react";
+import { applicationStatuses } from "../constants";
+import type { ApplicationItem, ApplicationStatus } from "../types";
 
 type ApplicationsSectionProps = {
   applications: ApplicationItem[];
@@ -23,25 +23,28 @@ export default function ApplicationsSection({
   onMarkNotificationRead,
   styles,
 }: ApplicationsSectionProps) {
-  const [expandedApplicationId, setExpandedApplicationId] = useState<number | string | null>(null);
+  const [expandedApplicationId, setExpandedApplicationId] = useState<
+    number | string | null
+  >(null);
 
   const formatBooleanAnswer = (value: boolean | null) => {
     if (value === null) {
-      return 'Ej angivet';
+      return "Ej angivet";
     }
 
-    return value ? 'Ja' : 'Nej';
+    return value ? "Ja" : "Nej";
   };
   const formatHousingType = (housingType: string) => {
     if (!housingType) {
-      return 'Ej angivet';
+      return "Ej angivet";
     }
 
     return housingType.charAt(0).toUpperCase() + housingType.slice(1);
   };
 
   const handleToggleApplication = (application: ApplicationItem) => {
-    const nextExpanded = expandedApplicationId === application.id ? null : application.id;
+    const nextExpanded =
+      expandedApplicationId === application.id ? null : application.id;
 
     setExpandedApplicationId(nextExpanded);
 
@@ -52,31 +55,19 @@ export default function ApplicationsSection({
 
   const handleContactApplicant = (application: ApplicationItem) => {
     if (!application.applicantEmail) {
-      window.alert('Saknar e-postadress för den här ansökningen.');
+      window.alert("Saknar e-postadress för den här ansökningen.");
       return;
     }
 
-    const subject = encodeURIComponent(`Angående din ansökan om ${application.animal}`);
+    const subject = encodeURIComponent(
+      `Angående din ansökan om ${application.animal}`,
+    );
     const body = encodeURIComponent(
       `Hej ${application.applicant},\n\nJag kontaktar dig angående din ansökan om ${application.animal}.\n\nVänliga hälsningar`,
     );
 
     window.location.href = `mailto:${application.applicantEmail}?subject=${subject}&body=${body}`;
   };
-
-  // Sortera: olästa först, sedan senaste först
-  const sortedApplications = useMemo(() => {
-    return [...applications].sort((a, b) => {
-      const aUnread = a.notification?.isUnread ? 0 : 1;
-      const bUnread = b.notification?.isUnread ? 0 : 1;
-      if (aUnread !== bUnread) {
-        return aUnread - bUnread;
-      }
-      const aDate = new Date(a.date).getTime();
-      const bDate = new Date(b.date).getTime();
-      return bDate - aDate;
-    });
-  }, [applications]);
 
   return (
     <div className={styles.contentGrid}>
@@ -93,39 +84,37 @@ export default function ApplicationsSection({
               </tr>
             </thead>
             <tbody>
-              {sortedApplications.length === 0 && (
+              {applications.length === 0 && (
                 <tr>
                   <td colSpan={4} className={styles.helperText}>
                     Inga ansökningar ännu.
                   </td>
                 </tr>
               )}
-              {sortedApplications.map((application) => (
+              {applications.map((application) => (
                 <Fragment key={application.id}>
-                  <tr className={application.notification?.isUnread ? styles.unreadRow : undefined}>
+                  <tr>
                     <td>
                       <div className={styles.applicationIdentity}>
                         <div>
-                          <div className={styles.applicantName}>{application.applicant}</div>
-                          <div className={styles.animalName}>{application.animal}</div>
+                          <div className={styles.applicantName}>
+                            {application.applicant}
+                          </div>
+                          <div className={styles.animalName}>
+                            {application.animal}
+                          </div>
                         </div>
                         {application.notification?.isUnread && (
-                          <div
-                            className={styles.unreadMarker}
-                            role="button"
-                            onClick={() => onMarkNotificationRead(String(application.id))}
-                            title="Markera som läst"
-                          >
-                            <span className={styles.unreadDot} aria-label="Ny uppdatering" />
-                            <span className={styles.unreadBadge}>Nytt</span>
-                          </div>
+                          <span
+                            className={styles.unreadDot}
+                            aria-label="Ny uppdatering"
+                          />
                         )}
                       </div>
-                      {application.notification?.isUnread && (
-                        <div className={styles.rowUpdateNotification}>
-                          <p className={styles.rowUpdateText}>
-                            ✓ {application.notification.message || 'Din ansökan har uppdaterats'}
-                          </p>
+                      {application.notification && (
+                        <div className={styles.rowUpdateText}>
+                          {application.notification.message ||
+                            "Din ansökan har uppdaterats"}
                         </div>
                       )}
                     </td>
@@ -134,7 +123,10 @@ export default function ApplicationsSection({
                       <select
                         value={application.status}
                         onChange={(event) =>
-                          onUpdateStatus(application.id, event.target.value as ApplicationStatus)
+                          onUpdateStatus(
+                            application.id,
+                            event.target.value as ApplicationStatus,
+                          )
                         }
                         className={`${styles.statusSelect} ${statusClassMap[application.status]}`}
                       >
@@ -152,7 +144,9 @@ export default function ApplicationsSection({
                           className={styles.actionLink}
                           onClick={() => handleToggleApplication(application)}
                         >
-                          {expandedApplicationId === application.id ? 'Dölj' : 'Visa'}
+                          {expandedApplicationId === application.id
+                            ? "Dölj"
+                            : "Visa"}
                         </button>
                         <button
                           type="button"
@@ -171,26 +165,34 @@ export default function ApplicationsSection({
                         <div className={styles.applicationDetailsCard}>
                           <div className={styles.applicationDetailsGrid}>
                             <p>
-                              <strong>Boendetyp:</strong>{' '}
-                              {formatHousingType(application.details.housingType)}
+                              <strong>Boendetyp:</strong>{" "}
+                              {formatHousingType(
+                                application.details.housingType,
+                              )}
                             </p>
                             <p>
-                              <strong>Storlek på bostad:</strong>{' '}
+                              <strong>Storlek på bostad:</strong>{" "}
                               {application.details.housingSize === null
-                                ? 'Ej angivet'
+                                ? "Ej angivet"
                                 : `${application.details.housingSize} kvm`}
                             </p>
                             <p>
-                              <strong>Djurvana:</strong>{' '}
-                              {formatBooleanAnswer(application.details.hasAnimalExperience)}
+                              <strong>Djurvana:</strong>{" "}
+                              {formatBooleanAnswer(
+                                application.details.hasAnimalExperience,
+                              )}
                             </p>
                             <p>
-                              <strong>Barn i hemmet:</strong>{' '}
-                              {formatBooleanAnswer(application.details.hasChildren)}
+                              <strong>Barn i hemmet:</strong>{" "}
+                              {formatBooleanAnswer(
+                                application.details.hasChildren,
+                              )}
                             </p>
                             <p>
-                              <strong>Allergier i hemmet:</strong>{' '}
-                              {formatBooleanAnswer(application.details.hasAllergies)}
+                              <strong>Allergier i hemmet:</strong>{" "}
+                              {formatBooleanAnswer(
+                                application.details.hasAllergies,
+                              )}
                             </p>
                           </div>
 
@@ -198,14 +200,18 @@ export default function ApplicationsSection({
                             <div className={styles.applicationMessageBlock}>
                               <strong>Allergidetaljer</strong>
                               <p>
-                                {application.details.allergyDetails || 'Inga detaljer angivna.'}
+                                {application.details.allergyDetails ||
+                                  "Inga detaljer angivna."}
                               </p>
                             </div>
                           )}
 
                           <div className={styles.applicationMessageBlock}>
                             <strong>Meddelande till organisationen</strong>
-                            <p>{application.details.motivation || 'Inget meddelande angivet.'}</p>
+                            <p>
+                              {application.details.motivation ||
+                                "Inget meddelande angivet."}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -223,9 +229,11 @@ export default function ApplicationsSection({
         <p className={styles.helperText}>
           Uppdatera status direkt i tabellen. Alla ändringar syns omedelbart.
         </p>
-        <div className={styles.badgeRow} style={{ marginTop: '14px' }}>
+        <div className={styles.badgeRow} style={{ marginTop: "14px" }}>
           <span className={styles.badge}>{overviewStats.pending} pågående</span>
-          <span className={styles.badge}>{overviewStats.approved} godkända</span>
+          <span className={styles.badge}>
+            {overviewStats.approved} godkända
+          </span>
           <span className={styles.badge}>{overviewStats.rejected} nekade</span>
         </div>
       </section>
