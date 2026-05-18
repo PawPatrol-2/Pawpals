@@ -11,6 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node"]
   },
-  "include": ["src", "removeUsernameIndex.ts"],
+  "include": ["src", "removeUsernameIndex.ts", "src/services"],
   "exclude": ["node_modules", "dist"]
 }
