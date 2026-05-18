@@ -8,6 +8,8 @@ import {
 } from "../controllers/animalController";
 import authenticate from "../middleware/auth";
 import multer from "multer";
+import { animalSchema, updateAnimalSchema, deleteAnimalParamsSchema } from "../schemas/animalSchemas";
+import { validateRequest } from "../middleware/validate";
 
 const router = express.Router();
 
@@ -28,8 +30,8 @@ const upload = multer({
 
 router.get("/", getAnimals);
 router.get("/:id", getAnimalById);
-router.delete("/:id", authenticate, deleteAnimal);
-router.post("/", authenticate, upload.single("imageFile"), createAnimal);
-router.put("/:id", authenticate, upload.single("imageFile"), updateAnimal);
+router.delete("/:id", authenticate, validateRequest({ params: deleteAnimalParamsSchema }), deleteAnimal);
+router.post("/", authenticate, validateRequest({ body: animalSchema }), upload.single("imageFile"), createAnimal);
+router.put("/:id", authenticate, upload.single("imageFile"), validateRequest({ body: updateAnimalSchema }), updateAnimal);
 
 export default router;

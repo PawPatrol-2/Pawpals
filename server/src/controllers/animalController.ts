@@ -6,6 +6,7 @@ import {
   deleteAnimalImage,
   uploadAnimalImage,
 } from "../services/cloudinaryService";
+import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from "../types/animal";
 
 type AnimalRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 
@@ -220,7 +221,8 @@ export const getAnimalById = async (req: Request, res: Response) => {
 
 export const deleteAnimal = async (req: AnimalRequest, res: Response) => {
   try {
-    const existingAnimal = await Animal.findById(req.params.id);
+    const params = req.validatedParams as DeleteAnimalInput
+    const existingAnimal = await Animal.findById(params.id);
 
     if (!existingAnimal) {
       return res.status(404).json({ error: "Animal not found" });
@@ -236,7 +238,7 @@ export const deleteAnimal = async (req: AnimalRequest, res: Response) => {
       });
     }
 
-    const animal = await Animal.findByIdAndDelete(req.params.id);
+    const animal = await Animal.findByIdAndDelete(params.id); 
 
     if (!animal) {
       return res.status(404).json({ error: "Animal not found" });
@@ -260,14 +262,9 @@ export const createAnimal = async (req: AnimalRequest, res: Response) => {
         error: "Endast organisationer får lägga upp djur.",
       });
     }
+    const body = req.validatedBody as CreateAnimalInput;
 
-    const name = toRequiredText(req.body.name);
-    const type = toRequiredText(req.body.type);
-    const breed = toRequiredText(req.body.breed);
-    const city = toCity(req.body.city);
-    const hasImage = !!req.file || !!req.body.image;
-
-    if (!hasImage || !name || !type || !breed || !city) {
+    if (!body.image || !body.name || !body.type || !body.breed || !body.city) {
       return res.status(400).json({
         error:
           "Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.",
@@ -278,18 +275,18 @@ export const createAnimal = async (req: AnimalRequest, res: Response) => {
     const imagePath = uploadedImage?.url ?? req.body.image;
 
     const payload = {
-      ...req.body,
-      name,
-      type,
-      breed,
+      ...body,
+      name: body.name,
+      type: body.type,
+      breed: body.breed,
       image: imagePath,
       imagePublicId: uploadedImage?.publicId,
-      city,
-      age: toOptionalAge(req.body.age),
-      keyTraits: toOptionalText(req.body.keyTraits),
-      personality: toOptionalText(req.body.personality),
-      description: toOptionalText(req.body.description),
-      childFriendly: toBoolean(req.body.childFriendly),
+      city: body.city,
+      age: body.age,
+      keyTraits: toOptionalText(body.keyTraits),
+      personality: toOptionalText(body.personality),
+      description: toOptionalText(body.description),
+      childFriendly: toBoolean(body.childFriendly),
       organizationOwner: requester,
     };
 
@@ -329,13 +326,9 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
       [key: string]: unknown;
     };
 
-    const name = toRequiredText(restBody.name);
-    const type = toRequiredText(restBody.type);
-    const breed = toRequiredText(restBody.breed);
-    const city = toCity(restBody.city);
-    const hasImage = !!req.file || !!restBody.image;
+   const body = req.validatedBody as UpdateAnimalInput;
 
-    if (!hasImage || !name || !type || !breed || !city) {
+    if (!body.image || !body.name || !body.type || !body.breed || !body.city) {
       return res.status(400).json({
         error:
           "Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.",
@@ -346,20 +339,20 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
     const imagePath = uploadedImage?.url ?? restBody.image;
 
     const payload = {
-      ...restBody,
-      name,
-      type,
-      breed,
+      ...body,
+      name: body.name,
+      type: body.type,
+      breed: body.breed,
       image: imagePath,
       imagePublicId:
         uploadedImage?.publicId ??
         (existingAnimal as unknown as { imagePublicId?: string }).imagePublicId,
-      city,
-      age: toOptionalAge(restBody.age),
-      keyTraits: toOptionalText(restBody.keyTraits),
-      personality: toOptionalText(restBody.personality),
-      description: toOptionalText(restBody.description),
-      childFriendly: toBoolean(restBody.childFriendly),
+      city: body.city,
+      age: body.age,
+      keyTraits: toOptionalText(body.keyTraits),
+      personality: toOptionalText(body.personality),
+      description: toOptionalText(body.description),
+      childFriendly: toBoolean(body.childFriendly),
       organizationOwner: owner,
     };
 
