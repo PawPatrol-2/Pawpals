@@ -1,8 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Animal } from "../types/animal";
 import styles from "./AnimalDetailPage.module.css";
 import { useUser } from "../context/UserContext";
+import {
+  getFavoriteIdsSnapshot,
+  notifyFavoritesChanged,
+  parseFavoriteIdsSnapshot,
+  subscribeToFavorites,
+  toggleFavoriteAnimal,
+} from "../utils/favorites";
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +24,17 @@ export default function AnimalDetailPage() {
   const [hasApplied, setHasApplied] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
+  const userId = user?.id;
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => subscribeToFavorites(userId, onStoreChange),
+    [userId],
+  );
+  const getSnapshot = useCallback(() => getFavoriteIdsSnapshot(userId), [userId]);
+  const favoritesSnapshot = useSyncExternalStore(subscribe, getSnapshot, () => "[]");
+  const favoriteAnimalIds = useMemo(
+    () => parseFavoriteIdsSnapshot(favoritesSnapshot),
+    [favoritesSnapshot],
+  );
 
   const handleApply = () => {
     if (!user) {
@@ -97,6 +121,10 @@ export default function AnimalDetailPage() {
   }, [animal]);
 
   const cityText = animal?.city?.trim() || "Ej angiven";
+  const isFavorite = useMemo(
+    () => (animal ? favoriteAnimalIds.includes(animal._id) : false),
+    [animal, favoriteAnimalIds],
+  );
 
   if (isLoading) {
     return (
@@ -123,7 +151,30 @@ export default function AnimalDetailPage() {
   return (
     <main className={styles.page}>
       <article className={styles.detailCard}>
-        <img className={styles.image} src={imageSrc} alt={animal.name} />
+        <button
+          type="button"
+          className={`${styles.detailFavoriteButton} ${isFavorite ? styles.detailFavoriteActive : ""}`}
+          onClick={() => {
+            if (!user) {
+              navigate("/logga-in");
+              return;
+            }
+
+            toggleFavoriteAnimal(user.id, animal._id);
+            notifyFavoritesChanged(user.id);
+          }}
+          aria-label={
+            isFavorite
+              ? `Ta bort ${animal.name} från favoriter`
+              : `Lägg till ${animal.name} i favoriter`
+          }
+        >
+          ♥
+        </button>
+
+        <div className={styles.imageWrap}>
+          <img className={styles.image} src={imageSrc} alt={animal.name} />
+        </div>
 
         <div className={styles.content}>
           <p className={styles.badge}>{animal.type}</p>

@@ -1,4 +1,3 @@
-import React from "react";
 import AdminUserList from "../components/AdminUserList/AdminUserList";
 
 const AdminPage = () => {
