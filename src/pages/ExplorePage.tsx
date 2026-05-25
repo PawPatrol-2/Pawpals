@@ -76,7 +76,7 @@ export default function ExplorePage() {
     totalPages: number;
     totalAnimals: number;
   } | null>(null);
-  const limit = 3;
+  const limit = 6;
   const [page, setPage] = useState(1);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
