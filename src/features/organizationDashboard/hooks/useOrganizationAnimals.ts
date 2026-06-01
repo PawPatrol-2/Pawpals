@@ -222,19 +222,20 @@ export const useOrganizationAnimals = (username?: string) => {
   };
 
   const submitAddAnimal = async (): Promise<boolean> => {
+    const parsedAge = parseOptionalAge(formData.age);
     if (
       !isRequiredTextFilled(formData.name) ||
       !isRequiredTextFilled(formData.type) ||
       !isRequiredTextFilled(formData.breed) ||
       !isRequiredTextFilled(formData.city) ||
-      !formData.imageFile
+      !formData.imageFile ||
+      parsedAge === null
     ) {
-      setSubmitMessage('Fyll i obligatoriska fält: bild, namn, typ, ras och stad.');
+      setSubmitMessage('Fyll i obligatoriska fält: bild, namn, typ, ras, stad och ålder.');
       return false;
     }
 
-    const parsedAge = parseOptionalAge(formData.age);
-    if (formData.age.trim() && parsedAge === null) {
+    if (parsedAge < 0) {
       setSubmitMessage('Ålder måste vara ett tal större än eller lika med 0.');
       return false;
     }

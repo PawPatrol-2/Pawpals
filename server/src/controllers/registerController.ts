@@ -3,10 +3,11 @@ import bcrypt from "bcrypt";
 import User from "../models/User";
 import Organization from "../models/Organisation";
 import { handleControllerError } from "./controllerError";
+import type { RegisterBody } from "../types/user";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { email, username, password, role } = req.body;
+    const { email, username, password, role } = req.body as RegisterBody;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     if (role === "organization") {

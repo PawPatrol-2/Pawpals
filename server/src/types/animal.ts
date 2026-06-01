@@ -1,7 +1,7 @@
 export type CreateAnimalInput = {
     type: string;
     breed: string;
-    image: string;
+    image?: string;
     name: string;
     age: number;
     city: string;
