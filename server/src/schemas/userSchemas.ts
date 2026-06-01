@@ -11,7 +11,7 @@ export const registerSchema = z.object({
       'Användarnamnet får bara innehålla bokstäver, siffror, mellanslag, _ och -.',
     ),
   password: z.string().min(6, 'Lösenordet måste vara minst 6 tecken'),
-  role: z.enum(['adopter', 'organization']).optional(),
+  role: z.enum(['adopter', 'organization']),
 });
 
 export const loginSchema = z.object({

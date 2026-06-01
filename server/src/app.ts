@@ -6,8 +6,11 @@ import applicationsRouter from "./routes/applications";
 import notificationsRouter from "./routes/notifications";
 import cors from "cors";
 import path from "node:path";
+import pinoHttp from "pino-http";
+import logger from "./utils/logger";
 
 const app = express();
+app.use(pinoHttp({ logger }));
 
 app.use(cors());
 app.use(express.json({ limit: "15mb" }));

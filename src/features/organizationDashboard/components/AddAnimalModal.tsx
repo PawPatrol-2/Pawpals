@@ -106,7 +106,7 @@ export default function AddAnimalModal({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="age">Ålder</label>
+            <label htmlFor="age">Ålder*</label>
             <input
               id="age"
               type="number"
@@ -114,6 +114,7 @@ export default function AddAnimalModal({
               value={formData.age}
               onChange={(event) => onFieldChange("age", event.target.value)}
               placeholder="T.ex. 2"
+              required
             />
           </div>
 

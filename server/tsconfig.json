@@ -4,13 +4,13 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
-  "include": ["src", "removeUsernameIndex.ts", "src/services"],
+  "include": ["src", "removeUsernameIndex.ts", "src/services", "tests"],
   "exclude": ["node_modules", "dist"]
 }

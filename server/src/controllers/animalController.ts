@@ -264,7 +264,7 @@ export const createAnimal = async (req: AnimalRequest, res: Response) => {
     }
     const body = req.validatedBody as CreateAnimalInput;
 
-    if (!body.image || !body.name || !body.type || !body.breed || !body.city) {
+    if ((!req.file && !body.image) || !body.name || !body.type || !body.breed || !body.city) {
       return res.status(400).json({
         error:
           "Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.",
