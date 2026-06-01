@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Animal } from "../models/animal";
 import Organization from "../models/Organisation";
 import type { AuthenticatedRequest } from "../middleware/auth";
@@ -7,6 +7,12 @@ import {
   uploadAnimalImage,
 } from "../services/cloudinaryService";
 import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from "../types/animal";
+import { ValidationError, 
+    UnauthorizedError,
+    ForbiddenError,
+    NotFoundError,
+    ConflictError
+} from "../errors/AppError"
 
 type AnimalRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 
@@ -205,27 +211,27 @@ export const getAnimals = async (req: Request, res: Response) => {
   }
 };
 
-export const getAnimalById = async (req: Request, res: Response) => {
+export const getAnimalById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const animal = await Animal.findById(req.params.id);
 
     if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
+      throw new NotFoundError("Animal not found")
     }
 
     res.json(animal);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch animal", err });
+    next(err)
   }
 };
 
-export const deleteAnimal = async (req: AnimalRequest, res: Response) => {
+export const deleteAnimal = async (req: AnimalRequest, res: Response, next: NextFunction) => {
   try {
     const params = req.validatedParams as DeleteAnimalInput
     const existingAnimal = await Animal.findById(params.id);
 
     if (!existingAnimal) {
-      return res.status(404).json({ error: "Animal not found" });
+      throw new NotFoundError("Animal not found")
     }
 
     const requester = await resolveOrganizationName(req);

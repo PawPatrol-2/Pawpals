@@ -6,6 +6,7 @@ import applicationsRouter from "./routes/applications";
 import notificationsRouter from "./routes/notifications";
 import cors from "cors";
 import path from "node:path";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 
@@ -18,5 +19,6 @@ app.use("/api/animals", animalsRouter);
 app.use("/api/organisations", organisationsRouter);
 app.use("/api/applications", applicationsRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use(errorHandler)
 
 export default app;
