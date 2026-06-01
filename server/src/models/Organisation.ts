@@ -14,4 +14,6 @@ const OrganizationSchema: Schema = new Schema({
     role: { type: String, required: true, default: "organization"}
 })
 
+
+
 export default mongoose.model<Organization>("Organization", OrganizationSchema)
