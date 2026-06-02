@@ -28,6 +28,7 @@ export interface UserResponse {
   email: string;
   fullname: string;
   role: 'adopter' | 'organization' | 'admin';
+  preferences?: UserPreferences;
 }
 
 export interface OrganisationResponse {

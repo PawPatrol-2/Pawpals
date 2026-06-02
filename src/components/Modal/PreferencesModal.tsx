@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './PreferencesModal.module.css';
+import { notifyUserPreferencesUpdated } from '../../utils/preferenceEvents';
 
 interface PreferencesModalProps {
   onClose: () => void;
@@ -33,6 +34,8 @@ export default function PreferencesModal({ onClose }: PreferencesModalProps) {
     });
 
     if (response.ok) {
+      const data = await response.json();
+      notifyUserPreferencesUpdated(data.preferences);
       setSaved(true);
       setTimeout(() => onClose(), 1500);
     }
