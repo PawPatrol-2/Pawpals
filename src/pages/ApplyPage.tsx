@@ -42,6 +42,10 @@ const ApplyPage = () => {
       alert("Skriv en motivering!");
       return;
     }
+    if (formData.hasAllergies && !formData.allergyDetails) {
+      alert("Beskriv allergierna!");
+      return;
+    }
     if (formData.hasAllergies && !formData.healthDataConsent) {
       alert("Du måste lämna samtycke till behandling av dina hälsouppgifter (allergiinformation)!");
       return;
@@ -185,7 +189,7 @@ const ApplyPage = () => {
 
           {formData.hasAllergies && (
             <div className={styles.allergySection}>
-              <label className={styles.formLabel}>Beskriv allergierna</label>
+              <label className={styles.formLabel}>Beskriv allergierna *</label>
               <input
                 type="text"
                 className={styles.formInput}
@@ -194,6 +198,7 @@ const ApplyPage = () => {
                   setFormData({ ...formData, allergyDetails: e.target.value })
                 }
                 placeholder="T.ex. pälsdjursallergi..."
+                required
               />
               <div className={styles.healthDataConsent}>
                 <input
