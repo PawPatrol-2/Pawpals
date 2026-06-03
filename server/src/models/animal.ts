@@ -15,8 +15,16 @@ const animalSchema = new mongoose.Schema(
     childFriendly: { type: Boolean, required: false, default: false },
     organizationOwner: { type: String, required: false },
     likes: { type: [String], required: false },
+    deletedAt: { type: Date, default: null},
   },
   { timestamps: true },
 );
+
+animalSchema.pre(/^find/, async function(this: mongoose.Query<unknown, unknown>) {
+  this.where({ deletedAt: null });
+});
+
+// Hard delete automatically efter 30 dagar efter soft delete
+animalSchema.index({ deletedAt: 1 }, { expireAfterSeconds: 2592000, partialFilterExpression: { deletedAt: { $type: 'date' } } });
 
 export const Animal = mongoose.model("Animal", animalSchema);

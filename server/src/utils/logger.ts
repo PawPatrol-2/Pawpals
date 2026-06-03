@@ -1,7 +1,7 @@
 import pino from 'pino'
 
 const logger = pino({
-    level: 'trace', // Force log level for debugging
+    level: process.env.LOG_LEVEL || 'info',
     redact: {
             paths: [
                 'req.headers.authorization',
