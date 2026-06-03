@@ -238,15 +238,7 @@ export const deleteAnimal = async (req: AnimalRequest, res: Response) => {
       });
     }
 
-    const animal = await Animal.findByIdAndDelete(params.id); 
-
-    if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
-    }
-
-    await deleteAnimalImage(
-      (animal as unknown as { imagePublicId?: string }).imagePublicId,
-    );
+    await Animal.findByIdAndUpdate(params.id, { deletedAt: new Date() });
 
     res.json({ message: "Animal deleted successfully" });
   } catch (err) {

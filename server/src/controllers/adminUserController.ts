@@ -8,12 +8,12 @@ export const deleteUser = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
 
-    const user = await User.findByIdAndDelete(userId);
+    const user = await User.findByIdAndUpdate(userId, { deletedAt: new Date() });
     if (user) {
       return res.status(200).json({ message: "Användaren borttagen" });
     }
 
-    const organization = await Organization.findByIdAndDelete(userId);
+    const organization = await Organization.findByIdAndUpdate(userId, { deletedAt: new Date() });
     if (organization) {
       return res.status(200).json({ message: "Organisationen borttagen" });
     }
