@@ -7,6 +7,7 @@ import {
   type NotificationSnapshot,
 } from '../utils/services/notifications';
 import styles from './MyApplicationsPage.module.css';
+import ContactOrganisationModal from '../components/Modal/ContactorganisationModal';
 
 type ApplicationStatus = 'Inskickad' | 'Granskas' | 'Godkänd' | 'Nekad' | 'Behöver mer info';
 
@@ -32,7 +33,6 @@ const formatDate = (dateString: string) => {
   if (Number.isNaN(date.getTime())) {
     return 'Okänt datum';
   }
-
   return new Intl.DateTimeFormat('sv-SE', {
     year: 'numeric',
     month: 'long',
@@ -46,6 +46,10 @@ export default function MyApplicationsPage() {
   const [applications, setApplications] = useState<MyApplication[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [contactModal, setContactModal] = useState<{
+    applicationId: string;
+    animalName: string;
+  } | null>(null);
 
   const fetchMyApplications = useCallback(async () => {
     if (!user) {
@@ -93,14 +97,10 @@ export default function MyApplicationsPage() {
   }, [logout, navigate, user]);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
+    if (!user) return;
     const handleFocus = () => {
       void fetchMyApplications();
     };
-
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [fetchMyApplications, user]);
@@ -115,18 +115,11 @@ export default function MyApplicationsPage() {
     void fetchMyApplications();
   }, [fetchMyApplications]);
 
-  useEffect(() => {
-    // Removed automatic marking of all notifications as read here.
-    // We mark individual notifications when the user explicitly clicks the marker.
-  }, [applications.length]);
-
   const markApplicationNotificationAsRead = async (applicationId: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
-
     try {
       await markNotificationsAsRead(token, undefined, applicationId);
-      // Update local state to reflect read status immediately
       setApplications((prev) =>
         prev.map((app) =>
           app.applicationId === applicationId
@@ -139,19 +132,14 @@ export default function MyApplicationsPage() {
       );
       emitNotificationChange();
     } catch {
-      // ignore errors; leave client state as-is
+      // ignore
     }
   };
 
   const content = useMemo(() => {
-    if (isLoading) {
-      return <p className={styles.stateMessage}>Hämtar dina ansökningar...</p>;
-    }
-
-    if (errorMessage) {
+    if (isLoading) return <p className={styles.stateMessage}>Hämtar dina ansökningar...</p>;
+    if (errorMessage)
       return <p className={`${styles.stateMessage} ${styles.error}`}>{errorMessage}</p>;
-    }
-
     if (applications.length === 0) {
       return (
         <p className={styles.stateMessage}>
@@ -160,13 +148,10 @@ export default function MyApplicationsPage() {
       );
     }
 
-    // Sortera: olästa först, sedan senaste först
     const sortedApplications = [...applications].sort((a, b) => {
       const aUnread = a.notification?.isUnread ? 0 : 1;
       const bUnread = b.notification?.isUnread ? 0 : 1;
-      if (aUnread !== bUnread) {
-        return aUnread - bUnread;
-      }
+      if (aUnread !== bUnread) return aUnread - bUnread;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
@@ -175,9 +160,7 @@ export default function MyApplicationsPage() {
         {sortedApplications.map((application) => (
           <li
             key={application.applicationId}
-            className={`${styles.card} ${
-              application.notification?.isUnread ? styles.cardUnread : ''
-            }`}
+            className={`${styles.card} ${application.notification?.isUnread ? styles.cardUnread : ''}`}
           >
             <div>
               <div className={styles.cardHeader}>
@@ -197,12 +180,12 @@ export default function MyApplicationsPage() {
                   </div>
                 )}
               </div>
+
               {application.notification?.isUnread ? (
                 <div className={styles.updateNotification}>
                   <p className={styles.updateMessage}>✓ {application.notification.message}</p>
                 </div>
               ) : (
-                // När notifikationen är läst visar vi bara status-texten
                 <>
                   {application.status === 'Godkänd' && (
                     <p className={`${styles.resultText} ${styles.approvedText}`}>
@@ -221,6 +204,7 @@ export default function MyApplicationsPage() {
                   )}
                 </>
               )}
+
               {!application.notification && (
                 <>
                   {application.status === 'Godkänd' && (
@@ -240,11 +224,24 @@ export default function MyApplicationsPage() {
                   )}
                 </>
               )}
+
+              {application.status === 'Godkänd' && (
+                <button
+                  className={styles.contactButton}
+                  onClick={() =>
+                    setContactModal({
+                      applicationId: application.applicationId,
+                      animalName: application.animalName,
+                    })
+                  }
+                >
+                  Kontakta organisationen
+                </button>
+              )}
             </div>
+
             <span
-              className={`${styles.badge} ${
-                statusClassMap[application.status] ?? styles.submitted
-              }`}
+              className={`${styles.badge} ${statusClassMap[application.status] ?? styles.submitted}`}
             >
               {application.status}
             </span>
@@ -276,6 +273,14 @@ export default function MyApplicationsPage() {
         upp.
       </p>
       {content}
+
+      {contactModal && (
+        <ContactOrganisationModal
+          applicationId={contactModal.applicationId}
+          animalName={contactModal.animalName}
+          onClose={() => setContactModal(null)}
+        />
+      )}
     </main>
   );
 }

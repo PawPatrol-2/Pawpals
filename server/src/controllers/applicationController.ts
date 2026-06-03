@@ -370,3 +370,51 @@ export const updateApplicationStatus = async (
     res.status(500).json({ message: 'Kunde inte uppdatera ansökan', error });
   }
 };
+
+export const getOrganisationContact = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: 'Obehörig användare' });
+      return;
+    }
+
+    const application = await Application.findOne({
+      _id: req.params.id,
+      userId,
+      status: { $in: ['Godkänd', 'approved'] },
+    }).populate({ path: 'animalId', select: 'organizationOwner' });
+
+    if (!application) {
+      res.status(404).json({ message: 'Ansökan hittades inte eller är inte godkänd' });
+      return;
+    }
+
+    const animal = application.animalId as PopulatedAnimal;
+    const orgName = animal?.organizationOwner;
+
+    if (!orgName) {
+      res.status(404).json({ message: 'Kunde inte hitta organisation' });
+      return;
+    }
+
+    const organisation = await Organization.findOne({ organization: orgName }).select(
+      'email organization',
+    );
+
+    if (!organisation) {
+      res.status(404).json({ message: 'Organisation hittades inte' });
+      return;
+    }
+
+    res.status(200).json({
+      name: organisation.organization,
+      email: organisation.email,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Något gick fel', error });
+  }
+};

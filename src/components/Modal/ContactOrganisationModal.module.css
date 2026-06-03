@@ -1,0 +1,96 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 36px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1714;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.loading {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.error {
+  color: #8a1f1f;
+  font-size: 0.9rem;
+}
+
+.contactCard {
+  background: #f8f7f5;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.contactRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+}
+
+.value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1714;
+}
+
+.email {
+  font-size: 1rem;
+  color: #e8713a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.email:hover {
+  text-decoration: underline;
+}
+
+.closeButton {
+  border: 1px solid #e0dbd6;
+  background: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.closeButton:hover {
+  background: #f0ebe6;
+}

@@ -26,3 +26,7 @@ export const preferencesSchema = z.object({
   housingType: z.enum(['lagenhet', 'villa', 'radhus', '']).optional(),
   preferredChildFriendly: z.boolean().optional(),
 });
+
+export const applicationParamsSchema = z.object({
+  id: z.string().min(1, 'ID krävs'),
+});
