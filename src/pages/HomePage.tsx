@@ -16,10 +16,68 @@ import {
   parseFavoriteIdsSnapshot,
   subscribeToFavorites,
 } from "../utils/favorites";
+import {
+  USER_PREFERENCES_UPDATED_EVENT,
+  type UserPreferences,
+} from "../utils/preferenceEvents";
 import styles from "./HomePage.module.css";
+
+function normalizeText(value: string | undefined): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function hasMatchingPreferences(preferences: UserPreferences | null): boolean {
+  if (!preferences) {
+    return false;
+  }
+
+  return Boolean(
+    normalizeText(preferences.preferredAnimalType) ||
+      typeof preferences.preferredMaxAge === "number" ||
+      normalizeText(preferences.preferredPersonality) ||
+      preferences.preferredChildFriendly,
+  );
+}
+
+function getAnimalMatchScore(animal: Animal, preferences: UserPreferences): number {
+  let score = 0;
+  const preferredType = normalizeText(preferences.preferredAnimalType);
+  const preferredPersonality = normalizeText(preferences.preferredPersonality);
+  const animalType = normalizeText(animal.type);
+  const animalText = [
+    animal.personality,
+    animal.keyTraits,
+    animal.description,
+    ...(Array.isArray(animal.likes) ? animal.likes : []),
+  ]
+    .map((value) => normalizeText(value))
+    .join(" ");
+
+  if (preferredType && animalType === preferredType) {
+    score += 4;
+  }
+
+  if (
+    typeof preferences.preferredMaxAge === "number" &&
+    animal.age <= preferences.preferredMaxAge
+  ) {
+    score += 2;
+  }
+
+  if (preferredPersonality && animalText.includes(preferredPersonality)) {
+    score += 3;
+  }
+
+  if (preferences.preferredChildFriendly && animal.childFriendly) {
+    score += 2;
+  }
+
+  return score;
+}
 
 export default function HomePage() {
   const [animals, setAnimals] = useState<Animal[]>([]);
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -44,6 +102,59 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setPreferences(null);
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setPreferences(null);
+      return;
+    }
+
+    const fetchPreferences = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/users/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error("Kunde inte hämta preferenser");
+        }
+
+        const data = (await response.json()) as {
+          user?: { preferences?: UserPreferences };
+        };
+        setPreferences(data.user?.preferences ?? null);
+      } catch {
+        setPreferences(null);
+      }
+    };
+
+    void fetchPreferences();
+  }, [user]);
+
+  useEffect(() => {
+    const handlePreferencesUpdated = (event: Event) => {
+      const preferencesEvent = event as CustomEvent<UserPreferences>;
+      setPreferences(preferencesEvent.detail);
+    };
+
+    window.addEventListener(
+      USER_PREFERENCES_UPDATED_EVENT,
+      handlePreferencesUpdated,
+    );
+
+    return () => {
+      window.removeEventListener(
+        USER_PREFERENCES_UPDATED_EVENT,
+        handlePreferencesUpdated,
+      );
+    };
+  }, []);
+
   const userId = user?.id;
   const subscribe = useCallback(
     (onStoreChange: () => void) => subscribeToFavorites(userId, onStoreChange),
@@ -66,6 +177,23 @@ export default function HomePage() {
       .slice(0, 10);
   }, [animals, favoriteAnimalIds, user]);
 
+  const matchingAnimals = useMemo(() => {
+    if (!user || !preferences || !hasMatchingPreferences(preferences)) {
+      return [];
+    }
+
+    return animals
+      .map((animal) => ({
+        animal,
+        score: getAnimalMatchScore(animal, preferences),
+      }))
+      .filter((match) => match.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((match) => match.animal);
+  }, [animals, preferences, user]);
+  const hasSavedMatchingPreferences = hasMatchingPreferences(preferences);
+
   return (
     <main>
       <Hero
@@ -80,6 +208,23 @@ export default function HomePage() {
       />
       {loading && <p>Laddar djur...</p>}
       {!loading && infoMessage && <p>{infoMessage}</p>}
+      {!!user && !loading && (
+        <section className={styles.matchingSection} aria-label="Djur som matchar din profil">
+          <div className={styles.matchingHeader}>
+            <h2>Djur som matchar din profil</h2>
+            <p>Tre förslag baserade på dina sparade preferenser.</p>
+          </div>
+          {matchingAnimals.length > 0 ? (
+            <AnimalGrid animals={matchingAnimals} />
+          ) : (
+            <p className={styles.emptyMatching}>
+              {hasSavedMatchingPreferences
+                ? "Inga matchande djur hittades just nu. Uppdatera dina preferenser eller utforska alla djur."
+                : "Spara dina preferenser i profilmenyn för att se djur som matchar dig."}
+            </p>
+          )}
+        </section>
+      )}
       {!!user && !loading && (
         <section className={styles.favoritesSection} aria-label="Dina favoriter">
           <div className={styles.favoritesHeader}>

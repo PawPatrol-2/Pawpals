@@ -1,3 +1,29 @@
+.matchingSection {
+  padding: 16px 22px 6px;
+}
+
+.matchingHeader h2 {
+  margin: 0;
+  color: var(--black);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+}
+
+.matchingHeader p {
+  margin: 8px 0 0;
+  color: var(--gray-700);
+  font-size: 0.98rem;
+}
+
+.emptyMatching {
+  margin: 14px 0 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--sand-dark);
+  background: var(--gray-50);
+  color: var(--gray-700);
+  font-size: 0.96rem;
+}
+
 .favoritesSection {
   padding: 16px 22px 6px;
 }
@@ -25,6 +51,10 @@
 }
 
 @media (max-width: 640px) {
+  .matchingSection {
+    padding: 16px 16px 6px;
+  }
+
   .favoritesSection {
     padding: 16px 16px 6px;
   }

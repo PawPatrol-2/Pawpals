@@ -14,7 +14,7 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response<{ 
       return res.status(401).json({ message: 'Saknar giltig token' });
     }
 
-    const user = await User.findById(userId).select('email username role');
+    const user = await User.findById(userId).select('email username role preferences');
     if (user) {
       console.log('DEBUG: reached user found block')
       logger.info({ userId }, 'User fetched successfully')
@@ -24,6 +24,7 @@ export const getCurrentUser = async (req: AuthenticatedRequest, res: Response<{ 
           email: user.email,
           fullname: user.username,
           role: user.role,
+          preferences: user.preferences,
         },
       });
     }
