@@ -1,49 +1,101 @@
 .section {
-  padding: 48px 24px;
+  padding: 64px 24px;
   text-align: center;
+  background: #faf8f5;
 }
 
-.title {
-  font-size: 1.5rem;
-  margin-bottom: 32px;
+.section h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1714;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #6d6965;
+  margin-bottom: 48px;
 }
 
 .steps {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 24px;
   list-style: none;
-  padding: 15px;
+  padding: 0;
   margin: 0 auto;
-  max-width: 700px;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 3px 3px 3px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 4px;
+  max-width: 900px;
 }
 
 .step {
   display: flex;
-  position: relative;
   flex-direction: column;
   align-items: center;
-  max-width: 200px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 36px 28px;
+  width: 100%;
+  max-width: 260px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  border: 1px solid #e8713a;
+}
+
+.stepNumber {
+  width: 36px;
+  height: 36px;
+  background: #e8713a;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
 }
 
 .icon img {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  padding-top: 2rem;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  object-fit: contain;
+}
+
+.step h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1714;
+  margin-bottom: 8px;
+}
+
+.step p {
+  font-size: 0.9rem;
+  color: #6d6965;
+  line-height: 1.5;
 }
 
 @media (min-width: 768px) {
   .steps {
     flex-direction: row;
     justify-content: center;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .step {
+    flex: 1;
   }
 }
