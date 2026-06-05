@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../utils/logger';
 import { ApplicationResponse, CreateApplicationBody } from '../types/applicationTypes';
 import Application from '../models/Application';
+import { Animal } from '../models/animal';
 import Organization from '../models/Organisation';
 import type { AuthenticatedRequest } from '../middleware/auth';
 import {
@@ -292,6 +294,7 @@ export const getOrganizationApplications = async (
         notification: notificationSnapshots.get(application.applicationId) ?? null,
       }));
 
+    res.setHeader('Cache-Control', 'no-store');
     res.status(200).json({ applications: applicationsWithNotifications });
   } catch (error) {
     res.status(500).json({ message: 'Kunde inte hämta ansökningar', error });
@@ -303,6 +306,10 @@ export const updateApplicationStatus = async (
   res: Response,
 ): Promise<void> => {
   try {
+    logger.info(
+      { reqId: (req as any).id, params: req.params, body: req.body },
+      'updateApplicationStatus called',
+    );
     const userId = req.user?.userId;
     if (!userId) {
       res.status(401).json({ message: 'Obehörig användare' });
@@ -316,8 +323,16 @@ export const updateApplicationStatus = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { status } = req.body as { status?: string };
+
+    // Basic validation: ensure id looks like a Mongo ObjectId to avoid CastError
+    const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+    if (!objectIdRegex.test(id)) {
+      logger.warn({ reqId: (req as any).id, applicationId: id }, 'Invalid application id format');
+      res.status(400).json({ message: 'Ogiltigt ansöknings-id' });
+      return;
+    }
 
     if (!status || !isUpdateableStatus(status)) {
       res.status(400).json({ message: 'Ogiltig status' });
@@ -328,6 +343,8 @@ export const updateApplicationStatus = async (
       path: 'animalId',
       select: 'organizationOwner name',
     });
+
+    logger.info({ applicationId: id, found: !!application }, 'application lookup');
 
     if (!application) {
       res.status(404).json({ message: 'Ansökan hittades inte' });
@@ -348,6 +365,24 @@ export const updateApplicationStatus = async (
     application.status = status;
     await application.save();
 
+    if (normalizeStatus(status) === 'Godkänd' && application.animalId) {
+      const animalRef = application.animalId as PopulatedAnimal | string;
+      const animalId =
+        typeof animalRef === 'string'
+          ? animalRef
+          : animalRef && typeof animalRef === 'object' && animalRef._id
+            ? String(animalRef._id)
+            : null;
+
+      if (animalId) {
+        await Animal.findByIdAndUpdate(animalId, { status: 'Adopterad' });
+        logger.info(
+          { applicationId: id, animalId },
+          'Marked animal as Adopterad due to application approval',
+        );
+      }
+    }
+
     const nextStatus = normalizeStatus(application.status);
     if (previousStatus !== nextStatus) {
       void notifyApplicantAboutStatusChange(
@@ -367,7 +402,8 @@ export const updateApplicationStatus = async (
       status: normalizeStatus(application.status),
     });
   } catch (error) {
-    res.status(500).json({ message: 'Kunde inte uppdatera ansökan', error });
+    logger.error({ err: error }, 'updateApplicationStatus failed');
+    res.status(500).json({ message: 'Kunde inte uppdatera ansökan' });
   }
 };
 

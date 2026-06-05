@@ -8,6 +8,7 @@ type ApiAnimal = {
   _id?: string;
   id?: string;
   createdAt?: string;
+  status?: 'Tillgänglig' | 'Adopterad';
   type: string;
   breed: string;
   image: string;
@@ -103,7 +104,7 @@ export const useOrganizationAnimals = (username?: string) => {
   useEffect(() => {
     const loadAnimals = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/animals');
+        const response = await fetch('http://localhost:3000/api/animals?includeAdopted=true');
 
         if (!response.ok) {
           return;
@@ -132,7 +133,7 @@ export const useOrganizationAnimals = (username?: string) => {
               image: resolveImageUrl(animal.image),
               description: animal.description || animal.keyTraits || '',
               organizationOwner: animal.organizationOwner,
-              status: 'Tillgänglig',
+              status: animal.status === 'Adopterad' ? 'Adopterad' : 'Tillgänglig',
             }));
 
           setAnimals(ownerAnimals);

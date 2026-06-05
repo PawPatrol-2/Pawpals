@@ -87,6 +87,7 @@ export const useOrganizationApplications = (_username?: string) => {
         }
 
         const response = await fetch('http://localhost:3000/api/applications/organization', {
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },

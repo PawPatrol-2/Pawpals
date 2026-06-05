@@ -1,20 +1,17 @@
-import { Request, Response } from "express";
-import { Animal } from "../models/animal";
-import Organization from "../models/Organisation";
-import type { AuthenticatedRequest } from "../middleware/auth";
-import {
-  deleteAnimalImage,
-  uploadAnimalImage,
-} from "../services/cloudinaryService";
-import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from "../types/animal";
+import { Request, Response } from 'express';
+import { Animal } from '../models/animal';
+import Organization from '../models/Organisation';
+import type { AuthenticatedRequest } from '../middleware/auth';
+import { deleteAnimalImage, uploadAnimalImage } from '../services/cloudinaryService';
+import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from '../types/animal';
 
 type AnimalRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 
 const toBoolean = (value: unknown): boolean => {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase();
-    if (normalized === "true" || normalized === "1" || normalized === "on") {
+    if (normalized === 'true' || normalized === '1' || normalized === 'on') {
       return true;
     }
   }
@@ -22,23 +19,23 @@ const toBoolean = (value: unknown): boolean => {
 };
 
 const toCity = (value: unknown): string => {
-  if (typeof value !== "string") {
-    return "";
+  if (typeof value !== 'string') {
+    return '';
   }
 
   return value.trim();
 };
 
 const toRequiredText = (value: unknown): string => {
-  if (typeof value !== "string") {
-    return "";
+  if (typeof value !== 'string') {
+    return '';
   }
 
   return value.trim();
 };
 
 const toOptionalText = (value: unknown): string | undefined => {
-  if (typeof value !== "string") {
+  if (typeof value !== 'string') {
     return undefined;
   }
 
@@ -51,11 +48,11 @@ const toOptionalAge = (value: unknown): number | undefined => {
     return undefined;
   }
 
-  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+  if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
     return value;
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const trimmed = value.trim();
     if (!trimmed) {
       return undefined;
@@ -70,16 +67,13 @@ const toOptionalAge = (value: unknown): number | undefined => {
   return undefined;
 };
 
-const resolveOrganizationName = async (
-  req: AuthenticatedRequest,
-): Promise<string | null> => {
+const resolveOrganizationName = async (req: AuthenticatedRequest): Promise<string | null> => {
   const userId = req.user?.userId;
   if (!userId) {
     return null;
   }
 
-  const organization =
-    await Organization.findById(userId).select("organization");
+  const organization = await Organization.findById(userId).select('organization');
 
   if (!organization?.organization) {
     return null;
@@ -88,20 +82,19 @@ const resolveOrganizationName = async (
   return organization.organization;
 };
 
-const escapeRegex = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getQueryValues = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value
-      .flatMap((item) => (typeof item === "string" ? item.split(",") : []))
+      .flatMap((item) => (typeof item === 'string' ? item.split(',') : []))
       .map((item) => item.trim())
       .filter(Boolean);
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value
-      .split(",")
+      .split(',')
       .map((item) => item.trim())
       .filter(Boolean);
   }
@@ -110,24 +103,21 @@ const getQueryValues = (value: unknown): string[] => {
 };
 
 const traitKeywords: Record<string, string[]> = {
-  lugn: ["lugn", "mjuk", "gosig", "snäll"],
-  aktiv: ["aktiv", "lekfull", "energisk", "busig"],
+  lugn: ['lugn', 'mjuk', 'gosig', 'snäll'],
+  aktiv: ['aktiv', 'lekfull', 'energisk', 'busig'],
 };
 
 export const getAnimals = async (req: Request, res: Response) => {
   try {
     const page = Math.max(parseInt(req.query.page as string) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit as string) || 10, 1);
-    const searchTerm =
-      typeof req.query.q === "string" ? req.query.q.trim() : "";
-    const category =
-      typeof req.query.category === "string" ? req.query.category.trim() : "";
+    const includeAdopted = req.query.includeAdopted === 'true';
+    const searchTerm = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const category = typeof req.query.category === 'string' ? req.query.category.trim() : '';
     const ageFilters = getQueryValues(req.query.age);
     const traitFilters = getQueryValues(req.query.trait);
-    const childFriendlyOnly = req.query.childFriendly === "true";
-    const searchRegex = searchTerm
-      ? new RegExp(escapeRegex(searchTerm), "i")
-      : null;
+    const childFriendlyOnly = req.query.childFriendly === 'true';
+    const searchRegex = searchTerm ? new RegExp(escapeRegex(searchTerm), 'i') : null;
     const queryParts: Record<string, unknown>[] = [];
 
     if (searchRegex) {
@@ -144,22 +134,22 @@ export const getAnimals = async (req: Request, res: Response) => {
       });
     }
 
-    if (category && category !== "alla") {
-      queryParts.push({ type: new RegExp(`^${escapeRegex(category)}$`, "i") });
+    if (category && category !== 'alla') {
+      queryParts.push({ type: new RegExp(`^${escapeRegex(category)}$`, 'i') });
     }
 
     if (ageFilters.length > 0) {
       const ageQuery: Record<string, unknown>[] = [];
 
-      if (ageFilters.includes("baby")) {
+      if (ageFilters.includes('baby')) {
         ageQuery.push({ age: { $lt: 1 } });
       }
 
-      if (ageFilters.includes("young")) {
+      if (ageFilters.includes('young')) {
         ageQuery.push({ age: { $gte: 1, $lte: 3 } });
       }
 
-      if (ageFilters.includes("adult")) {
+      if (ageFilters.includes('adult')) {
         ageQuery.push({ age: { $gt: 3 } });
       }
 
@@ -168,14 +158,9 @@ export const getAnimals = async (req: Request, res: Response) => {
       }
     }
 
-    const selectedTraitKeywords = traitFilters.flatMap(
-      (filter) => traitKeywords[filter] ?? [],
-    );
+    const selectedTraitKeywords = traitFilters.flatMap((filter) => traitKeywords[filter] ?? []);
     if (selectedTraitKeywords.length > 0) {
-      const traitRegex = new RegExp(
-        selectedTraitKeywords.map(escapeRegex).join("|"),
-        "i",
-      );
+      const traitRegex = new RegExp(selectedTraitKeywords.map(escapeRegex).join('|'), 'i');
       queryParts.push({
         $or: [{ keyTraits: traitRegex }, { personality: traitRegex }],
       });
@@ -188,20 +173,24 @@ export const getAnimals = async (req: Request, res: Response) => {
     const query = queryParts.length > 0 ? { $and: queryParts } : {};
 
     const startIndex = (page - 1) * limit;
-    console.log("Mongoose collection:", Animal.collection.collectionName);
-    const animals = await Animal.find(query)
+    console.log('Mongoose collection:', Animal.collection.collectionName);
+    const effectiveQuery = includeAdopted
+      ? query
+      : { $and: [query, { status: { $ne: 'Adopterad' } }] };
+
+    const animals = await Animal.find(effectiveQuery)
       .sort({ createdAt: -1, _id: -1 })
       .skip(startIndex)
       .limit(limit);
-    console.log("Hittade dessa djur i databasen:", animals);
-    const totalAnimals = await Animal.countDocuments(query);
+    console.log('Hittade dessa djur i databasen:', animals);
+    const totalAnimals = await Animal.countDocuments(effectiveQuery);
     const totalPages = Math.ceil(totalAnimals / limit);
     res.json({
       animals,
       pagination: { page, limit, totalPages, totalAnimals },
     });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch animals", err });
+    res.status(500).json({ error: 'Failed to fetch animals', err });
   }
 };
 
@@ -210,39 +199,38 @@ export const getAnimalById = async (req: Request, res: Response) => {
     const animal = await Animal.findById(req.params.id);
 
     if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
+      return res.status(404).json({ error: 'Animal not found' });
     }
 
     res.json(animal);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch animal", err });
+    res.status(500).json({ error: 'Failed to fetch animal', err });
   }
 };
 
 export const deleteAnimal = async (req: AnimalRequest, res: Response) => {
   try {
-    const params = req.validatedParams as DeleteAnimalInput
+    const params = req.validatedParams as DeleteAnimalInput;
     const existingAnimal = await Animal.findById(params.id);
 
     if (!existingAnimal) {
-      return res.status(404).json({ error: "Animal not found" });
+      return res.status(404).json({ error: 'Animal not found' });
     }
 
     const requester = await resolveOrganizationName(req);
-    const owner = (existingAnimal as unknown as { organizationOwner?: string })
-      .organizationOwner;
+    const owner = (existingAnimal as unknown as { organizationOwner?: string }).organizationOwner;
 
     if (!requester || !owner || owner !== requester) {
       return res.status(403).json({
-        error: "Du kan bara ta bort djur som din organisation har laddat upp.",
+        error: 'Du kan bara ta bort djur som din organisation har laddat upp.',
       });
     }
 
     await Animal.findByIdAndUpdate(params.id, { deletedAt: new Date() });
 
-    res.json({ message: "Animal deleted successfully" });
+    res.json({ message: 'Animal deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete animal", err });
+    res.status(500).json({ error: 'Failed to delete animal', err });
   }
 };
 
@@ -251,15 +239,14 @@ export const createAnimal = async (req: AnimalRequest, res: Response) => {
     const requester = await resolveOrganizationName(req);
     if (!requester) {
       return res.status(403).json({
-        error: "Endast organisationer får lägga upp djur.",
+        error: 'Endast organisationer får lägga upp djur.',
       });
     }
     const body = req.validatedBody as CreateAnimalInput;
 
     if ((!req.file && !body.image) || !body.name || !body.type || !body.breed || !body.city) {
       return res.status(400).json({
-        error:
-          "Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.",
+        error: 'Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.',
       });
     }
 
@@ -285,7 +272,7 @@ export const createAnimal = async (req: AnimalRequest, res: Response) => {
     const newAnimal = await Animal.create(payload);
     res.status(201).json(newAnimal);
   } catch (err) {
-    res.status(400).json({ error: "Failed to create animal", err });
+    res.status(400).json({ error: 'Failed to create animal', err });
   }
 };
 
@@ -294,22 +281,21 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
     const requester = await resolveOrganizationName(req);
     if (!requester) {
       return res.status(403).json({
-        error: "Endast organisationer får redigera djur.",
+        error: 'Endast organisationer får redigera djur.',
       });
     }
 
     const existingAnimal = await Animal.findById(req.params.id);
 
     if (!existingAnimal) {
-      return res.status(404).json({ error: "Animal not found" });
+      return res.status(404).json({ error: 'Animal not found' });
     }
 
-    const owner = (existingAnimal as unknown as { organizationOwner?: string })
-      .organizationOwner;
+    const owner = (existingAnimal as unknown as { organizationOwner?: string }).organizationOwner;
 
     if (!requester || !owner || owner !== requester) {
       return res.status(403).json({
-        error: "Du kan bara redigera djur som din organisation har laddat upp.",
+        error: 'Du kan bara redigera djur som din organisation har laddat upp.',
       });
     }
 
@@ -318,12 +304,11 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
       [key: string]: unknown;
     };
 
-   const body = req.validatedBody as UpdateAnimalInput;
+    const body = req.validatedBody as UpdateAnimalInput;
 
     if (!body.image || !body.name || !body.type || !body.breed || !body.city) {
       return res.status(400).json({
-        error:
-          "Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.",
+        error: 'Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.',
       });
     }
 
@@ -348,14 +333,10 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
       organizationOwner: owner,
     };
 
-    const updatedAnimal = await Animal.findByIdAndUpdate(
-      req.params.id,
-      payload,
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
+    const updatedAnimal = await Animal.findByIdAndUpdate(req.params.id, payload, {
+      new: true,
+      runValidators: true,
+    });
 
     if (uploadedImage) {
       await deleteAnimalImage(
@@ -365,6 +346,6 @@ export const updateAnimal = async (req: AnimalRequest, res: Response) => {
 
     res.json(updatedAnimal);
   } catch (err) {
-    res.status(400).json({ error: "Failed to update animal", err });
+    res.status(400).json({ error: 'Failed to update animal', err });
   }
 };
