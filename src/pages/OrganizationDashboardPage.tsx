@@ -29,6 +29,7 @@ export default function OrganizationDashboardPage() {
   const {
     applications,
     updateApplicationStatus,
+    deleteApplication,
     markApplicationNotificationAsRead,
     overviewStats,
     reviewCount,
@@ -143,6 +144,7 @@ export default function OrganizationDashboardPage() {
               overviewStats={overviewStats}
               statusClassMap={statusClassMap}
               onUpdateStatus={updateApplicationStatus}
+              onDeleteApplication={deleteApplication}
               onMarkNotificationRead={markApplicationNotificationAsRead}
               styles={styles}
             />

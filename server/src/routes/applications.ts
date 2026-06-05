@@ -4,6 +4,7 @@ import {
   getOrganizationApplications,
   getMyApplications,
   updateApplicationStatus,
+  deleteApplication,
   getOrganisationContact,
 } from '../controllers/applicationController';
 import authenticate from '../middleware/auth';
@@ -15,6 +16,7 @@ const router = Router();
 router.post('/', authenticate, createApplication);
 router.get('/organization', authenticate, getOrganizationApplications);
 router.patch('/:id/status', authenticate, updateApplicationStatus);
+router.delete('/:id', authenticate, deleteApplication);
 router.get('/', authenticate, getMyApplications);
 router.get('/me', authenticate, getMyApplications);
 router.get('/:id/organisation-contact', authenticate, getOrganisationContact);

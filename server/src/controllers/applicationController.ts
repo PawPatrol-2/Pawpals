@@ -362,23 +362,22 @@ export const updateApplicationStatus = async (
       return;
     }
 
+    const animalId = resolveAnimalId(application as unknown as ApplicationWithOptionalAnimal);
     application.status = status;
     await application.save();
 
-    if (normalizeStatus(status) === 'Godkänd' && application.animalId) {
-      const animalRef = application.animalId as PopulatedAnimal | string;
-      const animalId =
-        typeof animalRef === 'string'
-          ? animalRef
-          : animalRef && typeof animalRef === 'object' && animalRef._id
-            ? String(animalRef._id)
-            : null;
-
-      if (animalId) {
+    if (animalId) {
+      if (normalizeStatus(status) === 'Godkänd') {
         await Animal.findByIdAndUpdate(animalId, { status: 'Adopterad' });
         logger.info(
           { applicationId: id, animalId },
           'Marked animal as Adopterad due to application approval',
+        );
+      } else if (previousStatus === 'Godkänd') {
+        await Animal.findByIdAndUpdate(animalId, { status: 'Tillgänglig' });
+        logger.info(
+          { applicationId: id, animalId },
+          'Reverted animal to Tillgänglig after application status change',
         );
       }
     }
@@ -404,6 +403,52 @@ export const updateApplicationStatus = async (
   } catch (error) {
     logger.error({ err: error }, 'updateApplicationStatus failed');
     res.status(500).json({ message: 'Kunde inte uppdatera ansökan' });
+  }
+};
+
+export const deleteApplication = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: 'Obehörig användare' });
+      return;
+    }
+
+    const organization = await Organization.findById(userId).select('organization');
+    if (!organization?.organization) {
+      res.status(403).json({ message: 'Endast organisationer kan ta bort ansökningar' });
+      return;
+    }
+
+    const application = await Application.findById(req.params.id).populate({
+      path: 'animalId',
+      select: 'organizationOwner',
+    });
+
+    if (!application) {
+      res.status(404).json({ message: 'Ansökan hittades inte' });
+      return;
+    }
+
+    const populatedAnimal = application.animalId as PopulatedAnimal;
+    if (
+      !populatedAnimal ||
+      typeof populatedAnimal !== 'object' ||
+      populatedAnimal.organizationOwner !== organization.organization
+    ) {
+      res.status(403).json({ message: 'Du kan inte ta bort denna ansökan' });
+      return;
+    }
+
+    await Application.findByIdAndDelete(application.id);
+
+    res.status(200).json({ message: 'Ansökan borttagen' });
+  } catch (error) {
+    logger.error({ err: error }, 'deleteApplication failed');
+    res.status(500).json({ message: 'Kunde inte ta bort ansökan' });
   }
 };
 
