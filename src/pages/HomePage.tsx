@@ -1,29 +1,20 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import { useNavigate } from "react-router-dom";
-import Hero from "../components/ui/hero/Hero";
-import AnimalGrid from "../components/AnimalGrid/AnimalGrid";
-import Adoption from "../components/Adoption/adoption";
-import type { Animal } from "../types/animal";
-import { useUser } from "../context/UserContext";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Hero from '../components/ui/hero/Hero';
+import AnimalGrid from '../components/AnimalGrid/AnimalGrid';
+import Adoption from '../components/Adoption/adoption';
+import type { Animal } from '../types/animal';
+import { useUser } from '../context/UserContext';
 import {
   getFavoriteIdsSnapshot,
   parseFavoriteIdsSnapshot,
   subscribeToFavorites,
-} from "../utils/favorites";
-import {
-  USER_PREFERENCES_UPDATED_EVENT,
-  type UserPreferences,
-} from "../utils/preferenceEvents";
-import styles from "./HomePage.module.css";
+} from '../utils/favorites';
+import { USER_PREFERENCES_UPDATED_EVENT, type UserPreferences } from '../utils/preferenceEvents';
+import styles from './HomePage.module.css';
 
 function normalizeText(value: string | undefined): string {
-  return value?.trim().toLowerCase() ?? "";
+  return value?.trim().toLowerCase() ?? '';
 }
 
 function hasMatchingPreferences(preferences: UserPreferences | null): boolean {
@@ -33,17 +24,15 @@ function hasMatchingPreferences(preferences: UserPreferences | null): boolean {
 
   return Boolean(
     normalizeText(preferences.preferredAnimalType) ||
-      typeof preferences.preferredMaxAge === "number" ||
-      normalizeText(preferences.preferredPersonality) ||
-      preferences.preferredChildFriendly,
+    typeof preferences.preferredMaxAge === 'number' ||
+    normalizeText(preferences.preferredPersonality) ||
+    preferences.preferredChildFriendly,
   );
 }
 
 function getAnimalMatchScore(animal: Animal, preferences: UserPreferences): number {
   let score = 0;
-  const preferredType = normalizeText(preferences.preferredAnimalType);
   const preferredPersonality = normalizeText(preferences.preferredPersonality);
-  const animalType = normalizeText(animal.type);
   const animalText = [
     animal.personality,
     animal.keyTraits,
@@ -51,25 +40,10 @@ function getAnimalMatchScore(animal: Animal, preferences: UserPreferences): numb
     ...(Array.isArray(animal.likes) ? animal.likes : []),
   ]
     .map((value) => normalizeText(value))
-    .join(" ");
-
-  if (preferredType && animalType === preferredType) {
-    score += 4;
-  }
-
-  if (
-    typeof preferences.preferredMaxAge === "number" &&
-    animal.age <= preferences.preferredMaxAge
-  ) {
-    score += 2;
-  }
+    .join(' ');
 
   if (preferredPersonality && animalText.includes(preferredPersonality)) {
     score += 3;
-  }
-
-  if (preferences.preferredChildFriendly && animal.childFriendly) {
-    score += 2;
   }
 
   return score;
@@ -84,10 +58,10 @@ export default function HomePage() {
   const { user } = useUser();
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/animals")
+    fetch('http://localhost:3000/api/animals')
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Kunde inte hämta djur");
+          throw new Error('Kunde inte hämta djur');
         }
         return res.json();
       })
@@ -97,7 +71,7 @@ export default function HomePage() {
       })
       .catch((err) => {
         console.error(err);
-        setInfoMessage("Kunde inte hämta djur från servern.");
+        setInfoMessage('Kunde inte hämta djur från servern.');
       })
       .finally(() => setLoading(false));
   }, []);
@@ -108,7 +82,7 @@ export default function HomePage() {
       return;
     }
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     if (!token) {
       setPreferences(null);
       return;
@@ -116,12 +90,12 @@ export default function HomePage() {
 
     const fetchPreferences = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/users/me", {
+        const response = await fetch('http://localhost:3000/api/users/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!response.ok) {
-          throw new Error("Kunde inte hämta preferenser");
+          throw new Error('Kunde inte hämta preferenser');
         }
 
         const data = (await response.json()) as {
@@ -142,16 +116,10 @@ export default function HomePage() {
       setPreferences(preferencesEvent.detail);
     };
 
-    window.addEventListener(
-      USER_PREFERENCES_UPDATED_EVENT,
-      handlePreferencesUpdated,
-    );
+    window.addEventListener(USER_PREFERENCES_UPDATED_EVENT, handlePreferencesUpdated);
 
     return () => {
-      window.removeEventListener(
-        USER_PREFERENCES_UPDATED_EVENT,
-        handlePreferencesUpdated,
-      );
+      window.removeEventListener(USER_PREFERENCES_UPDATED_EVENT, handlePreferencesUpdated);
     };
   }, []);
 
@@ -161,20 +129,15 @@ export default function HomePage() {
     [userId],
   );
   const getSnapshot = useCallback(() => getFavoriteIdsSnapshot(userId), [userId]);
-  const snapshot = useSyncExternalStore(subscribe, getSnapshot, () => "[]");
-  const favoriteAnimalIds = useMemo(
-    () => parseFavoriteIdsSnapshot(snapshot),
-    [snapshot],
-  );
+  const snapshot = useSyncExternalStore(subscribe, getSnapshot, () => '[]');
+  const favoriteAnimalIds = useMemo(() => parseFavoriteIdsSnapshot(snapshot), [snapshot]);
 
   const favoriteAnimals = useMemo(() => {
     if (!user) {
       return [];
     }
 
-    return animals
-      .filter((animal) => favoriteAnimalIds.includes(animal._id))
-      .slice(0, 10);
+    return animals.filter((animal) => favoriteAnimalIds.includes(animal._id)).slice(0, 10);
   }, [animals, favoriteAnimalIds, user]);
 
   const matchingAnimals = useMemo(() => {
@@ -183,15 +146,34 @@ export default function HomePage() {
     }
 
     return animals
+      .filter((animal) => {
+        const preferredType = normalizeText(preferences.preferredAnimalType);
+        const animalType = normalizeText(animal.type);
+
+        // Hårt filter på djurtyp
+        if (preferredType && animalType !== preferredType) return false;
+
+        // Hårt filter på max ålder
+        if (
+          typeof preferences.preferredMaxAge === 'number' &&
+          animal.age > preferences.preferredMaxAge
+        )
+          return false;
+
+        // Hårt filter på barnvänlig
+        if (preferences.preferredChildFriendly && !animal.childFriendly) return false;
+
+        return true;
+      })
       .map((animal) => ({
         animal,
         score: getAnimalMatchScore(animal, preferences),
       }))
-      .filter((match) => match.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
       .map((match) => match.animal);
   }, [animals, preferences, user]);
+
   const hasSavedMatchingPreferences = hasMatchingPreferences(preferences);
 
   return (
@@ -200,10 +182,10 @@ export default function HomePage() {
         onSearch={(value) => {
           const params = new URLSearchParams();
           if (value) {
-            params.set("q", value);
+            params.set('q', value);
           }
 
-          navigate(`/utforska${params.toString() ? `?${params.toString()}` : ""}`);
+          navigate(`/utforska${params.toString() ? `?${params.toString()}` : ''}`);
         }}
       />
       {loading && <p>Laddar djur...</p>}
@@ -219,8 +201,8 @@ export default function HomePage() {
           ) : (
             <p className={styles.emptyMatching}>
               {hasSavedMatchingPreferences
-                ? "Inga matchande djur hittades just nu. Uppdatera dina preferenser eller utforska alla djur."
-                : "Spara dina preferenser i profilmenyn för att se djur som matchar dig."}
+                ? 'Inga matchande djur hittades just nu. Uppdatera dina preferenser eller utforska alla djur.'
+                : 'Spara dina preferenser i profilmenyn för att se djur som matchar dig.'}
             </p>
           )}
         </section>
