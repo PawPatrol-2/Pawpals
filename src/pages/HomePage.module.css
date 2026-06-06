@@ -1,61 +1,75 @@
 .matchingSection {
-  padding: 16px 22px 6px;
-}
-
-.matchingHeader h2 {
-  margin: 0;
-  color: var(--black);
-  font-size: clamp(1.35rem, 2vw, 1.7rem);
-}
-
-.matchingHeader p {
-  margin: 8px 0 0;
-  color: var(--gray-700);
-  font-size: 0.98rem;
-}
-
-.emptyMatching {
-  margin: 14px 0 8px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--sand-dark);
-  background: var(--gray-50);
-  color: var(--gray-700);
-  font-size: 0.96rem;
+  padding: 48px 32px 32px;
+  background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .favoritesSection {
-  padding: 16px 22px 6px;
+  padding: 48px 32px 32px;
+  background: var(--white);
+  width: 100%;
+  box-sizing: border-box;
 }
 
+.matchingHeader,
+.favoritesHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--sand-dark);
+  position: relative;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.matchingHeader::before,
+.favoritesHeader::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 48px;
+  height: 2px;
+  background: var(--orange);
+  border-radius: 999px;
+}
+
+.matchingHeader h2,
 .favoritesHeader h2 {
   margin: 0;
   color: var(--black);
-  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
+.matchingHeader p,
 .favoritesHeader p {
-  margin: 8px 0 0;
-  color: var(--gray-700);
-  font-size: 0.98rem;
+  margin: 0;
+  color: var(--gray-500);
+  font-size: 0.95rem;
 }
 
+.emptyMatching,
 .emptyFavorites {
-  margin: 14px 0 8px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--sand-dark);
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 24px 20px;
+  border-radius: 16px;
+  border: 1px dashed var(--sand-dark);
   background: var(--gray-50);
-  color: var(--gray-700);
-  font-size: 0.96rem;
+  color: var(--gray-500);
+  font-size: 0.95rem;
+  text-align: center;
 }
 
 @media (max-width: 640px) {
-  .matchingSection {
-    padding: 16px 16px 6px;
-  }
-
+  .matchingSection,
   .favoritesSection {
-    padding: 16px 16px 6px;
+    padding: 32px 16px 16px;
   }
 }
