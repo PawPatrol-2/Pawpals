@@ -27,14 +27,6 @@ dist-ssr
 .env
 .env.local
 .env.production
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+server/.env
+server/.env.local
 
-=======
-server/.env
-server/.env.local
->>>>>>> Stashed changes
-=======
-server/.env
-server/.env.local
->>>>>>> Stashed changes
