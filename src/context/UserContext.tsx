@@ -4,6 +4,7 @@ type User = {
     id: string;
     email: string;
     username: string;
+    fullname?: string;
     role: 'adopter' | 'organization' | 'admin';
 };
 
