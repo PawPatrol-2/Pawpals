@@ -10,6 +10,7 @@ interface ApplicationForm {
   hasChildren: boolean;
   hasAllergies: boolean;
   allergyDetails: string;
+  healthDataConsent: boolean;
   motivation: string;
   gdprConsent: boolean;
 }
@@ -22,6 +23,7 @@ const ApplyPage = () => {
     hasChildren: false,
     hasAllergies: false,
     allergyDetails: "",
+    healthDataConsent: false,
     motivation: "",
     gdprConsent: false,
   });
@@ -38,6 +40,14 @@ const ApplyPage = () => {
     }
     if (!formData.motivation) {
       alert("Skriv en motivering!");
+      return;
+    }
+    if (formData.hasAllergies && !formData.allergyDetails) {
+      alert("Beskriv allergierna!");
+      return;
+    }
+    if (formData.hasAllergies && !formData.healthDataConsent) {
+      alert("Du måste lämna samtycke till behandling av dina hälsouppgifter (allergiinformation)!");
       return;
     }
     if (!formData.gdprConsent) {
@@ -178,8 +188,8 @@ const ApplyPage = () => {
           </div>
 
           {formData.hasAllergies && (
-            <div>
-              <label className={styles.formLabel}>Beskriv allergierna</label>
+            <div className={styles.allergySection}>
+              <label className={styles.formLabel}>Beskriv allergierna *</label>
               <input
                 type="text"
                 className={styles.formInput}
@@ -188,7 +198,22 @@ const ApplyPage = () => {
                   setFormData({ ...formData, allergyDetails: e.target.value })
                 }
                 placeholder="T.ex. pälsdjursallergi..."
+                required
               />
+              <div className={styles.healthDataConsent}>
+                <input
+                  type="checkbox"
+                  id="healthDataConsent"
+                  checked={formData.healthDataConsent}
+                  onChange={(e) =>
+                    setFormData({ ...formData, healthDataConsent: e.target.checked })
+                  }
+                />
+                <label htmlFor="healthDataConsent" className={styles.healthDataConsentLabel}>
+                  <strong>Samtycke till behandling av hälsouppgifter (GDPR Art. 9)</strong><br />
+                  Jag samtycker uttryckligen till att allergiinformation, som utgör hälsodata och är en känslig personuppgift, behandlas av PawPals för att bedöma lämpligheten av adoptionen. Uppgifterna delas endast med den berörda organisationen och raderas när ansökan avslutas.
+                </label>
+              </div>
             </div>
           )}
 
@@ -205,14 +230,14 @@ const ApplyPage = () => {
           <div className={styles.gdprConsent}>
             <input
               type="checkbox"
+              id="gdprConsent"
               checked={formData.gdprConsent}
               onChange={(e) =>
                 setFormData({ ...formData, gdprConsent: e.target.checked })
               }
             />
-            <label className={styles.formLabel}>
-              Jag godkänner att mina uppgifter behandlas enligt GDPR.
-              Uppgifterna används endast för att hantera din adoptionsansökan.
+            <label htmlFor="gdprConsent" className={styles.formLabel}>
+              Jag godkänner att mina personuppgifter (boendeuppgifter, hushållsinformation och motivering) behandlas av PawPals enligt GDPR för att hantera min adoptionsansökan. Uppgifterna sparas inte längre än nödvändigt.
             </label>
           </div>
 

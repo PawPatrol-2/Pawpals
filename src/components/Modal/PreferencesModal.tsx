@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './PreferencesModal.module.css';
+import { notifyUserPreferencesUpdated } from '../../utils/preferenceEvents';
 
 interface PreferencesModalProps {
   onClose: () => void;
@@ -14,6 +16,35 @@ export default function PreferencesModal({ onClose }: PreferencesModalProps) {
     preferredChildFriendly: false,
   });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const fetchPreferences = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/users/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        const prefs = data.user?.preferences;
+        if (prefs) {
+          setFormData({
+            preferredAnimalType: prefs.preferredAnimalType ?? '',
+            preferredMaxAge: prefs.preferredMaxAge?.toString() ?? '',
+            preferredPersonality: prefs.preferredPersonality ?? '',
+            housingType: prefs.housingType ?? '',
+            preferredChildFriendly: prefs.preferredChildFriendly ?? false,
+          });
+        }
+      } catch {
+        // ignorera fel
+      }
+    };
+
+    void fetchPreferences();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,14 +64,16 @@ export default function PreferencesModal({ onClose }: PreferencesModalProps) {
     });
 
     if (response.ok) {
+      const data = await response.json();
+      notifyUserPreferencesUpdated(data.preferences);
       setSaved(true);
       setTimeout(() => onClose(), 1500);
     }
   };
 
-  return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
+  return createPortal(
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <h2 className={styles.title}>Mina preferenser</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <label className={styles.label}>
@@ -110,6 +143,7 @@ export default function PreferencesModal({ onClose }: PreferencesModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

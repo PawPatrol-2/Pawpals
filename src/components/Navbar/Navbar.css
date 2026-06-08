@@ -2,10 +2,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 2rem;
-  background: #eeece9;
-  position: relative;
+  padding: 0.85rem 2rem;
+  background: rgba(238, 236, 233, 0.75);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  position: fixed;
   z-index: 10;
+  width: 100%;
+  border-bottom: 1px solid #e5e0d8;
 }
 
 .navbar-right {
@@ -13,13 +17,15 @@
   align-items: center;
   margin-left: auto;
   gap: 1.5rem;
+  overflow: visible;
+  padding-right: 3rem;
 }
 
 .navbar-logo {
   display: flex;
   align-items: center;
   gap: 0;
-  font-size: 1.25rem;
+  font-size: 2rem;
   font-weight: 700;
   color: var(--black);
   text-decoration: none;
@@ -46,8 +52,8 @@
   gap: 0.42rem;
   color: var(--gray-700);
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: bold;
   transition: color 0.2s;
 }
 

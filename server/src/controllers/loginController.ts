@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import User from "../models/User";
 import Organization from "../models/Organisation";
 import { handleControllerError } from "./controllerError";
+import type { LoginBody } from "../types/user";
 
 const getJwtSecret = (): string => {
   const secret = process.env.JWT_SECRET;
@@ -14,7 +15,7 @@ const getJwtSecret = (): string => {
 };
 
 export const loginUser = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body as LoginBody;
 
   try {
     const user = await User.findOne({ email });
