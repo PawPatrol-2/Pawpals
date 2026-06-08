@@ -7,7 +7,10 @@ export const errorHandler: ErrorRequestHandler = (
     res,
     next
 ) => {
-        if (err instanceof AppError) {
+    console.log("ERROR NAME:", err?.name);
+    console.log("ERROR MESSAGE:", err?.message);
+    console.log("FULL ERROR:", err);
+    if (err instanceof AppError) {
         res.status(err.statusCode).json({
             error: err.message
     })

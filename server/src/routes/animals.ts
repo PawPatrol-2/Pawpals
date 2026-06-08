@@ -32,6 +32,6 @@ router.get("/", getAnimals);
 router.get("/:id", getAnimalById);
 router.delete("/:id", authenticate, validateRequest({ params: deleteAnimalParamsSchema }), deleteAnimal);
 router.post("/", authenticate, validateRequest({ body: animalSchema }), upload.single("imageFile"), createAnimal);
-router.put("/:id", authenticate, upload.single("imageFile"), validateRequest({ body: updateAnimalSchema }), updateAnimal);
+router.put("/:id", authenticate, validateRequest({ body: updateAnimalSchema }), upload.single("imageFile"), updateAnimal);
 
 export default router;
