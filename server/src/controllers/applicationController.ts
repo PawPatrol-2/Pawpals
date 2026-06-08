@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response } from 'express';
 import { ApplicationResponse, CreateApplicationBody } from '../types/applicationTypes';
 import Application from '../models/Application';
 import Organization from '../models/Organisation';
@@ -64,6 +64,8 @@ type ApplicationWithOptionalAnimal = {
   allergyDetails?: string;
   motivation?: string;
   gdprConsent?: boolean;
+  closedAt?: Date;
+  anonymizedAt?: Date;
 };
 
 const normalizeBoolean = (value: unknown): boolean | null => {
@@ -102,6 +104,10 @@ const isUpdateableStatus = (status: string): status is UpdateableStatus => {
     'approved',
     'rejected',
   ].includes(status);
+};
+
+const isClosedStatus = (status: string): boolean => {
+  return ['Godkänd', 'Nekad', 'approved', 'rejected'].includes(status);
 };
 
 const resolveAnimalName = (application: ApplicationWithOptionalAnimal): string => {
@@ -154,7 +160,10 @@ export const getMyApplications = async (
       return;
     }
 
-    const applications = await Application.find({ userId })
+    const applications = await Application.find({
+      userId,
+      anonymizedAt: { $exists: false },
+    })
       .sort({ createdAt: -1 })
       .populate({ path: 'animalId', select: 'name' });
 
@@ -185,15 +194,14 @@ export const getMyApplications = async (
     );
 
     res.status(200).json({ applications: applicationsWithNotifications });
-  } catch (error) {
-    res.status(500).json({ message: 'Kunde inte hämta ansökningar', error });
+  } catch {
+    res.status(500).json({ message: 'Kunde inte hämta ansökningar' });
   }
 };
 
 export const createApplication = async (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = req.user?.userId;
@@ -224,8 +232,8 @@ export const createApplication = async (
       },
     );
     res.status(201).json(application as ApplicationResponse);
-  } catch (error) {
-    next(error);
+  } catch {
+    res.status(500).json({ message: 'Ansökan kunde inte skickas' });
   }
 };
 
@@ -247,7 +255,12 @@ export const getOrganizationApplications = async (
       return;
     }
 
-    const applications = await Application.find()
+    const applications = await Application.find({
+      anonymizedAt: { $exists: false },
+    })
+      .select(
+        'animalId userId animalNameSnapshot status createdAt housingType housingSize hasAnimalExperience hasChildren hasAllergies allergyDetails motivation gdprConsent',
+      )
       .sort({ createdAt: -1 })
       .populate({
         path: 'animalId',
@@ -293,8 +306,8 @@ export const getOrganizationApplications = async (
       }));
 
     res.status(200).json({ applications: applicationsWithNotifications });
-  } catch (error) {
-    res.status(500).json({ message: 'Kunde inte hämta ansökningar', error });
+  } catch {
+    res.status(500).json({ message: 'Kunde inte hämta ansökningar' });
   }
 };
 
@@ -346,6 +359,11 @@ export const updateApplicationStatus = async (
     }
 
     application.status = status;
+    if (isClosedStatus(status)) {
+      application.closedAt = application.closedAt ?? new Date();
+    } else {
+      application.closedAt = undefined;
+    }
     await application.save();
 
     const nextStatus = normalizeStatus(application.status);
@@ -366,8 +384,8 @@ export const updateApplicationStatus = async (
       applicationId: application.id,
       status: normalizeStatus(application.status),
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Kunde inte uppdatera ansökan', error });
+  } catch {
+    res.status(500).json({ message: 'Kunde inte uppdatera ansökan' });
   }
 };
 
@@ -385,6 +403,7 @@ export const getOrganisationContact = async (
     const application = await Application.findOne({
       _id: req.params.id,
       userId,
+      anonymizedAt: { $exists: false },
       status: { $in: ['Godkänd', 'approved'] },
     }).populate({ path: 'animalId', select: 'organizationOwner' });
 
@@ -414,7 +433,7 @@ export const getOrganisationContact = async (
       name: organisation.organization,
       email: organisation.email,
     });
-  } catch (error) {
-    res.status(500).json({ message: 'Något gick fel', error });
+  } catch {
+    res.status(500).json({ message: 'Något gick fel' });
   }
 };

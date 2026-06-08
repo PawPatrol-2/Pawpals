@@ -9,6 +9,7 @@ import ApplyPage from "../pages/ApplyPage";
 import AnimalDetailPage from "../pages/AnimalDetailPage";
 import OrganizationDashboardPage from "../pages/OrganizationDashboardPage";
 import MyApplicationsPage from "../pages/MyApplicationsPage";
+import PrivacyPage from "../pages/PrivacyPage";
 import { useUser } from "../context/UserContext";
 
 export default function AppRoutes() {
@@ -27,6 +28,7 @@ export default function AppRoutes() {
       <Route path="/ansok/:animalId" element={<ApplyPage />} />
       <Route path="/mina-ansokningar" element={<MyApplicationsPage />} />
       <Route path="/djur/:id" element={<AnimalDetailPage />} />
+      <Route path="/gdpr" element={<PrivacyPage />} />
 
       <Route
         path="/organisation-dashboard"

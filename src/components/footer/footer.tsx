@@ -1,5 +1,6 @@
 import styles from '../footer/footer.module.css';
 import { FaFacebook, FaInstagram, FaTwitter } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
@@ -19,16 +20,16 @@ export default function Footer() {
 
         <div className={styles.col}>
           <h4>Utforska</h4>
-          <a href="/utforska">Alla djur</a>
-          <a href="/organisationer">Organisationer</a>
-          <a href="/mina-ansokningar">Mina ansökningar</a>
+          <Link to="/utforska">Alla djur</Link>
+          <Link to="/organisationer">Organisationer</Link>
+          <Link to="/mina-ansokningar">Mina ansökningar</Link>
         </div>
 
         <div className={styles.col}>
           <h4>Om oss</h4>
           <a href="#">Om PawPals</a>
           <a href="#">Kontakta oss</a>
-          <a href="#">GDPR</a>
+          <Link to="/gdpr">GDPR</Link>
         </div>
       </div>
 
