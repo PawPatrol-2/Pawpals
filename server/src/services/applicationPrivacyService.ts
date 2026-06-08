@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { FilterQuery, Types } from "mongoose";
-import Application, { IApplication } from "../models/Application";
+import { Types } from "mongoose";
+import type { QueryFilter } from "mongoose";
+import Application from "../models/Application";
+import type { IApplication } from "../models/Application";
 import Notification from "../models/Notification";
 import logger from "../utils/logger";
 import {
@@ -20,7 +22,7 @@ const getRetentionCutoff = (): Date => {
 };
 
 const anonymizeApplications = async (
-  filter: FilterQuery<IApplication>,
+  filter: QueryFilter<IApplication>,
   reason: AnonymizationReason,
 ): Promise<number> => {
   const applications = await Application.find(filter).select("_id").lean();
@@ -116,7 +118,11 @@ export const encryptLegacyApplicationData = async (): Promise<number> => {
         },
       ],
     })
-    .project<{ motivation?: string; allergyDetails?: string }>({
+    .project<{
+      _id: Types.ObjectId;
+      motivation?: string;
+      allergyDetails?: string;
+    }>({
       motivation: 1,
       allergyDetails: 1,
     })
