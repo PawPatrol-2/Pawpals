@@ -2,7 +2,7 @@
   display: block;
   color: inherit;
   text-decoration: none;
-  border-radius: 16px;
+  border-radius: 20px;
   outline: 2px solid transparent;
   outline-offset: 2px;
   transition:
@@ -16,7 +16,7 @@
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
 }
 
 .card:focus-visible {
@@ -25,10 +25,19 @@
 
 .article {
   overflow: hidden;
-  border: 1px solid var(--sand-dark);
-  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
   background: var(--white);
-  box-shadow: 0 10px 24px rgba(26, 23, 20, 0.08);
+  box-shadow:
+    0 2px 4px rgba(26, 23, 20, 0.04),
+    0 12px 32px rgba(26, 23, 20, 0.08);
+  transition: box-shadow 0.22s ease;
+}
+
+.card:hover .article {
+  box-shadow:
+    0 4px 8px rgba(26, 23, 20, 0.06),
+    0 20px 48px rgba(26, 23, 20, 0.14);
 }
 
 .exploreCard .article {
@@ -54,6 +63,11 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.04);
 }
 
 .fallback {
@@ -61,52 +75,65 @@
 }
 
 .content {
-  padding: 16px 18px 18px;
+  padding: 16px 18px 20px;
 }
 
 .name {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: var(--black);
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .meta {
   margin: 0;
   color: var(--gray-700);
-  font-size: 0.98rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .breed {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   color: var(--gray-500);
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .city {
-  margin: 8px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 10px 0 0;
+  background: var(--gray-100);
   color: var(--gray-700);
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.city::before {
+  content: '📍';
+  font-size: 0.75rem;
 }
 
 .heart {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 42px;
-  height: 42px;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
   border: none;
   border-radius: 999px;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
   color: transparent;
   -webkit-text-stroke: 1.6px #1f1b17;
-  font-size: 1.55rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(26, 23, 20, 0.1);
+  box-shadow: 0 4px 12px rgba(26, 23, 20, 0.12);
   transition:
     transform 0.2s ease,
     background-color 0.2s ease,
@@ -115,7 +142,8 @@
 }
 
 .heart:hover {
-  transform: scale(1.06);
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 1);
 }
 
 .active {

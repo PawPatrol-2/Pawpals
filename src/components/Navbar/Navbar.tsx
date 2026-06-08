@@ -23,7 +23,7 @@ export default function Navbar() {
 
   const userInitials = useMemo(() => {
     if (!user) return 'PP';
-    const source = user.username?.trim() || user.email?.trim() || 'PawPals';
+    const source = user.fullname?.trim() || user.email?.trim() || 'PawPals';
     const words = source.split(/\s+/).filter(Boolean);
     if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
     return `${words[0][0]}${words[1][0]}`.toUpperCase();
@@ -185,7 +185,7 @@ export default function Navbar() {
                     )}
                   </span>
                   <div className="navbar-user-info">
-                    <strong>{user.username}</strong>
+                    <strong>{user.fullname || user.email}</strong>
                     <span>{user.email}</span>
                   </div>
                 </div>
@@ -219,7 +219,7 @@ export default function Navbar() {
                     setPreferencesOpen(true);
                   }}
                 >
-                  update preferences
+                  Uppdatera preferenser
                 </button>
                 <button type="button" className="navbar-dropdown-logout" onClick={handleLogout}>
                   Logga ut

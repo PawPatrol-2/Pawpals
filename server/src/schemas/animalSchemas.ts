@@ -30,7 +30,7 @@ export const updateAnimalSchema = z.object({
     breed: z.string().min(1, "Ras krävs").optional(),
     image: z.string().min(1, "Bild krävs").optional(),
     name: z.string().min(1, "Namn krävs").optional(),
-    age: z.coerce.number().min(0, "Ålder kan inte vara negativ").optional(),
+    age: z.coerce.number().min(1, "Ålder kan inte vara negativ").optional(),
     keyTraits: z.string().optional(),
     personality: z.string().optional(),
     description: z.string().optional(),
