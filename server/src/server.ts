@@ -6,9 +6,12 @@ import app from './app';
 import logger from './utils/logger';
 const PORT = process.env.PORT || 3000;
 import { connectDB } from './db'
+import { startPrivacyMaintenance } from './services/applicationPrivacyService';
 
 
-connectDB()
+void connectDB().then(() => {
+  startPrivacyMaintenance();
+});
 app.listen(PORT, () => {
   console.log(`Servern körs på port ${PORT}`);
   logger.info('Server started on port ' + PORT);

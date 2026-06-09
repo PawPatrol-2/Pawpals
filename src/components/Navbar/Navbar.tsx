@@ -4,6 +4,7 @@ import { useUser } from '../../context/UserContext';
 import { useUnreadNotificationCount } from '../../hooks/useUnreadNotificationCount';
 import './Navbar.css';
 import PreferencesModal from '../Modal/PreferencesModal';
+import DeleteAccountButton from '../DeleteAccountButton/DeleteAccountButton';
 
 const avatarStyles = ['sun', 'sea', 'mint', 'berry'] as const;
 type AvatarStyle = (typeof avatarStyles)[number];
@@ -221,6 +222,7 @@ export default function Navbar() {
                 >
                   Uppdatera preferenser
                 </button>
+                <DeleteAccountButton />
                 <button type="button" className="navbar-dropdown-logout" onClick={handleLogout}>
                   Logga ut
                 </button>

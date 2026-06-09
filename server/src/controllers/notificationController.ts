@@ -16,8 +16,8 @@ export const getUnreadNotificationSummary = async (
 
     const summary = await getNotificationSummary(userId);
     res.status(200).json({ summary });
-  } catch (error) {
-    res.status(500).json({ message: 'Kunde inte hämta notiser', error });
+  } catch {
+    res.status(500).json({ message: 'Kunde inte hämta notiser' });
   }
 };
 
@@ -50,7 +50,7 @@ export const markUnreadNotificationsAsRead = async (
     const summary = await getNotificationSummary(userId);
 
     res.status(200).json({ updatedCount, summary });
-  } catch (error) {
-    res.status(500).json({ message: 'Kunde inte uppdatera notiser', error });
+  } catch {
+    res.status(500).json({ message: 'Kunde inte uppdatera notiser' });
   }
 };

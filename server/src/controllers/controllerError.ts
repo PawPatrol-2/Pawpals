@@ -29,6 +29,5 @@ export const handleControllerError = (
 
   return res.status(500).json({
     message: fallbackMessage,
-    error: error instanceof Error ? error.message : error,
   });
 };
