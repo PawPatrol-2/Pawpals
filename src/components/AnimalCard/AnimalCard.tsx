@@ -9,6 +9,7 @@ import {
   subscribeToFavorites,
   toggleFavoriteAnimal,
 } from "../../utils/favorites";
+import { resolveAppUrl } from "../../utils/apiBaseUrl";
 import styles from "./AnimalCard.module.css";
 
 type AnimalCardProps = {
@@ -31,7 +32,7 @@ function AnimalCard({ animal, variant = "default" }: AnimalCardProps) {
   const [imageHasFailed, setImageHasFailed] = useState(false);
   const cityText = animal.city?.trim() || "Ej angiven";
   const imageSrc = animal.image.startsWith("/uploads/")
-    ? `http://localhost:3000${animal.image}`
+    ? resolveAppUrl(animal.image)
     : animal.image;
   const userId = user?.id;
   const subscribe = useCallback(
