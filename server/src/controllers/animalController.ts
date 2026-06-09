@@ -1,26 +1,18 @@
-import { NextFunction, Request, Response } from "express";
-import { Animal } from "../models/animal";
-import Organization from "../models/Organisation";
-import type { AuthenticatedRequest } from "../middleware/auth";
-import {
-  deleteAnimalImage,
-  uploadAnimalImage,
-} from "../services/cloudinaryService";
-import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from "../types/animal";
-import { ValidationError, 
-    UnauthorizedError,
-    ForbiddenError,
-    NotFoundError,
-    ConflictError
-} from "../errors/AppError"
+import { NextFunction, Request, Response } from 'express';
+import { Animal } from '../models/animal';
+import Organization from '../models/Organisation';
+import type { AuthenticatedRequest } from '../middleware/auth';
+import { deleteAnimalImage, uploadAnimalImage } from '../services/cloudinaryService';
+import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from '../types/animal';
+import { ForbiddenError, NotFoundError, ValidationError } from '../errors/AppError';
 
 type AnimalRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 
 const toBoolean = (value: unknown): boolean => {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase();
-    if (normalized === "true" || normalized === "1" || normalized === "on") {
+    if (normalized === 'true' || normalized === '1' || normalized === 'on') {
       return true;
     }
   }
@@ -28,23 +20,23 @@ const toBoolean = (value: unknown): boolean => {
 };
 
 const toCity = (value: unknown): string => {
-  if (typeof value !== "string") {
-    return "";
+  if (typeof value !== 'string') {
+    return '';
   }
 
   return value.trim();
 };
 
 const toRequiredText = (value: unknown): string => {
-  if (typeof value !== "string") {
-    return "";
+  if (typeof value !== 'string') {
+    return '';
   }
 
   return value.trim();
 };
 
 const toOptionalText = (value: unknown): string | undefined => {
-  if (typeof value !== "string") {
+  if (typeof value !== 'string') {
     return undefined;
   }
 
@@ -57,11 +49,11 @@ const toOptionalAge = (value: unknown): number | undefined => {
     return undefined;
   }
 
-  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+  if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
     return value;
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     const trimmed = value.trim();
     if (!trimmed) {
       return undefined;
@@ -76,16 +68,13 @@ const toOptionalAge = (value: unknown): number | undefined => {
   return undefined;
 };
 
-const resolveOrganizationName = async (
-  req: AuthenticatedRequest,
-): Promise<string | null> => {
+const resolveOrganizationName = async (req: AuthenticatedRequest): Promise<string | null> => {
   const userId = req.user?.userId;
   if (!userId) {
     return null;
   }
 
-  const organization =
-    await Organization.findById(userId).select("organization");
+  const organization = await Organization.findById(userId).select('organization');
 
   if (!organization?.organization) {
     return null;
@@ -94,20 +83,19 @@ const resolveOrganizationName = async (
   return organization.organization;
 };
 
-const escapeRegex = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getQueryValues = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value
-      .flatMap((item) => (typeof item === "string" ? item.split(",") : []))
+      .flatMap((item) => (typeof item === 'string' ? item.split(',') : []))
       .map((item) => item.trim())
       .filter(Boolean);
   }
 
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return value
-      .split(",")
+      .split(',')
       .map((item) => item.trim())
       .filter(Boolean);
   }
@@ -116,24 +104,21 @@ const getQueryValues = (value: unknown): string[] => {
 };
 
 const traitKeywords: Record<string, string[]> = {
-  lugn: ["lugn", "mjuk", "gosig", "snäll"],
-  aktiv: ["aktiv", "lekfull", "energisk", "busig"],
+  lugn: ['lugn', 'mjuk', 'gosig', 'snäll'],
+  aktiv: ['aktiv', 'lekfull', 'energisk', 'busig'],
 };
 
 export const getAnimals = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const page = Math.max(parseInt(req.query.page as string) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit as string) || 10, 1);
-    const searchTerm =
-      typeof req.query.q === "string" ? req.query.q.trim() : "";
-    const category =
-      typeof req.query.category === "string" ? req.query.category.trim() : "";
+    const includeAdopted = req.query.includeAdopted === 'true';
+    const searchTerm = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const category = typeof req.query.category === 'string' ? req.query.category.trim() : '';
     const ageFilters = getQueryValues(req.query.age);
     const traitFilters = getQueryValues(req.query.trait);
-    const childFriendlyOnly = req.query.childFriendly === "true";
-    const searchRegex = searchTerm
-      ? new RegExp(escapeRegex(searchTerm), "i")
-      : null;
+    const childFriendlyOnly = req.query.childFriendly === 'true';
+    const searchRegex = searchTerm ? new RegExp(escapeRegex(searchTerm), 'i') : null;
     const queryParts: Record<string, unknown>[] = [];
 
     if (searchRegex) {
@@ -150,22 +135,22 @@ export const getAnimals = async (req: Request, res: Response, next: NextFunction
       });
     }
 
-    if (category && category !== "alla") {
-      queryParts.push({ type: new RegExp(`^${escapeRegex(category)}$`, "i") });
+    if (category && category !== 'alla') {
+      queryParts.push({ type: new RegExp(`^${escapeRegex(category)}$`, 'i') });
     }
 
     if (ageFilters.length > 0) {
       const ageQuery: Record<string, unknown>[] = [];
 
-      if (ageFilters.includes("baby")) {
+      if (ageFilters.includes('baby')) {
         ageQuery.push({ age: { $lt: 1 } });
       }
 
-      if (ageFilters.includes("young")) {
+      if (ageFilters.includes('young')) {
         ageQuery.push({ age: { $gte: 1, $lte: 3 } });
       }
 
-      if (ageFilters.includes("adult")) {
+      if (ageFilters.includes('adult')) {
         ageQuery.push({ age: { $gt: 3 } });
       }
 
@@ -174,14 +159,9 @@ export const getAnimals = async (req: Request, res: Response, next: NextFunction
       }
     }
 
-    const selectedTraitKeywords = traitFilters.flatMap(
-      (filter) => traitKeywords[filter] ?? [],
-    );
+    const selectedTraitKeywords = traitFilters.flatMap((filter) => traitKeywords[filter] ?? []);
     if (selectedTraitKeywords.length > 0) {
-      const traitRegex = new RegExp(
-        selectedTraitKeywords.map(escapeRegex).join("|"),
-        "i",
-      );
+      const traitRegex = new RegExp(selectedTraitKeywords.map(escapeRegex).join('|'), 'i');
       queryParts.push({
         $or: [{ keyTraits: traitRegex }, { personality: traitRegex }],
       });
@@ -194,13 +174,17 @@ export const getAnimals = async (req: Request, res: Response, next: NextFunction
     const query = queryParts.length > 0 ? { $and: queryParts } : {};
 
     const startIndex = (page - 1) * limit;
-    console.log("Mongoose collection:", Animal.collection.collectionName);
-    const animals = await Animal.find(query)
+    console.log('Mongoose collection:', Animal.collection.collectionName);
+    const effectiveQuery = includeAdopted
+      ? query
+      : { $and: [query, { status: { $ne: 'Adopterad' } }] };
+
+    const animals = await Animal.find(effectiveQuery)
       .sort({ createdAt: -1, _id: -1 })
       .skip(startIndex)
       .limit(limit);
-    console.log("Hittade dessa djur i databasen:", animals);
-    const totalAnimals = await Animal.countDocuments(query);
+    console.log('Hittade dessa djur i databasen:', animals);
+    const totalAnimals = await Animal.countDocuments(effectiveQuery);
     const totalPages = Math.ceil(totalAnimals / limit);
     res.json({
       animals,
@@ -216,7 +200,7 @@ export const getAnimalById = async (req: Request, res: Response, next: NextFunct
     const animal = await Animal.findById(req.params.id);
 
     if (!animal) {
-      throw new NotFoundError("Animal not found")
+      throw new NotFoundError('Animal not found');
     }
 
     res.json(animal);
@@ -231,30 +215,25 @@ export const deleteAnimal = async (req: AnimalRequest, res: Response, next: Next
     const existingAnimal = await Animal.findById(params.id);
 
     if (!existingAnimal) {
-      throw new NotFoundError("Animal not found");
+      throw new NotFoundError('Animal not found');
     }
 
     const requester = await resolveOrganizationName(req);
-    const owner = (existingAnimal as unknown as { organizationOwner?: string })
-      .organizationOwner;
+    const owner = (existingAnimal as unknown as { organizationOwner?: string }).organizationOwner;
 
     if (!requester || !owner || owner !== requester) {
-      throw new ForbiddenError(
-        "You can only delete animals your organization has uploaded"
-      );
+      throw new ForbiddenError('You can only delete animals your organization has uploaded');
     }
 
-    const animal = await Animal.findByIdAndDelete(params.id); 
+    const animal = await Animal.findByIdAndDelete(params.id);
 
     if (!animal) {
-      throw new NotFoundError("Animal not found");
+      throw new NotFoundError('Animal not found');
     }
 
-    await deleteAnimalImage(
-      (animal as unknown as { imagePublicId?: string }).imagePublicId,
-    );
+    await deleteAnimalImage((animal as unknown as { imagePublicId?: string }).imagePublicId);
 
-    res.json({ message: "Animal deleted successfully" });
+    res.json({ message: 'Animal deleted successfully' });
   } catch (err) {
     next(err);
   }
@@ -264,19 +243,15 @@ export const createAnimal = async (req: AnimalRequest, res: Response, next: Next
   try {
     const requester = await resolveOrganizationName(req);
     if (!requester) {
-      throw new ForbiddenError(
-        "Only organizations can upload animals"
-      );
+      throw new ForbiddenError('Only organizations can upload animals');
     }
-  
+
     const body = req.validatedBody as CreateAnimalInput;
 
     const hasImage = Boolean(req.file) || Boolean(body.image);
 
     if (!hasImage || !body.name || !body.type || !body.breed || !body.city) {
-      throw new ValidationError(
-        "Missing required fields"
-      );
+      throw new ValidationError('Missing required fields');
     }
 
     const uploadedImage = req.file ? await uploadAnimalImage(req.file) : null;
@@ -309,25 +284,19 @@ export const updateAnimal = async (req: AnimalRequest, res: Response, next: Next
   try {
     const requester = await resolveOrganizationName(req);
     if (!requester) {
-      throw new ForbiddenError(
-        "Only organizations can edit animals"
-      );
+      throw new ForbiddenError('Only organizations can edit animals');
     }
-    
 
     const existingAnimal = await Animal.findById(req.params.id);
 
     if (!existingAnimal) {
-      throw new NotFoundError("Animal not found");
+      throw new NotFoundError('Animal not found');
     }
 
-    const owner = (existingAnimal as unknown as { organizationOwner?: string })
-      .organizationOwner;
+    const owner = (existingAnimal as unknown as { organizationOwner?: string }).organizationOwner;
 
     if (!requester || !owner || owner !== requester) {
-      throw new ForbiddenError(
-        "You can only edit animals your organtzation has uploaded"
-      );
+      throw new ForbiddenError('You can only edit animals your organtzation has uploaded');
     }
 
     const { requester: _requester, ...restBody } = req.body as {
@@ -335,10 +304,10 @@ export const updateAnimal = async (req: AnimalRequest, res: Response, next: Next
       [key: string]: unknown;
     };
 
-   const body = req.validatedBody as UpdateAnimalInput;
+    const body = req.validatedBody as UpdateAnimalInput;
 
     const uploadedImage = req.file ? await uploadAnimalImage(req.file) : null;
-    const imagePath = uploadedImage?.url ?? restBody.image;
+    const imagePath = uploadedImage?.url ?? body.image ?? restBody.image;
 
     const payload = {
       ...body,
@@ -358,14 +327,10 @@ export const updateAnimal = async (req: AnimalRequest, res: Response, next: Next
       organizationOwner: owner,
     };
 
-    const updatedAnimal = await Animal.findByIdAndUpdate(
-      req.params.id,
-      payload,
-      {
-        new: true,
-        runValidators: true,
-      },
-    );
+    const updatedAnimal = await Animal.findByIdAndUpdate(req.params.id, payload, {
+      new: true,
+      runValidators: true,
+    });
 
     if (uploadedImage) {
       await deleteAnimalImage(
@@ -375,6 +340,6 @@ export const updateAnimal = async (req: AnimalRequest, res: Response, next: Next
 
     res.json(updatedAnimal);
   } catch (err) {
-    next(err)
+    next(err);
   }
 };

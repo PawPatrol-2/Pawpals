@@ -87,6 +87,7 @@ export const useOrganizationApplications = (_username?: string) => {
         }
 
         const response = await fetch('http://localhost:3000/api/applications/organization', {
+          cache: 'no-store',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -193,6 +194,31 @@ export const useOrganizationApplications = (_username?: string) => {
     }
   };
 
+  const deleteApplication = async (id: number | string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return false;
+      }
+
+      const response = await fetch(`http://localhost:3000/api/applications/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      setApplications((current) => current.filter((item) => item.id !== id));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const markApplicationNotificationAsRead = async (applicationId: string) => {
     try {
       const token = localStorage.getItem('token');
@@ -241,6 +267,7 @@ export const useOrganizationApplications = (_username?: string) => {
   return {
     applications,
     updateApplicationStatus,
+    deleteApplication,
     markApplicationNotificationAsRead,
     overviewStats,
     reviewCount,

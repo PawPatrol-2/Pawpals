@@ -1,4 +1,4 @@
-import { Fragment, useState, useMemo } from 'react';
+import { Fragment, useState, useMemo, type ChangeEvent } from 'react';
 import { applicationStatuses } from '../constants';
 import type { ApplicationItem, ApplicationStatus } from '../types';
 
@@ -11,6 +11,7 @@ type ApplicationsSectionProps = {
   };
   statusClassMap: Record<ApplicationStatus, string>;
   onUpdateStatus: (id: number | string, nextStatus: ApplicationStatus) => void;
+  onDeleteApplication: (id: number | string) => Promise<boolean>;
   onMarkNotificationRead: (applicationId: string) => void;
   styles: Record<string, string>;
 };
@@ -20,6 +21,7 @@ export default function ApplicationsSection({
   overviewStats,
   statusClassMap,
   onUpdateStatus,
+  onDeleteApplication,
   onMarkNotificationRead,
   styles,
 }: ApplicationsSectionProps) {
@@ -50,6 +52,18 @@ export default function ApplicationsSection({
     }
   };
 
+  const handleChangeStatus = (id: number | string, event: ChangeEvent<HTMLSelectElement>) => {
+    const nextStatus = event.target.value as ApplicationStatus;
+    if (nextStatus === 'Godkänd') {
+      const confirmed = window.confirm(
+        'Är du säker på att du vill godkänna denna adoption? Detta kommer markera djuret som adopterad.',
+      );
+      if (!confirmed) return;
+    }
+
+    onUpdateStatus(id, nextStatus);
+  };
+
   const handleContactApplicant = (application: ApplicationItem) => {
     if (!application.applicantEmail) {
       window.alert('Saknar e-postadress för den här ansökningen.');
@@ -62,6 +76,15 @@ export default function ApplicationsSection({
     );
 
     window.location.href = `mailto:${application.applicantEmail}?subject=${subject}&body=${body}`;
+  };
+
+  const handleDeleteApplication = async (id: number | string) => {
+    const confirmed = window.confirm('Godkänner du att ta bort denna ansökan?');
+    if (!confirmed) {
+      return;
+    }
+
+    await onDeleteApplication(id);
   };
 
   // Sortera: olästa först, sedan senaste först
@@ -133,9 +156,7 @@ export default function ApplicationsSection({
                     <td>
                       <select
                         value={application.status}
-                        onChange={(event) =>
-                          onUpdateStatus(application.id, event.target.value as ApplicationStatus)
-                        }
+                        onChange={(event) => handleChangeStatus(application.id, event)}
                         className={`${styles.statusSelect} ${statusClassMap[application.status]}`}
                       >
                         {applicationStatuses.map((status) => (
@@ -160,6 +181,15 @@ export default function ApplicationsSection({
                           onClick={() => handleContactApplicant(application)}
                         >
                           Kontakta
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.secondaryAction}
+                          onClick={() => handleDeleteApplication(application.id)}
+                          aria-label="Ta bort ansökan"
+                          title="Ta bort ansökan"
+                        >
+                          X
                         </button>
                       </div>
                     </td>
