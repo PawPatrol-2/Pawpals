@@ -271,7 +271,9 @@ export const createAnimal = async (req: AnimalRequest, res: Response, next: Next
   
     const body = req.validatedBody as CreateAnimalInput;
 
-    if (!body.image || !body.name || !body.type || !body.breed || !body.city) {
+    const hasImage = Boolean(req.file) || Boolean(body.image);
+
+    if (!hasImage || !body.name || !body.type || !body.breed || !body.city) {
       throw new ValidationError(
         "Missing required fields"
       );
