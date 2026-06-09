@@ -6,7 +6,8 @@ export const API_BASE_URL =
   configuredBase && configuredBase.length > 0
     ? configuredBase.replace(/\/+$/, "")
     : LOCAL_API_BASE;
-
+    console.log("API_BASE_URL =", API_BASE_URL);
+    console.log("VITE_API_BASE_URL =", import.meta.env.VITE_API_BASE_URL);
 export const replaceLocalhostBase = (url: string) => {
   if (!url.startsWith(LOCAL_API_BASE)) {
     return url;
