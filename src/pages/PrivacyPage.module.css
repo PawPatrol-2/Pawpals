@@ -1,0 +1,91 @@
+.page {
+  padding: clamp(2rem, 5vw, 4.5rem) 1.25rem;
+  background:
+    radial-gradient(circle at top right, rgba(232, 113, 58, 0.14), transparent 34rem),
+    var(--gray-50);
+}
+
+.content {
+  width: min(880px, 100%);
+  margin: 0 auto;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: var(--orange-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: var(--black);
+  font-size: clamp(2.2rem, 6vw, 4.5rem);
+  line-height: 0.98;
+}
+
+.intro {
+  max-width: 700px;
+  margin: 1.25rem 0 2.25rem;
+  color: var(--gray-700);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.5rem;
+  border: 1px solid var(--sand-dark);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 35px rgba(54, 40, 29, 0.07);
+}
+
+.card h2 {
+  margin: 0 0 0.75rem;
+  color: var(--black);
+  font-size: 1.2rem;
+}
+
+.card p,
+.card li {
+  color: var(--gray-700);
+  line-height: 1.65;
+}
+
+.card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.card a {
+  color: var(--orange-dark);
+  font-weight: 700;
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.updated {
+  margin: 1.5rem 0 0;
+  color: var(--gray-500);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wide {
+    grid-column: auto;
+  }
+}

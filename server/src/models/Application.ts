@@ -1,4 +1,8 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
+import {
+  decryptSensitiveValue,
+  encryptSensitiveValue,
+} from "../services/fieldEncryption";
 
 export type ApplicationStatus =
   | "pending"
@@ -13,17 +17,21 @@ export type ApplicationStatus =
 
 export interface IApplication extends Document {
   animalNameSnapshot?: string;
-  housingType: string;
-  housingSize: number;
-  hasAnimalExperience: boolean;
-  hasChildren: boolean;
-  hasAllergies: boolean;
-  allergyDetails: string;
-  motivation: string;
+  housingType?: string;
+  housingSize?: number;
+  hasAnimalExperience?: boolean;
+  hasChildren?: boolean;
+  hasAllergies?: boolean;
+  allergyDetails?: string;
+  motivation?: string;
   gdprConsent: boolean;
   status: ApplicationStatus;
   createdAt: Date;
-  userId: Types.ObjectId;
+  closedAt?: Date;
+  anonymizedAt?: Date;
+  anonymousApplicantId?: string;
+  anonymizationReason?: "retention-expired" | "account-deleted";
+  userId?: Types.ObjectId;
   animalId?: Types.ObjectId;
 }
 
@@ -34,11 +42,29 @@ const ApplicationSchema = new Schema<IApplication>({
   hasAnimalExperience: { type: Boolean, required: true },
   hasChildren: { type: Boolean, required: true },
   hasAllergies: { type: Boolean, required: true },
-  allergyDetails: { type: String, required: false },
-  motivation: { type: String, required: true },
+  allergyDetails: {
+    type: String,
+    required: false,
+    set: encryptSensitiveValue,
+    get: decryptSensitiveValue,
+  },
+  motivation: {
+    type: String,
+    required: true,
+    set: encryptSensitiveValue,
+    get: decryptSensitiveValue,
+  },
   gdprConsent: { type: Boolean, required: true },
   createdAt: { type: Date, default: Date.now },
-  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  closedAt: { type: Date, required: false },
+  anonymizedAt: { type: Date, required: false, index: true },
+  anonymousApplicantId: { type: String, required: false },
+  anonymizationReason: {
+    type: String,
+    enum: ["retention-expired", "account-deleted"],
+    required: false,
+  },
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
   animalId: { type: Schema.Types.ObjectId, ref: "Animal", required: false },
   status: {
     type: String,
@@ -55,6 +81,9 @@ const ApplicationSchema = new Schema<IApplication>({
     ],
     default: "pending",
   },
+}, {
+  toJSON: { getters: true },
+  toObject: { getters: true },
 });
 
 export default mongoose.model<IApplication>("Application", ApplicationSchema);

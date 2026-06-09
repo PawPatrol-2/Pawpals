@@ -14,7 +14,7 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
             return res.status(403).json({ message: "Endast admin har behörighet"});
             }
             next()
-    } catch(err) {
-        return res.status(401).json({ message: "Ogiltig token", err})
+    } catch {
+        return res.status(401).json({ message: "Ogiltig token"})
     }
 }

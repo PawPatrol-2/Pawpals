@@ -7,6 +7,7 @@ import authenticate from '../middleware/auth';
 import { requireAdmin } from '../middleware/admin';
 import { registerSchema, loginSchema, preferencesSchema } from '../schemas/userSchemas';
 import { validateRequest } from '../middleware/validate';
+import { deleteCurrentUserAccount } from '../controllers/accountPrivacyController';
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post('/create-admin', createAdminUser);
 router.post('/register', validateRequest({ body: registerSchema }), registerUser);
 router.post('/login', validateRequest({ body: loginSchema }), loginUser);
 router.get('/me', authenticate, getCurrentUser);
+router.delete('/me', authenticate, deleteCurrentUserAccount);
 router.get('/', requireAdmin, getAllUsers);
 router.delete('/:id', requireAdmin, deleteUser);
 router.put(
