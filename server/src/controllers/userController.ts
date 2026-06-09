@@ -85,8 +85,8 @@ export const updateUserPreferences = async (req: AuthenticatedRequest, res: Resp
     }
     logger.info({ userId }, 'User preferences updated')
     return res.status(200).json({ message: 'Preferenser sparade!', preferences: user.preferences });
-  } catch (error) {
-    logger.error({ err: error}, 'updateUserPreferences failed')
-    res.status(500).json({ message: 'Något gick fel', error });
+  } catch {
+    logger.error('updateUserPreferences failed')
+    res.status(500).json({ message: 'Något gick fel' });
   }
 };

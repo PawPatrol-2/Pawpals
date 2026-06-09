@@ -16,6 +16,7 @@ import {
   subscribeToFavorites,
   toggleFavoriteAnimal,
 } from "../utils/favorites";
+import { resolveAppUrl } from "../utils/apiBaseUrl";
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -116,7 +117,7 @@ export default function AnimalDetailPage() {
     }
 
     return animal.image.startsWith("/uploads/")
-      ? `http://localhost:3000${animal.image}`
+      ? resolveAppUrl(animal.image)
       : animal.image;
   }, [animal]);
 

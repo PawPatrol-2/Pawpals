@@ -1,4 +1,5 @@
 import type { AnimalFormState, AnimalItem } from "./types";
+import { API_BASE_URL } from "../../utils/apiBaseUrl";
 
 export const resolveImageUrl = (image: string) => {
   if (!image) {
@@ -6,14 +7,14 @@ export const resolveImageUrl = (image: string) => {
   }
 
   if (image.startsWith("/uploads/")) {
-    return `http://localhost:3000${image}`;
+    return `${API_BASE_URL}${image}`;
   }
 
   return image;
 };
 
 export const normalizeImageForApi = (image: string) => {
-  const prefix = "http://localhost:3000/uploads/";
+  const prefix = `${API_BASE_URL}/uploads/`;
 
   if (image.startsWith(prefix)) {
     return `/uploads/${image.slice(prefix.length)}`;

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { sortAnimalsNewestFirst } from '../../../utils/sortAnimalsNewestFirst';
+import { resolveAppUrl } from '../../../utils/apiBaseUrl';
 import { initialAnimalFormState } from '../constants';
 import type { AnimalFormState, AnimalItem } from '../types';
 import { buildEditDataFromAnimal, normalizeImageForApi, resolveImageUrl } from '../utils';
@@ -104,7 +105,7 @@ export const useOrganizationAnimals = (username?: string) => {
   useEffect(() => {
     const loadAnimals = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/animals?includeAdopted=true');
+        const response = await fetch(resolveAppUrl('/api/animals?includeAdopted=true'));
 
         if (!response.ok) {
           return;
@@ -279,7 +280,7 @@ export const useOrganizationAnimals = (username?: string) => {
 
       payload.append('imageFile', formData.imageFile);
 
-      const response = await fetch('http://localhost:3000/api/animals', {
+      const response = await fetch(resolveAppUrl('/api/animals'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -446,7 +447,7 @@ export const useOrganizationAnimals = (username?: string) => {
         payload.append('image', normalizeImageForApi(editData.imagePreview));
       }
 
-      const response = await fetch(`http://localhost:3000/api/animals/${selectedAnimal.mongoId}`, {
+      const response = await fetch(resolveAppUrl(`/api/animals/${selectedAnimal.mongoId}`), {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -549,7 +550,7 @@ export const useOrganizationAnimals = (username?: string) => {
         return false;
       }
 
-      const response = await fetch(`http://localhost:3000/api/animals/${selectedAnimal.mongoId}`, {
+      const response = await fetch(resolveAppUrl(`/api/animals/${selectedAnimal.mongoId}`), {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

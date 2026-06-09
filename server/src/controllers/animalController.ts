@@ -1,27 +1,10 @@
-<<<<<<< HEAD
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Animal } from '../models/animal';
 import Organization from '../models/Organisation';
 import type { AuthenticatedRequest } from '../middleware/auth';
 import { deleteAnimalImage, uploadAnimalImage } from '../services/cloudinaryService';
 import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from '../types/animal';
-=======
-import { NextFunction, Request, Response } from "express";
-import { Animal } from "../models/animal";
-import Organization from "../models/Organisation";
-import type { AuthenticatedRequest } from "../middleware/auth";
-import {
-  deleteAnimalImage,
-  uploadAnimalImage,
-} from "../services/cloudinaryService";
-import { CreateAnimalInput, UpdateAnimalInput, DeleteAnimalInput } from "../types/animal";
-import { ValidationError, 
-    UnauthorizedError,
-    ForbiddenError,
-    NotFoundError,
-    ConflictError
-} from "../errors/AppError"
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+import { ForbiddenError, NotFoundError, ValidationError } from '../errors/AppError';
 
 type AnimalRequest = AuthenticatedRequest & { file?: Express.Multer.File };
 
@@ -208,11 +191,7 @@ export const getAnimals = async (req: Request, res: Response, next: NextFunction
       pagination: { page, limit, totalPages, totalAnimals },
     });
   } catch (err) {
-<<<<<<< HEAD
-    res.status(500).json({ error: 'Failed to fetch animals', err });
-=======
     next(err);
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
   }
 };
 
@@ -221,20 +200,12 @@ export const getAnimalById = async (req: Request, res: Response, next: NextFunct
     const animal = await Animal.findById(req.params.id);
 
     if (!animal) {
-<<<<<<< HEAD
-      return res.status(404).json({ error: 'Animal not found' });
-=======
-      throw new NotFoundError("Animal not found")
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+      throw new NotFoundError('Animal not found');
     }
 
     res.json(animal);
   } catch (err) {
-<<<<<<< HEAD
-    res.status(500).json({ error: 'Failed to fetch animal', err });
-=======
     next(err);
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
   }
 };
 
@@ -244,45 +215,27 @@ export const deleteAnimal = async (req: AnimalRequest, res: Response, next: Next
     const existingAnimal = await Animal.findById(params.id);
 
     if (!existingAnimal) {
-<<<<<<< HEAD
-      return res.status(404).json({ error: 'Animal not found' });
-=======
-      throw new NotFoundError("Animal not found");
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+      throw new NotFoundError('Animal not found');
     }
 
     const requester = await resolveOrganizationName(req);
     const owner = (existingAnimal as unknown as { organizationOwner?: string }).organizationOwner;
 
     if (!requester || !owner || owner !== requester) {
-<<<<<<< HEAD
-      return res.status(403).json({
-        error: 'Du kan bara ta bort djur som din organisation har laddat upp.',
-      });
-=======
-      throw new ForbiddenError(
-        "You can only delete animals your organization has uploaded"
-      );
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+      throw new ForbiddenError('You can only delete animals your organization has uploaded');
     }
 
-    const animal = await Animal.findByIdAndDelete(params.id); 
+    const animal = await Animal.findByIdAndDelete(params.id);
 
     if (!animal) {
-      throw new NotFoundError("Animal not found");
+      throw new NotFoundError('Animal not found');
     }
 
-    await deleteAnimalImage(
-      (animal as unknown as { imagePublicId?: string }).imagePublicId,
-    );
+    await deleteAnimalImage((animal as unknown as { imagePublicId?: string }).imagePublicId);
 
     res.json({ message: 'Animal deleted successfully' });
   } catch (err) {
-<<<<<<< HEAD
-    res.status(500).json({ error: 'Failed to delete animal', err });
-=======
     next(err);
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
   }
 };
 
@@ -290,30 +243,15 @@ export const createAnimal = async (req: AnimalRequest, res: Response, next: Next
   try {
     const requester = await resolveOrganizationName(req);
     if (!requester) {
-<<<<<<< HEAD
-      return res.status(403).json({
-        error: 'Endast organisationer får lägga upp djur.',
-      });
-=======
-      throw new ForbiddenError(
-        "Only organizations can upload animals"
-      );
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+      throw new ForbiddenError('Only organizations can upload animals');
     }
-  
+
     const body = req.validatedBody as CreateAnimalInput;
 
-<<<<<<< HEAD
-    if ((!req.file && !body.image) || !body.name || !body.type || !body.breed || !body.city) {
-      return res.status(400).json({
-        error: 'Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.',
-      });
-=======
-    if (!body.image || !body.name || !body.type || !body.breed || !body.city) {
-      throw new ValidationError(
-        "Missing required fields"
-      );
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+    const hasImage = Boolean(req.file) || Boolean(body.image);
+
+    if (!hasImage || !body.name || !body.type || !body.breed || !body.city) {
+      throw new ValidationError('Missing required fields');
     }
 
     const uploadedImage = req.file ? await uploadAnimalImage(req.file) : null;
@@ -338,11 +276,7 @@ export const createAnimal = async (req: AnimalRequest, res: Response, next: Next
     const newAnimal = await Animal.create(payload);
     res.status(201).json(newAnimal);
   } catch (err) {
-<<<<<<< HEAD
-    res.status(400).json({ error: 'Failed to create animal', err });
-=======
     next(err);
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
   }
 };
 
@@ -350,40 +284,19 @@ export const updateAnimal = async (req: AnimalRequest, res: Response, next: Next
   try {
     const requester = await resolveOrganizationName(req);
     if (!requester) {
-<<<<<<< HEAD
-      return res.status(403).json({
-        error: 'Endast organisationer får redigera djur.',
-      });
-=======
-      throw new ForbiddenError(
-        "Only organizations can edit animals"
-      );
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+      throw new ForbiddenError('Only organizations can edit animals');
     }
-    
 
     const existingAnimal = await Animal.findById(req.params.id);
 
     if (!existingAnimal) {
-<<<<<<< HEAD
-      return res.status(404).json({ error: 'Animal not found' });
-=======
-      throw new NotFoundError("Animal not found");
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+      throw new NotFoundError('Animal not found');
     }
 
     const owner = (existingAnimal as unknown as { organizationOwner?: string }).organizationOwner;
 
     if (!requester || !owner || owner !== requester) {
-<<<<<<< HEAD
-      return res.status(403).json({
-        error: 'Du kan bara redigera djur som din organisation har laddat upp.',
-      });
-=======
-      throw new ForbiddenError(
-        "You can only edit animals your organtzation has uploaded"
-      );
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+      throw new ForbiddenError('You can only edit animals your organtzation has uploaded');
     }
 
     const { requester: _requester, ...restBody } = req.body as {
@@ -393,17 +306,8 @@ export const updateAnimal = async (req: AnimalRequest, res: Response, next: Next
 
     const body = req.validatedBody as UpdateAnimalInput;
 
-<<<<<<< HEAD
-    if (!body.image || !body.name || !body.type || !body.breed || !body.city) {
-      return res.status(400).json({
-        error: 'Obligatoriska fält saknas. Du måste ange bild, namn, typ, ras och stad.',
-      });
-    }
-
-=======
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
     const uploadedImage = req.file ? await uploadAnimalImage(req.file) : null;
-    const imagePath = uploadedImage?.url ?? restBody.image;
+    const imagePath = uploadedImage?.url ?? body.image ?? restBody.image;
 
     const payload = {
       ...body,
@@ -436,10 +340,6 @@ export const updateAnimal = async (req: AnimalRequest, res: Response, next: Next
 
     res.json(updatedAnimal);
   } catch (err) {
-<<<<<<< HEAD
-    res.status(400).json({ error: 'Failed to update animal', err });
-=======
-    next(err)
->>>>>>> 985bd6fe9ec3204c52186bf7cb5054078a280d24
+    next(err);
   }
 };
