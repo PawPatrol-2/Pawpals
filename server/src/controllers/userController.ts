@@ -57,6 +57,10 @@ export const updateUserPreferences = async (req: AuthenticatedRequest, res: Resp
       return res.status(401).json({ message: 'Saknar giltig token' });
     }
 
+       if (req.user?.role !== 'adopter') {
+      return res.status(403).json({ message: 'Endast adoptanter kan uppdatera preferenser.' });
+    }
+    
     const {
       preferredAnimalType,
       preferredMaxAge,

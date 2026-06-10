@@ -3,11 +3,13 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 
 type AuthTokenPayload = JwtPayload & {
   userId: string;
+  role?: string;
 };
 
 export type AuthenticatedRequest = Request & {
   user?: {
     userId: string;
+    role?: string;
   };
 };
 
@@ -37,7 +39,7 @@ const authenticate = (
       return res.status(401).json({ message: 'Ogiltig token' });
     }
 
-    req.user = { userId: decoded.userId };
+    req.user = { userId: decoded.userId, role: decoded.role };
     next();
   } catch (error) {
     if (error instanceof Error && error.message.includes('JWT_SECRET')) {

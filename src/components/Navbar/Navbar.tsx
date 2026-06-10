@@ -212,16 +212,18 @@ export default function Navbar() {
                   </div>
                   {avatarError && <p className="avatar-error">{avatarError}</p>}
                 </div>
+                {user.role === 'adopter' && (
                 <button
                   type="button"
                   className="navbar-dropdown-preferences"
                   onClick={() => {
                     setMenuOpen(false);
                     setPreferencesOpen(true);
-                  }}
+                }}
                 >
                   Uppdatera preferenser
                 </button>
+                )}
                 <DeleteAccountButton />
                 <button type="button" className="navbar-dropdown-logout" onClick={handleLogout}>
                   Logga ut

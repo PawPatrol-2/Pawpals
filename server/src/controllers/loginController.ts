@@ -25,9 +25,11 @@ export const loginUser = async (req: Request, res: Response) => {
         return res.status(401).json({ message: "Fel e-post eller lösenord" });
       }
 
-      const token = jwt.sign({ userId: user._id }, getJwtSecret(), {
-        expiresIn: "7d",
-      });
+      const token = jwt.sign(
+        { userId: user._id, role: user.role },
+        getJwtSecret(),
+        { expiresIn: "7d" }
+      );
 
       return res.status(200).json({
         message: "Inloggningen lyckades!",
@@ -48,9 +50,11 @@ export const loginUser = async (req: Request, res: Response) => {
         return res.status(401).json({ message: "Fel e-post eller lösenord" });
       }
 
-      const token = jwt.sign({ userId: organization._id }, getJwtSecret(), {
-        expiresIn: "7d",
-      });
+      const token = jwt.sign(
+        { userId: organization._id, role: organization.role },
+        getJwtSecret(),
+        { expiresIn: "7d" }
+      );
 
       return res.status(200).json({
         message: "Inloggningen lyckades!",
