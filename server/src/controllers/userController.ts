@@ -58,9 +58,9 @@ export const updateUserPreferences = async (req: AuthenticatedRequest, res: Resp
     }
 
        if (req.user?.role !== 'adopter') {
-      return res.status(403).json({ message: 'Endast adoptanter kan uppdatera preferenser.' });
+      return res.status(403).json({ message: 'Endast adoptörer kan uppdatera preferenser.' });
     }
-    
+
     const {
       preferredAnimalType,
       preferredMaxAge,
