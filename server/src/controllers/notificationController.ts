@@ -2,6 +2,7 @@ import { Response } from 'express';
 import type { AuthenticatedRequest } from '../middleware/auth';
 import { getNotificationSummary, markNotificationsAsRead } from '../services/notificationService';
 import type { NotificationType } from '../models/Notification';
+import type { MarkNotificationsAsReadInput } from '../schemas/notificationSchemas';
 
 export const getUnreadNotificationSummary = async (
   req: AuthenticatedRequest,
@@ -32,21 +33,11 @@ export const markUnreadNotificationsAsRead = async (
       return;
     }
 
-    const { type, applicationId } = req.body as {
-      type?: NotificationType;
-      applicationId?: string;
-    };
-    const validTypes: NotificationType[] = ['application-created', 'application-status-updated'];
+    // Här använder vi den validerade bodyn från Zod-kompletteringen ovan.
+    const { type, applicationId } = req.validatedBody as MarkNotificationsAsReadInput;
+    const normalizedType = type as NotificationType | undefined;
 
-    const normalizedType = validTypes.includes(type as NotificationType)
-      ? (type as NotificationType)
-      : undefined;
-
-    const updatedCount = await markNotificationsAsRead(
-      userId,
-      normalizedType,
-      typeof applicationId === 'string' && applicationId.trim() ? applicationId.trim() : undefined,
-    );
+    const updatedCount = await markNotificationsAsRead(userId, normalizedType, applicationId);
     const summary = await getNotificationSummary(userId);
 
     res.status(200).json({ updatedCount, summary });
