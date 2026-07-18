@@ -67,7 +67,7 @@ export const updateUserPreferences = async (req: AuthenticatedRequest, res: Resp
       preferredPersonality,
       housingType,
       preferredChildFriendly,
-    } = req.body as UserPreferences;
+    } = req.validatedBody as UserPreferences;
 
     const user = await User.findByIdAndUpdate(
       userId,
